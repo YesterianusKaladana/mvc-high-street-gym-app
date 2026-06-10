@@ -14,7 +14,7 @@ export class ApiSessionsController {
     this.routes.delete("/:id", this.deleteTrainerSessions);
   }
 
-    /**
+  /**
    * @type {express.RequestHandler}
    * @openapi
    * /api/sessions:
@@ -43,20 +43,17 @@ export class ApiSessionsController {
    *
    */
   static async getSessions(req, res) {
-   try{
-    const sessions = req.query.filter
-    ? await SessionActivityModel.getByUserId(req.query.filter)
-    : await SessionModel.getAll();
+    try {
+      const sessions = await SessionModel.getAll();
+      console.log("Sessions from DB:", sessions);
 
-    console.log(sessions);
-    res.status(200).json(sessions);
-
-   } catch(error){
-    console.error(error);
-    res.status(500).json({
-      message: "Failed to load sessions from database",
-    });
-   }
+      res.status(200).json(sessions);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        message: "Failed to load sessions from database",
+      });
+    }
   }
 
   static async getSessionsXML(req, res) {

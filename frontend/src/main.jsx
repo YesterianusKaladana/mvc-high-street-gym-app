@@ -10,6 +10,8 @@ import BlogView from './post/BlogView'
 import UserInformation from './user/UserInformation';
 import TrainerSession from './sessions/TrainerSession';
 import Timetable from './sessions/Timetable';
+import CreatePost from './post/CreatePost';
+import EditPost from './post/EditPost';
 
 const router = createBrowserRouter([
   {
@@ -30,6 +32,14 @@ const router = createBrowserRouter([
       {
         path: "/BlogView",
         Component: BlogView
+      },
+      {
+        path: "/create",
+        Component: CreatePost
+      },
+      {
+        path: "/edit/:id",
+        Component: EditPost
       },
       {
         path: "/update", 

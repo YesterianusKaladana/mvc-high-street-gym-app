@@ -1,21 +1,22 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { IoMdCreate } from "react-icons/io";
 import { fetchAPI } from "../api.mjs";
 
 function BlogView() {
     const navigate = useNavigate();
+    const location = useLocation();
+
     const [blogs, setBlogs] = useState([]);
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-
+    const loadPosts = () => {
         const authKey = localStorage.getItem("authKey");
 
-        fetchAPI("GET","/post/", null, authKey)
-        .then((res) => {
-            const data = res.body;
+        fetchAPI("GET", "/post/", null, authKey)
+            .then((res) => {
+                const data = res.body;
                 setBlogs(data);
                 setError(data.length ? null : "No blog posts found.");
                 setIsLoading(false);
@@ -24,49 +25,41 @@ function BlogView() {
                 setError(err.message || "Failed to fetch blog posts.");
                 setIsLoading(false);
             });
-    }, []);
+    };
+
+    useEffect(() => {
+        loadPosts();
+    }, [location.key]); // refresh when coming back
 
     return (
-        <section className="flex flex-col items-center p-6 min-h-screen bg-base-200">
-            <div className="w-full max-w-4xl flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
-                <h2 className="text-3xl font-bold text-center sm:text-left w-full sm:w-auto">Blog Posts</h2>
+        <section className="flex flex-col items-center p-6 min-h-screen bg-b-200">
+            <div className="w-full max-w-4xl flex justify-between mb-6">
+                <h2 className="text-3xl font-bold">Blog Posts</h2>
+
                 <button
                     onClick={() => navigate("/create")}
                     className="btn btn-success text-white flex items-center gap-2"
                 >
-                    <IoMdCreate className="text-xl" />
+                    <IoMdCreate />
                     Create
                 </button>
             </div>
 
             {isLoading ? (
-                <span className="loading loading-spinner loading-lg my-10"></span>
+                <span className="loading loading-spinner loading-lg"></span>
             ) : error ? (
-                <span className="text-red-500 text-lg">{error}</span>
+                <p className="text-red-500">{error}</p>
             ) : (
                 <ul className="w-full max-w-4xl space-y-4">
                     {blogs.map((post) => (
-                        <li
-                            key={post.id}
-                            className="bg-white rounded-xl shadow-md p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center"
-                        >
-                            <div className="flex-1">
-                                <h3 className="text-xl font-semibold mb-1">{post.title}</h3>
-                                {post.author && (
-                                    <p className="text-sm text-gray-500">By {post.author}</p>
-                                )}
-                                {post.date && (
-                                    <p className="text-xs text-gray-400">
-                                        {new Date(post.date).toLocaleDateString()}
-                                    </p>
-                                )}
-                                <p className="text-gray-700 text-sm mt-2 line-clamp-2">
-                                    {post.content}
-                                </p>
-                            </div>
+                        <li key={post.id} className="p-4 bg-blue rounded-xl shadow">
+                            <h3 className="text-xl font-bold">{post.title}</h3>
+                            <p className="text-sm text-gray-500">{post.date}</p>
+                            <p className="mt-2">{post.content}</p>
                             <button
-                                onClick={() => navigate("/create", { state: { blog: post } })}
-                                className="btn btn-outline btn-success mt-4 sm:mt-0 sm:ml-4"
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={() => navigate(`/edit/${post.id}`)}
                             >
                                 Edit
                             </button>

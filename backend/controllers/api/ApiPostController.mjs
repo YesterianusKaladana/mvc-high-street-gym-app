@@ -108,7 +108,9 @@ export class ApiPostController {
    */
   static async createPost(req, res) {
     if (!req.authenticatedUser) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ 
+        message: "Unauthorized",
+      });
     }
 
     const post = new PostModel(
