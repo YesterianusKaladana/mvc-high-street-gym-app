@@ -9,6 +9,7 @@ import Register from './authentication/Register'
 import BlogView from './post/BlogView'
 import UserInformation from './user/UserInformation';
 import TrainerSession from './sessions/TrainerSession';
+import Timetable from './sessions/Timetable';
 
 const router = createBrowserRouter([
   {
@@ -16,7 +17,11 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        Component: LoginView,
+        Component: Timetable,
+      },
+      {
+        path: "/LoginView",
+        Component: LoginView
       },
       {
         path: "/register",
