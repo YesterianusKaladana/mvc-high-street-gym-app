@@ -10,7 +10,6 @@ components:
         - date
         - start_time
         - end_time
-        - deleted
       properties:
         id:
           type: number
@@ -36,9 +35,6 @@ components:
           type: string
           example: "16:00"
           description: "HH:mm format"
-        deleted:
-          type: boolean
-          example: false
 
     UserCredentials:
       type: object

@@ -64,14 +64,30 @@ function Timetable() {
         <ul className="list self-stretch">
           {sessions.map((session) => (
             <li key={session.id} className="list-row">
-              <div>
-                <div>{session.user_id}</div>
-                <div>{session.location_id}</div>
-                <div>{session.activity_id}</div>
-                <div>{session.date}</div>
-                <div>{session.start_time}</div>
-                <div>{session.end_time}</div>
-              </div>
+               <div>
+                    <div>
+                    Trainer: {session.first_name} {session.last_name}
+                    </div>
+
+                    <div>
+                    Location: {session.location_name}
+                    </div>
+
+                    <div>
+                    Activity: {session.activity_name}
+                    </div>
+                    <div>
+                    Date: {session.date}
+                    </div>
+                    <div>
+                    Start Time: {session.start_time}
+                    </div>
+                    <div>
+                    End Time: {session.end_time}
+                    </div>
+
+                </div>
+
               <button
                 onClick={() => navigate("/sessions/" + session.id)}
                 className="btn btn-ghost text-xl"

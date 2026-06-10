@@ -6,7 +6,7 @@ import { CgGym } from "react-icons/cg";
 import { FaBlog } from "react-icons/fa";
 import { MdOutlinePreview } from "react-icons/md";
 import { FaRegCalendarAlt } from "react-icons/fa";
-import useAuthenticate from "../authentication/UseAuthenticate";
+import {useAuthenticate} from "../authentication/UseAuthenticate";
 
 function Layout() {
   const navigate = useNavigate();
@@ -35,14 +35,14 @@ function Layout() {
       visible: true, // Visible to guests, members, and trainers
     },
     {
-      // FIX: Changed from "/Sessions" to "/sessionTrainer" to match main.jsx exactly
+      
       path: "/sessionTrainer", 
       icon: <MdOutlinePreview />,
       label: "Sessions",
       visible: user && user.role === "trainer",
     },
     {
-      // FIX: Changed from "/update" to "/update" (Ensure this matches your main.jsx profile endpoint)
+      
       path: "/update",
       icon: <CiUser />,
       label: "Profile",

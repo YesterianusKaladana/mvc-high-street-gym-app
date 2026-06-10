@@ -73,7 +73,7 @@ export class ApiController {
     this.routes.use(ApiAuthenticationController.routes);
 
     // Mount Resources Endpoints
-    this.routes.use("/session", ApiSessionsController.routes);
+    this.routes.use("/sessions", ApiSessionsController.routes);
     this.routes.use("/post", ApiPostController.routes);
     this.routes.use("/user", ApiUserController.routes);
   }

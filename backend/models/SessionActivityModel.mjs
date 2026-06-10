@@ -166,7 +166,8 @@ export class SessionActivityModel extends DatabaseModel {
         row.activity_id,
         row.date,
         row.start_time?.substring(0, 5) || "",
-        row.end_time?.substring(0, 5) || ""
+        row.end_time?.substring(0, 5) || "",
+        
       ),
 
       user: {
