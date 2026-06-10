@@ -13,7 +13,7 @@ function BlogView() {
 
         const authKey = localStorage.getItem("authKey");
 
-        fetchAPI("GET","/api/post/", null, authKey)
+        fetchAPI("GET","/post/", null, authKey)
         .then((res) => {
             const data = res.body;
                 setBlogs(data);

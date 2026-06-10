@@ -59,7 +59,9 @@ function Timetable() {
       </div>
       {error && <span className="p-4">{error}</span>}
       {!error && sessions.length == 0 ? (
-        <span className="loading loading-spinner loading-xl"></span>
+        <span className="loading loading-spinner loading-xl">
+          Loading sessions...
+        </span>
       ) : (
         <ul className="list self-stretch">
           {sessions.map((session) => (

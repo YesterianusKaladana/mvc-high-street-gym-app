@@ -8,7 +8,7 @@ export class ApiPostController {
   static {
     this.routes.use(ApiAuthenticationController.middleware);
 
-    this.routes.get("/", this.viewAllPosts);
+    this.routes.get("/", this.getPosts);
 
     this.routes.post(
       "/",
@@ -52,22 +52,18 @@ export class ApiPostController {
    *               items:
    *                 $ref: "#/components/schemas/Post"
    */
-  static async viewAllPosts(req, res) {
-    const posts = await PostModel.getAll();
+  static async getPosts(req, res) {
+    try{
+      const posts = await PostModel.getAll();
+      console.log("Posts from DB:", posts);
+      return res.status(200).json(posts)
 
-    console.log("Posts from DB:", posts);
-
-    return res.status(200).json(
-      posts.map((post) => ({
-        id: Number(post.id),
-        user_id: Number(post.user_id),
-        title: post.title,
-        content: post.content,
-        date: post.date
-          ? new Date(post.date).toISOString().split("T")[0]
-          : null,
-      })),
-    );
+    } catch(error){
+      console.error(error);
+      return res.status(500).json({
+        message: "Failed to load posts from database",
+      });
+    }
   }
 
   /**
