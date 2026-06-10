@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <%- include("partials/head.ejs") %>
+  <title>Confirm Booking | HSG</title>
+</head>
+
+<body class="bg-black-50 text-white-900">
+
+<main class="max-w-3xl mx-auto p-6">
+
+  <!-- CARD -->
+  <div class="bg-blue-300 border border-gray-200 shadow-sm rounded-xl p-6">
+
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">
+      📌 Confirm Your Booking
+    </h1>
+
+    <p class="text-gray-600 mb-6">
+      Please review the session details before confirming.
+    </p>
+
+    <% if (!session) { %>
+
+      <p class="text-red-500 font-medium">
+        Session not found.
+      </p>
+
+    <% } else { %>
+
+      <%
+        const s = session;
+        const activity = s.activity || {};
+        const location = s.location || {};
+        const trainer = s.user || {};
+      %>
+
+      <!-- DETAILS CARD -->
+      <div class="space-y-5">
+
+        <div class="p-4 rounded-lg border border-gray-200 bg-gray-50">
+          <p class="text-sm text-gray-500">Activity</p>
+          <p class="font-semibold text-gray-900"><%= activity.name || "N/A" %></p>
+        </div>
+
+        <div class="p-4 rounded-lg border border-gray-200 bg-gray-50">
+          <p class="text-sm text-gray-500">Location</p>
+          <p class="font-semibold text-gray-900">📍 <%= location.name || "N/A" %></p>
+        </div>
+
+        <div class="p-4 rounded-lg border border-gray-200 bg-gray-50">
+          <p class="text-sm text-gray-500">Date</p>
+          <p class="font-semibold text-gray-900">
+            📅 <%= new Date(s.session.date).toLocaleDateString("en-AU") %>
+          </p>
+        </div>
+
+        <div class="p-4 rounded-lg border border-gray-200 bg-gray-50">
+          <p class="text-sm text-gray-500">Time</p>
+          <p class="font-semibold text-gray-900">
+            🕒 <%= s.session.start_time || "" %> - <%= s.session.end_time || "" %>
+          </p>
+        </div>
+
+        <div class="p-4 rounded-lg border border-gray-200 bg-gray-50">
+          <p class="text-sm text-gray-500">Trainer</p>
+          <p class="font-semibold text-gray-900">
+            👤 <%= trainer.firstName || "" %> <%= trainer.lastName || "" %>
+          </p>
+        </div>
+
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="mt-6 flex gap-3">
+
+        <!-- CONFIRM -->
+        <form method="POST" action="/booking/member">
+          <input type="hidden" name="sessionId" value="<%= Number(s.session.id) %>">
+
+          <button
+            class="px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">
+            Confirm Booking
+          </button>
+        </form>
+
+        <!-- CANCEL -->
+        <a href="/session/member/view"
+           class="px-5 py-2.5 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-200 transition font-medium">
+          Cancel
+        </a>
+
+      </div>
+
+    <% } %>
+
+  </div>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include("partials/head.ejs") %>
+    <title>HSG - Dashboard</title>
+  </head>
+
+  <body class="bg-black-100 min-h-screen">
+
+    <!-- NAVBAR -->
+    <%- include("partials/admin_nav.ejs") %>
+
+    <!-- MAIN -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+
+      <!-- WELCOME CARD -->
+      <section class="bg-white shadow-md rounded-2xl p-6 mb-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+          <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">
+              Welcome back, <%= user.firstName %> 👋
+            </h1>
+
+            <p class="text-gray-500 mt-1 text-sm md:text-base">
+              You are logged in as
+              <span class="font-semibold capitalize text-gray-700">
+                <%= user.role %>
+              </span>
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ROLE DESCRIPTION -->
+      <section class="bg-white shadow-sm rounded-2xl p-6 mb-6">
+
+        <% if (user.role === "admin") { %>
+          <h2 class="text-xl font-bold text-gray-800 mb-2">Administrator Access</h2>
+          <p class="text-gray-600">
+            You have full control over the system. You can manage users, sessions,
+            bookings, locations, activities, and posts. This role is responsible
+            for maintaining platform integrity and overseeing all operations.
+          </p>
+
+        <% } else if (user.role === "trainer") { %>
+          <h2 class="text-xl font-bold text-gray-800 mb-2">Trainer Dashboard</h2>
+          <p class="text-gray-600">
+            You can manage your training sessions, view your bookings, and create
+            posts for members. This area helps you organize your coaching activities
+            and track your scheduled sessions.
+          </p>
+
+        <% } else if (user.role === "member") { %>
+          <h2 class="text-xl font-bold text-gray-800 mb-2">Member Dashboard</h2>
+          <p class="text-gray-600">
+            You can view available training sessions, make bookings, and read or
+            create blog posts. This dashboard helps you stay active and connected
+            with the fitness community.
+          </p>
+        <% } %>
+
+      </section>
+
+      <!-- INFO SECTION -->
+      <section class="bg-white shadow-sm rounded-2xl p-6">
+
+        <h2 class="text-xl font-bold text-gray-800 mb-2">Quick Overview</h2>
+
+        <p class="text-gray-600 leading-relaxed">
+          Use the navigation menu above to access modules based on your role.
+          Each section is tailored to your permissions and responsibilities.
+        </p>
+
+        <!-- ROLE-BASED HIGHLIGHTS -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+
+          <% if (user.role === "admin") { %>
+
+            <div class="p-4 bg-gray-50 rounded-xl border">
+              <h3 class="font-semibold">User Control</h3>
+              <p class="text-sm text-gray-500 mt-1">Manage all system users</p>
+            </div>
+
+            <div class="p-4 bg-gray-50 rounded-xl border">
+              <h3 class="font-semibold">System Sessions</h3>
+              <p class="text-sm text-gray-500 mt-1">Control all training sessions</p>
+            </div>
+
+            <div class="p-4 bg-gray-50 rounded-xl border">
+              <h3 class="font-semibold">Full Analytics</h3>
+              <p class="text-sm text-gray-500 mt-1">Monitor bookings & activity</p>
+            </div>
+
+          <% } else if (user.role === "trainer") { %>
+
+            <div class="p-4 bg-gray-50 rounded-xl border">
+              <h3 class="font-semibold">My Sessions</h3>
+              <p class="text-sm text-gray-500 mt-1">Manage your training schedule</p>
+            </div>
+
+            <div class="p-4 bg-gray-50 rounded-xl border">
+              <h3 class="font-semibold">Member Bookings</h3>
+              <p class="text-sm text-gray-500 mt-1">Track your attendees</p>
+            </div>
+
+            <div class="p-4 bg-gray-50 rounded-xl border">
+              <h3 class="font-semibold">Content Posts</h3>
+              <p class="text-sm text-gray-500 mt-1">Share updates with members</p>
+            </div>
+
+          <% } else if (user.role === "member") { %>
+
+            <div class="p-4 bg-gray-50 rounded-xl border">
+              <h3 class="font-semibold">Browse Sessions</h3>
+              <p class="text-sm text-gray-500 mt-1">Find available training sessions</p>
+            </div>
+
+            <div class="p-4 bg-gray-50 rounded-xl border">
+              <h3 class="font-semibold">My Bookings</h3>
+              <p class="text-sm text-gray-500 mt-1">Track your scheduled sessions</p>
+            </div>
+
+            <div class="p-4 bg-gray-50 rounded-xl border">
+              <h3 class="font-semibold">Community Posts</h3>
+              <p class="text-sm text-gray-500 mt-1">Engage with fitness content</p>
+            </div>
+
+          <% } %>
+
+        </div>
+
+      </section>
+
+      <!-- FOOTER -->
+      <div class="mt-10">
+        <%- include("partials/footer.ejs") %>
+      </div>
+
+    </main>
+  </body>
+</html>

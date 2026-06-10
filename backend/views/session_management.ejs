@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <%- include("partials/head.ejs") %>
+  <title>HSG - Session Management</title>
+</head>
+
+<body class="bg-gray-50 text-gray-900">
+
+<main class="max-w-7xl mx-auto p-6">
+
+  <!-- HEADER -->
+  <h1 class="text-3xl font-bold mb-2">Session Management</h1>
+  <p class="text-gray-600 mb-6">Create, edit, and manage sessions</p>
+
+  <!-- BACK BUTTON -->
+  <a href="/authenticate/dashboard"
+     class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition mb-6 font-medium">
+    ← Back to Dashboard
+  </a>
+
+  <!-- GRID -->
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- ================= SESSION LIST ================= -->
+    <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-5 overflow-x-auto">
+
+      <h2 class="text-xl font-bold mb-4">Sessions</h2>
+
+      <!-- HEADER ROW -->
+      <div class="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_auto] text-sm font-semibold text-gray-500 border-b border-gray-200 pb-2 mb-2">
+        <span>Trainer</span>
+        <span>Location</span>
+        <span>Activity</span>
+        <span>Date</span>
+        <span>Start Time</span>
+        <span>End Time </span>
+        <span class="text-right">Action</span>
+      </div>
+
+      <!-- LIST -->
+      <% for (const s of sessions) { %>
+
+        <div class="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_auto] py-3 border-b border-gray-200 hover:bg-blue-50 transition items-center">
+
+          <span class="text-gray-700 font-medium">
+            <%= s.user.firstName %> <%= s.user.lastName %>
+          </span>
+
+          <span class="text-gray-600">
+            <%= s.location.name %>
+          </span>
+
+          <span class="text-gray-600">
+            <%= s.activity.name %>
+          </span>
+
+          <span class="text-gray-700">
+            <%= s.session.date %>
+          </span>
+
+          <span class="text-gray-700">
+            <%= s.session.start_time %>
+          </span>
+
+          <span class="text-gray-700">
+            <%= s.session.end_time %>
+          </span>
+
+          <span class="text-right">
+            <a href="/session?edit_id=<%= s.session.id %>"
+               class="text-blue-600 hover:underline font-medium">
+              Edit
+            </a>
+          </span>
+
+        </div>
+
+      <% } %>
+
+    </div>
+
+    <!-- ================= FORM ================= -->
+    <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-6">
+
+      <% const isEdit = selectedSession?.session?.id; %>
+
+      <h2 class="text-xl font-bold mb-4">
+        <%= isEdit ? "Edit Session" : "Create Session" %>
+      </h2>
+
+      <form action="/session" method="post" class="space-y-4">
+
+        <!-- SESSION ID -->
+        <input type="hidden"
+               name="session_id"
+               value="<%= selectedSession?.session?.id || '' %>">
+
+        <!-- USER (TRAINER) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Trainer</label>
+          <select name="user_id" required
+                  class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500">
+
+            <option value="">Select Trainer</option>
+
+            <% users.forEach(u => { %>
+              <option value="<%= u.id %>"
+                <%= selectedSession?.session?.user_id === u.id ? "selected" : "" %>>
+                <%= u.firstName %> <%= u.lastName %>
+              </option>
+            <% }) %>
+
+          </select>
+        </div>
+
+        <!-- LOCATION -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Location</label>
+          <select name="location_id" required
+                  class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500">
+
+            <option value="">Select Location</option>
+
+            <% locations.forEach(l => { %>
+              <option value="<%= l.id %>"
+                <%= selectedSession?.session?.location_id === l.id ? "selected" : "" %>>
+                <%= l.name %>
+              </option>
+            <% }) %>
+
+          </select>
+        </div>
+
+        <!-- ACTIVITY -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Activity</label>
+          <select name="activity_id" required
+                  class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500">
+
+            <option value="">Select Activity</option>
+
+            <% activities.forEach(a => { %>
+              <option value="<%= a.id %>"
+                <%= selectedSession?.session?.activity_id === a.id ? "selected" : "" %>>
+                <%= a.name %>
+              </option>
+            <% }) %>
+
+          </select>
+        </div>
+
+        <!-- DATE -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Date</label>
+          <input type="date" name="date" required
+                 value="<%= selectedSession?.session?.date || '' %>"
+                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- START TIME -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Start Time</label>
+          <input type="time" name="start_time" required
+                 value="<%= selectedSession?.session?.start_time || '' %>"
+                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- END TIME -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">End Time</label>
+          <input type="time" name="end_time" required
+                 value="<%= selectedSession?.session?.end_time || '' %>"
+                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- BUTTONS -->
+        <div class="flex gap-3 pt-2">
+
+          <button type="reset"
+                  class="px-4 py-2.5 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-200 transition font-medium">
+            Clear
+          </button>
+
+          <% if (!isEdit) { %>
+
+            <button type="submit" name="action" value="create"
+                    class="px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">
+              Create
+            </button>
+
+          <% } else { %>
+
+            <button type="submit" name="action" value="update"
+                    class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+              Update
+            </button>
+
+            <button type="submit" name="action" value="delete"
+                    class="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium">
+              Delete
+            </button>
+
+          <% } %>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </section>
+
+  <%- include("partials/footer.ejs") %>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <%- include("partials/head.ejs") %>
+  <title>HSG - User Management</title>
+</head>
+
+<body class="bg-gray-50 text-gray-900">
+
+<main class="max-w-7xl mx-auto p-6">
+
+  <!-- HEADER -->
+  <h1 class="text-3xl font-bold mb-2">User Management</h1>
+  <p class="text-gray-600 mb-6">Create, edit, and manage users</p>
+
+  <!-- BACK BUTTON -->
+  <a href="/authenticate/dashboard"
+     class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition mb-6 font-medium">
+    ← Back to Dashboard
+  </a>
+
+  <!-- GRID -->
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- ================= USER LIST ================= -->
+    <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-5 overflow-x-auto">
+
+      <h2 class="text-xl font-bold mb-4">Users</h2>
+
+      <!-- SEARCH + FILTER -->
+      <form method="GET" action="/user" class="mb-4 flex flex-col sm:flex-row gap-2">
+
+        <input type="text"
+               name="search"
+               placeholder="Search by name or email"
+               value="<%= search || '' %>"
+               class="w-full border border-gray-300 p-2.5 rounded-lg
+               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+
+        <select name="role"
+                class="w-full sm:w-40 border border-gray-300 p-2.5 rounded-lg
+                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+
+          <option value="">All Roles</option>
+          <option value="admin" <%= roleFilter === "admin" ? "selected" : "" %>>Admin</option>
+          <option value="trainer" <%= roleFilter === "trainer" ? "selected" : "" %>>Trainer</option>
+          <option value="member" <%= roleFilter === "member" ? "selected" : "" %>>Member</option>
+        </select>
+
+        <button type="submit"
+                class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+          Search
+        </button>
+
+        <a href="/user"
+           class="px-4 py-2.5 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-200 transition font-medium text-center">
+          Clear
+        </a>
+
+      </form>
+
+      <!-- HEADER ROW -->
+      <div class="grid grid-cols-[2fr_1fr_3fr_auto] text-sm font-semibold text-gray-500 border-b border-gray-200 pb-2 mb-2">
+        <span>Name</span>
+        <span>Role</span>
+        <span>Email</span>
+        <span class="text-right">Action</span>
+      </div>
+
+      <!-- LIST -->
+      <% for (const user of users) { %>
+        <div class="grid grid-cols-[2fr_1fr_3fr_auto] py-3 border-b border-gray-200 hover:bg-blue-50 transition">
+
+          <!-- NAME -->
+          <span class="font-medium">
+            <%= user.firstName %> <%= user.lastName %>
+          </span>
+
+          <!-- ROLE -->
+          <span>
+            <span class="px-2 py-1 text-xs rounded-full
+              <%= user.role === 'admin' ? 'bg-red-100 text-red-600' : '' %>
+              <%= user.role === 'trainer' ? 'bg-green-100 text-green-600' : '' %>
+              <%= user.role === 'member' ? 'bg-purple-100 text-purple-600' : '' %>
+            ">
+              <%= user.role %>
+            </span>
+          </span>
+
+          <!-- EMAIL -->
+          <span class="text-gray-600">
+            <%= user.email %>
+          </span>
+
+          <!-- ACTION -->
+          <span class="text-right">
+            <a href="/user/<%= user.id %>"
+               class="text-blue-600 hover:underline font-medium">
+              Edit
+            </a>
+          </span>
+
+        </div>
+      <% } %>
+
+    </div>
+
+    <!-- ================= FORM ================= -->
+    <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-6">
+
+      <h2 class="text-xl font-bold mb-4">
+        <%= selectedUser.id ? "Edit User" : "Create User" %>
+      </h2>
+
+      <form action="/user/<%= selectedUser.id || '' %>" method="post" class="space-y-4">
+
+        <!-- FIRST NAME -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">First Name</label>
+          <input type="text" name="firstName" required
+                 value="<%= selectedUser.firstName || '' %>"
+                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+        </div>
+
+        <!-- LAST NAME -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Last Name</label>
+          <input type="text" name="lastName" required
+                 value="<%= selectedUser.lastName || '' %>"
+                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+        </div>
+
+        <!-- ROLE -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Role</label>
+          <select name="role"
+                  class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+
+            <option value="admin" <%= selectedUser.role == "admin" ? "selected" : "" %>>Admin</option>
+            <option value="member" <%= selectedUser.role == "member" ? "selected" : "" %>>Member</option>
+            <option value="trainer" <%= selectedUser.role == "trainer" ? "selected" : "" %>>Trainer</option>
+
+          </select>
+        </div>
+
+        <!-- EMAIL -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Email</label>
+          <input type="email" name="email" required
+                 value="<%= selectedUser.email || '' %>"
+                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+        </div>
+
+        <!-- PASSWORD -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Password</label>
+          <input type="password" name="password" required minlength="6"
+                 value="<%= selectedUser.password || '' %>"
+                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+        </div>
+
+        <!-- BUTTONS -->
+        <div class="flex gap-3 pt-2">
+
+          <button type="reset"
+                  class="px-4 py-2.5 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-200 transition font-medium">
+            Clear
+          </button>
+
+          <% if (!selectedUser.id) { %>
+
+            <button type="submit" name="action" value="create"
+                    class="px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">
+              Create
+            </button>
+
+          <% } else { %>
+
+            <button type="submit" name="action" value="update"
+                    class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+              Update
+            </button>
+
+            <button type="submit" name="action" value="delete"
+                    class="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium">
+              Delete
+            </button>
+
+          <% } %>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </section>
+
+  <%- include("partials/footer.ejs") %>
+
+</main>
+
+</body>
+</html>

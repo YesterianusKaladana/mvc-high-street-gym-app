@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <%- include("partials/head.ejs") %>
+  <title>HSG - Booking Management</title>
+</head>
+
+<body class="bg-gray-50 text-gray-900">
+
+<main class="max-w-7xl mx-auto p-6">
+
+  <!-- HEADER -->
+  <h1 class="text-3xl font-bold mb-2">Booking Management</h1>
+  <p class="text-gray-600 mb-6">Create and manage bookings</p>
+
+  <!-- BACK -->
+  <a href="/authenticate/dashboard"
+     class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 mb-6">
+    ← Back to Dashboard
+  </a>
+
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- ================= BOOKING LIST ================= -->
+    <div class="bg-white border rounded-xl p-5 shadow-sm">
+
+      <h2 class="text-xl font-bold mb-4">Bookings</h2>
+
+      <% if (bookings && bookings.length > 0) { %>
+
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b text-left text-gray-500">
+              <th class="py-2">Member</th>
+              <th class="py-2">Trainer</th>
+              <th class="py-2">Activity</th>
+              <th class="py-2">Location</th>
+              <th class="py-2">Time</th>
+              <th class="py-2">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <% bookings.forEach(b => { %>
+              <tr class="border-b hover:bg-blue-50">
+
+                <!-- MEMBER -->
+                <td class="py-3">
+                  <%= b.user?.firstName || "-" %>
+                  <%= b.user?.lastName || "" %>
+                </td>
+
+                <!-- TRAINER -->
+                <td class="py-3">
+                  <%= b.session?.user?.firstName || "-" %>
+                  <%= b.session?.user?.lastName || "" %>
+                </td>
+
+                <!-- ACTIVITY -->
+                <td class="py-3">
+                  <%= b.session?.activity?.name || "-" %>
+                </td>
+
+                <!-- LOCATION -->
+                <td class="py-3">
+                  <%= b.session?.location?.name || "-" %>
+                </td>
+
+                <!-- TIME -->
+                <td class="py-3">
+                  <%= b.session?.session?.start_time || "-" %>
+                </td>
+
+                <!-- ACTIONS -->
+                <td class="py-3 flex gap-2">
+
+                  <a href="/booking?edit=<%= b.id %>"
+                     class="text-blue-600 hover:underline">
+                    Edit
+                  </a>
+
+                  <form action="/booking" method="post">
+                    <input type="hidden" name="id" value="<%= b.id %>">
+                    <input type="hidden" name="action" value="delete">
+
+                    <button class="text-red-600 hover:underline">
+                      Delete
+                    </button>
+                  </form>
+
+                </td>
+
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+
+      <% } else { %>
+        <p class="text-gray-500">No bookings found.</p>
+      <% } %>
+
+    </div>
+
+    <!-- ================= FORM ================= -->
+    <div class="bg-white border rounded-xl p-6 shadow-sm">
+
+      <h2 class="text-xl font-bold mb-4">
+        <%= selectedBooking ? "Edit Booking" : "Create Booking" %>
+      </h2>
+
+      <form action="/booking" method="post" class="space-y-4">
+
+        <!-- ID -->
+        <input type="hidden" name="id" value="<%= selectedBooking?.id || '' %>">
+
+        <!-- ACTION -->
+        <input type="hidden" name="action"
+               value="<%= selectedBooking ? 'update' : 'create' %>">
+
+        <!-- MEMBER -->
+        <div>
+          <label class="text-sm font-medium">Member</label>
+
+          <select name="userId" required class="w-full border p-2 rounded-lg mt-1">
+
+            <option value="">Select Member</option>
+
+            <% (users || []).filter(u => u.role === "member").forEach(u => { %>
+              <option value="<%= u.id %>"
+                <%= selectedBooking?.userId === u.id ? "selected" : "" %>>
+                <%= u.firstName %> <%= u.lastName %>
+              </option>
+            <% }) %>
+
+          </select>
+        </div>
+
+        <!-- SESSION -->
+        <div>
+          <label class="text-sm font-medium">Session</label>
+
+          <select name="sessionId" required class="w-full border p-2 rounded-lg mt-1">
+
+            <option value="">Select Session</option>
+
+            <% (sessions || []).forEach(s => { %>
+              <option value="<%= s.session.id %>"
+                <%= selectedBooking?.sessionId === s.session.id ? "selected" : "" %>>
+
+                <%= s.user?.firstName || "" %>
+                <%= s.user?.lastName || "" %>
+                |
+                <%= s.activity?.name || "" %>
+                |
+                <%= s.location?.name || "" %>
+                |
+                <%= s.session?.start_time || "" %>
+
+              </option>
+            <% }) %>
+
+          </select>
+        </div>
+
+        <!-- BUTTONS -->
+        <div class="flex gap-3 pt-2">
+
+          <button type="reset"
+                  class="px-4 py-2 bg-gray-100 rounded-lg">
+            Clear
+          </button>
+
+          <button type="submit"
+                  class="px-4 py-2 bg-green-600 text-white rounded-lg">
+            <%= selectedBooking ? "Update Booking" : "Create Booking" %>
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </section>
+
+</main>
+
+</body>
+</html>

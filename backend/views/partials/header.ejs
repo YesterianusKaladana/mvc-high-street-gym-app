@@ -1,0 +1,78 @@
+<header class="bg-gray-400 shadow sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4">
+    <!-- Hidden checkbox -->
+    <input type="checkbox" id="menu-toggle" class="peer hidden" />
+
+    <div class="flex items-center justify-between h-16">
+      <!-- Logo -->
+      <a href="" class="text-base sm:text-lg font-bold text-gray-800">
+        HSG Fitness Community
+      </a>
+
+      <!-- Hamburger (mobile) -->
+      <label for="menu-toggle" class="cursor-pointer md:hidden">
+        <svg
+          class="w-8 h-8 text-gray-800"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"
+          />
+        </svg>
+      </label>
+
+      <!-- Desktop menu -->
+      <nav class="hidden md:flex items-center gap-3 text-sm">
+        <a
+          href="/"
+          class="px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+        >
+          Home
+        </a>
+
+        <a
+          href="/authenticate"
+          class="px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+        >
+          Login
+        </a>
+
+        <a
+          href="/authenticate/register"
+          class="px-3 py-2 rounded border border-blue-600 text-blue-600 hover:bg-blue-50"
+        >
+          Register
+        </a>
+      </nav>
+    </div>
+
+    <!-- Mobile menu -->
+    <nav class="hidden peer-checked:block md:hidden pb-4 space-y-2">
+      <a
+        href="/"
+        class="block w-full text-center px-3 py-3 rounded bg-blue-600 text-white"
+      >
+        Home
+      </a>
+
+      <a
+        href="/authenticate"
+        class="block w-full text-center px-3 py-3 rounded bg-blue-600 text-white"
+      >
+        Login
+      </a>
+
+      <a
+        href="/authenticate/register"
+        class="block w-full text-center px-3 py-3 rounded border border-blue-600 text-blue-600 bg-white"
+      >
+        Register
+      </a>
+    </nav>
+  </div>
+</header>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <%- include("partials/head.ejs") %>
+  <title>HSG - Location Management</title>
+</head>
+
+<body class="bg-gray-50 text-gray-900">
+
+<main class="max-w-7xl mx-auto p-6">
+
+  <!-- HEADER -->
+  <h1 class="text-3xl font-bold mb-2">Location Management</h1>
+  <p class="text-gray-600 mb-6">Create, edit, and manage locations</p>
+
+  <!-- BACK BUTTON -->
+  <a href="/authenticate/dashboard"
+     class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition mb-6 font-medium">
+    ← Back to Dashboard
+  </a>
+
+  <!-- GRID -->
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- ================= LOCATION LIST ================= -->
+    <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-5 overflow-x-auto">
+
+      <h2 class="text-xl font-bold mb-4">Locations</h2>
+
+      <!-- SEARCH -->
+      <form method="GET" action="/location" class="mb-4 flex gap-2">
+
+        <input type="text"
+               name="search"
+               placeholder="Search location name..."
+               value="<%= search || '' %>"
+               class="w-full border border-gray-300 p-2.5 rounded-lg
+               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+
+        <button type="submit"
+                class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+          Search
+        </button>
+
+        <a href="/location"
+           class="px-4 py-2.5 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-200 transition font-medium">
+          Clear
+        </a>
+
+      </form>
+
+      <!-- HEADER ROW -->
+      <div class="grid grid-cols-2 text-sm font-semibold text-gray-500 border-b border-gray-200 pb-2 mb-2">
+        <span>Location Name</span>
+        <span class="text-right">Action</span>
+      </div>
+
+      <!-- LIST -->
+      <% for (const location of locations) { %>
+
+        <div class="grid grid-cols-2 py-3 border-b border-gray-200 hover:bg-blue-50 transition">
+
+          <!-- NAME -->
+          <span class="font-medium text-gray-800">
+            <%= location.name %>
+          </span>
+
+          <!-- ACTION -->
+          <span class="text-right">
+            <a href="/location/<%= location.id %>"
+               class="text-blue-600 hover:underline font-medium">
+              Edit
+            </a>
+          </span>
+
+        </div>
+
+      <% } %>
+
+    </div>
+
+    <!-- ================= FORM ================= -->
+    <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-6">
+
+      <%
+        const isEdit = selectedLocation && selectedLocation.id;
+      %>
+
+      <h2 class="text-xl font-bold mb-4">
+        <%= isEdit ? "Edit Location" : "Create Location" %>
+      </h2>
+
+      <form action="/location/<%= isEdit ? selectedLocation.id : '' %>"
+            method="post"
+            class="space-y-4">
+
+        <!-- NAME -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">
+            Location Name
+          </label>
+
+          <input type="text"
+                 name="name"
+                 required
+                 value="<%= selectedLocation ? selectedLocation.name : '' %>"
+                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                 
+                 <% if (error) { %>
+                   <p class="text-red-500 text-sm mt-1">
+                     <%= error %>
+                   </p>
+                 <% } %>
+        </div>
+
+
+        <!-- BUTTONS -->
+        <div class="flex gap-3 pt-2">
+
+          <button type="reset"
+                  class="px-4 py-2.5 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-200 transition font-medium">
+            Clear
+          </button>
+
+          <% if (!isEdit) { %>
+
+            <button type="submit" name="action" value="create"
+                    class="px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">
+              Create
+            </button>
+
+          <% } else { %>
+
+            <button type="submit" name="action" value="update"
+                    class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+              Update
+            </button>
+
+          <% } %>
+
+          <button type="submit"
+                  name="action"
+                  value="delete"
+                  class="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium">
+            Delete
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </section>
+
+  <%- include("partials/footer.ejs") %>
+
+</main>
+
+</body>
+</html>
