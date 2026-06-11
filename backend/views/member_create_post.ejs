@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <%- include("partials/head.ejs") %>
+  <title>HSG | Member Create Post</title>
+</head>
+
+<body class="bg-gray-50">
+
+<main class="max-w-2xl mx-auto p-6">
+
+  <!-- BACK -->
+  <a href="/post/member"
+     class="inline-block mb-6 text-blue-600 hover:underline">
+    ← Back to Feed
+  </a>
+
+  <h1 class="text-3xl font-bold mb-6">Create New Post</h1>
+
+  <form action="/post/member/create" method="post" class="space-y-4 bg-white p-6 rounded-xl shadow">
+
+    <input type="hidden" name="action" value="create">
+
+    <!-- TITLE -->
+    <div>
+      <label class="block font-medium">Title</label>
+      <input type="text"
+             name="title"
+             required
+             class="w-full border p-2 rounded mt-1">
+    </div>
+
+    <!-- CONTENT -->
+    <div>
+      <label class="block font-medium">Content</label>
+      <textarea name="content"
+                rows="6"
+                required
+                class="w-full border p-2 rounded mt-1"></textarea>
+    </div>
+
+    <!-- ERROR -->
+    <% if (error) { %>
+      <p class="text-red-500 text-sm"><%= error %></p>
+    <% } %>
+
+    <!-- BUTTON -->
+    <button type="submit"
+            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+      Publish Post
+    </button>
+
+  </form>
+
+</main>
+
+</body>
+</html>

@@ -53,7 +53,6 @@
       <div class="grid grid-cols-[2fr_3fr_1fr_auto] text-sm font-semibold text-gray-500 border-b border-gray-200 pb-2 mb-2">
         <span>Title</span>
         <span>Content</span>
-        <span>Date</span>
         <span class="text-right">Action</span>
       </div>
 
@@ -77,49 +76,35 @@
               <% if (safeContent.length > 40) { %>...<% } %>
             </span>
 
-            <!-- DATE -->
-            <span class="text-gray-700">
-              <%= safeDate && !isNaN(safeDate)
-                ? safeDate.toLocaleDateString("en-AU")
-                : "-" %>
-            </span>
-
             <!-- ACTION -->
-            <span class="text-right">
+           <span class="text-right">
 
-              <%
-                const isOwner =
-                  authenticatedUser &&
-                  authenticatedUser.id === post.user_id;
+          <%
+            const isOwner =
+              authenticatedUser &&
+              authenticatedUser.id === post.user_id;
 
-                const isAdmin =
-                  authenticatedUser &&
-                  authenticatedUser.role === "admin";
-              %>
+            const isAdmin =
+              authenticatedUser &&
+              authenticatedUser.role === "admin";
+          %>
 
-              <% if (isOwner) { %>
+          <% if (isOwner || isAdmin) { %>
 
-                <a href="/post/<%= post.id %>"
-                   class="text-blue-600 hover:underline font-medium">
-                  Edit
-                </a>
+            <form action="/post" method="post" class="inline">
+              <input type="hidden" name="id" value="<%= post.id %>">
 
-              <% } else if (isAdmin) { %>
+              <button type="submit"
+                      name="action"
+                      value="delete"
+                      class="text-red-600 hover:underline font-medium">
+                Delete
+              </button>
+            </form>
 
-                <a href="/post/<%= post.id %>"
-                   class="text-red-600 hover:underline font-medium">
-                  Manage
-                </a>
+          <% } %>
 
-              <% } else { %>
-
-                <span class="text-gray-400">
-                  No access
-                </span>
-
-              <% } %>
-
-            </span>
+        </span>
 
           </div>
 
@@ -132,53 +117,26 @@
 
     </div>
 
-    <!-- ================= FORM ================= -->
+    <!-- ================= CREATE FORM ================= -->
     <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-6">
 
-      <%
-        const isEdit = selectedPost && selectedPost.id;
-        const canEdit = isEdit && authenticatedUser && selectedPost.user_id === authenticatedUser.id;
-      %>
-
-      <h2 class="text-xl font-bold mb-4">
-        <%= isEdit ? "Edit Post" : "Create Post" %>
-      </h2>
+      <h2 class="text-xl font-bold mb-4">Create Post</h2>
 
       <form action="/post" method="post" class="space-y-4">
-
-        <input type="hidden" name="id" value="<%= selectedPost?.id || '' %>">
-
-        <!-- DATE -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Date</label>
-
-          <input type="date"
-                 name="date"
-                 value="<%= selectedPost?.date
-                   ? new Date(selectedPost.date).toISOString().split('T')[0]
-                   : '' %>"
-                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg bg-white
-                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                 <%= isEdit && !canEdit ? "disabled" : "" %>>
-        </div>
 
         <!-- TITLE -->
         <div>
           <label class="block text-sm font-medium text-gray-700">Title</label>
 
           <input type="text"
-                 name="title"
-                 required
-                 value="<%= selectedPost?.title || '' %>"
-                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg bg-white
-                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                 <%= isEdit && !canEdit ? "disabled" : "" %>>
+                name="title"
+                required
+                class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg bg-white
+                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
 
-                  <% if (error) { %>
-                   <p class="text-red-500 text-sm mt-1">
-                     <%= error %>
-                   </p>
-                 <% } %>
+          <% if (error) { %>
+            <p class="text-red-500 text-sm mt-1"><%= error %></p>
+          <% } %>
         </div>
 
         <!-- CONTENT -->
@@ -188,8 +146,7 @@
           <textarea name="content"
                     rows="4"
                     class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg bg-white
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                    <%= isEdit && !canEdit ? "disabled" : "" %>><%= selectedPost?.content || '' %></textarea>
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"></textarea>
         </div>
 
         <!-- BUTTONS -->
@@ -200,61 +157,20 @@
             Clear
           </button>
 
-          <!-- CREATE -->
-          <% if (!isEdit) { %>
-
-            <button type="submit"
-                    name="action"
-                    value="create"
-                    class="px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">
-              Create
-            </button>
-
-          <!-- OWNER EDIT -->
-          <% } else if (canEdit) { %>
-
-            <button type="submit"
-                    name="action"
-                    value="update"
-                    class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
-              Update
-            </button>
-
-            <button type="submit"
-                    name="action"
-                    value="delete"
-                    class="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium">
-              Delete
-            </button>
-
-          <!-- ADMIN -->
-          <% } else if (authenticatedUser.role === "admin") { %>
-
-            <span class="text-gray-400 text-sm flex items-center">
-              No edit access
-            </span>
-
-            <button type="submit"
-                    name="action"
-                    value="delete"
-                    class="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium">
-              Delete
-            </button>
-
-          <!-- NO ACCESS -->
-          <% } else { %>
-
-            <span class="text-gray-400 text-sm flex items-center">
-              You cannot modify this post
-            </span>
-
-          <% } %>
+          <button type="submit"
+                  name="action"
+                  value="create"
+                  class="px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">
+            Create
+          </button>
 
         </div>
 
       </form>
 
     </div>
+
+
 
   </section>
 

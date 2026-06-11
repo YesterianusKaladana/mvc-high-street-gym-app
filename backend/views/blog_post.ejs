@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <%- include("./partials/head.ejs") %>
+  <title>HSG | Blog Post</title>
+</head>
+
+<body class="bg-gray-50 min-h-screen overflow-x-hidden">
+
+  <%- include("./partials/header.ejs") %>
+
+  <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6">
+
+
+    <!-- BLOG SECTION -->
+    <section class="mb-12 bg-purple-50 rounded-2xl p-6 md:p-8">
+
+      <h2 class="text-2xl md:text-3xl font-bold mb-4 text-purple-900">
+        Community Blog Posts
+      </h2>
+
+     <% if (posts && posts.length > 0) { %>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+
+          <% posts.forEach(post => { %>
+
+            <article class="border border-purple-100 rounded-xl p-4 shadow-sm bg-white">
+
+              <h4 class="text-gray-900 md:text-xl font-bold break-words">
+                <%= post.title %>
+              </h4>
+
+              <p class="text-gray-700 whitespace-pre-line break-words mt-3">
+                <%= post.content %>
+              </p>
+
+            </article>
+
+          <% }) %>
+
+        </div>
+
+      <% } else { %>
+
+        <div class="bg-white rounded-xl shadow-sm p-5">
+          <p class="text-gray-500">No blog posts available.</p>
+        </div>
+
+      <% } %>
+
+    </section>
+
+  </main>
+
+  <%- include("./partials/footer.ejs") %>
+
+</body>
+</html>

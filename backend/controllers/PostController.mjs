@@ -1,5 +1,6 @@
 import express from "express";
 import { PostModel } from "../models/PostModel.mjs";
+import { UserPostModel } from "../models/UserPostModel.mjs";
 import { AuthenticationController } from "./AuthenticationController.mjs";
 
 /**
@@ -17,14 +18,34 @@ export class PostController {
   static routes = express.Router();
 
   static {
+    this.routes.get("/public", this.viewPublicBlog);
+
     /**
      * GET /
      * View all posts + optional search
      */
     this.routes.get(
       "/",
-      AuthenticationController.restrict(["admin", "trainer", "member"]),
+      AuthenticationController.restrict(["admin", "trainer"]),
       this.viewPosts,
+    );
+
+    this.routes.get(
+      "/member",
+      AuthenticationController.restrict(["member"]),
+      this.viewMemberPosts,
+    );
+
+    this.routes.get(
+      "/member/create",
+      AuthenticationController.restrict(["member"]),
+      this.viewCreateMemberPostPage,
+    );
+
+    this.routes.post(
+      "/member/create",
+      AuthenticationController.restrict(["member"]),
+      this.handleMemberPost,
     );
 
     /**
@@ -33,8 +54,8 @@ export class PostController {
      */
     this.routes.post(
       "/",
-      AuthenticationController.restrict(["admin", "trainer", "member"]),
-      this.handlePosts,
+      AuthenticationController.restrict(["admin", "trainer"]),
+      this.handlePostsManagement,
     );
 
     /**
@@ -43,9 +64,21 @@ export class PostController {
      */
     this.routes.get(
       "/:id",
-      AuthenticationController.restrict(["admin", "trainer", "member"]),
+      AuthenticationController.restrict(["admin", "trainer"]),
       this.viewPostById,
     );
+  }
+
+  static async viewPublicBlog(req, res) {
+    try {
+      const posts = await PostModel.getAll();
+      return res.render("blog_post", {
+        posts,
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send("Failed to load public blog");
+    }
   }
 
   /**
@@ -126,6 +159,95 @@ export class PostController {
     }
   }
 
+  static async viewMemberPosts(req, res) {
+    try {
+      // STRICT ACCESS CONTROL
+      if (!req.user || req.user.role !== "member") {
+        return res.status(403).send("Access denied. Members only.");
+      }
+
+      const posts = await PostModel.getAll();
+
+      return res.render("member_post.ejs", {
+        authenticatedUser: req.user,
+        posts: posts,
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send("Failed to load member page");
+    }
+  }
+
+  static async viewCreateMemberPostPage(req, res) {
+    try {
+      if (!req.user || req.user.role !== "member") {
+        return res.status(403).send("Access denied");
+      }
+
+      return res.render("member_create_post.ejs", {
+        authenticatedUser: req.user,
+        error: null,
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send("Failed to load create page");
+    }
+  }
+
+  static async handleMemberPost(req, res) {
+    try {
+      const user = req.user;
+
+      if (!user || user.role !== "member") {
+        return res.status(403).send("Access denied. Members only.");
+      }
+
+      const { title, content } = req.body;
+
+      const cleanTitle = title?.trim();
+      const cleanContent = content?.trim();
+
+      // -------------------------
+      // VALIDATION (safe + XSS block)
+      // -------------------------
+      function containsDangerousHTML(text) {
+        return /<\s*script.*?>|<\/?\s*script\s*>|<.*?>/i.test(text);
+      }
+
+      if (!cleanTitle || !cleanContent) {
+        return res.status(400).send("Title and content are required");
+      }
+
+      if (
+        containsDangerousHTML(cleanTitle) ||
+        containsDangerousHTML(cleanContent)
+      ) {
+        return res.status(400).send("HTML/Script not allowed");
+      }
+
+      if (cleanTitle.length < 2 || cleanTitle.length > 50) {
+        return res.status(400).send("Invalid title length");
+      }
+
+      if (cleanContent.length < 5 || cleanContent.length > 2000) {
+        return res.status(400).send("Invalid content length");
+      }
+
+      // -------------------------
+      // CREATE POST
+      // -------------------------
+      const post = new PostModel(null, user.id, cleanTitle, cleanContent);
+
+      await PostModel.create(post);
+
+      // redirect back to member feed
+      return res.redirect("/post/member");
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send("Failed to create post");
+    }
+  }
+
   /**
    * Handle all CRUD actions for posts
    * Supported actions:
@@ -136,8 +258,13 @@ export class PostController {
    * @param {import("express").Request} req
    * @param {import("express").Response} res
    */
-  static async handlePosts(req, res) {
-    const { action, id, date, title, content } = req.body;
+  static async handlePostsManagement(req, res) {
+    // This is a function to check for dangerous HTML tags to prevent XSS
+    function containsDangerousHTML(text) {
+      return /<\s*script.*?>|<\/?\s*script\s*>|<.*?>/i.test(text);
+    }
+
+    const { action, id, title, content } = req.body;
     const user = req.user;
 
     if (!user) {
@@ -145,12 +272,15 @@ export class PostController {
     }
 
     const cleanTitle = title?.trim();
+    const cleanContent = content?.trim();
 
     let error = null;
 
-    // ✅ VALIDATION
+    // TITLE VALIDATION
     if (!cleanTitle || cleanTitle.length === 0) {
       error = "Post title is required";
+    } else if (containsDangerousHTML(cleanTitle)) {
+      error = "HTML or scripts are not allowed in title";
     } else if (/\d/.test(cleanTitle)) {
       error = "Post title must not contain numbers";
     } else if (!/^[A-Z]/.test(cleanTitle)) {
@@ -159,6 +289,17 @@ export class PostController {
       error = "Post title is too short";
     } else if (cleanTitle.length > 50) {
       error = "Post title must not exceed 50 characters";
+    }
+
+    // CONTENT VALIDATION
+    else if (!cleanContent || cleanContent.length === 0) {
+      error = "Post content is required";
+    } else if (containsDangerousHTML(cleanContent)) {
+      error = "HTML or scripts are not allowed in content";
+    } else if (cleanContent.length < 5) {
+      error = "Post content is too short (minimum 5 characters)";
+    } else if (cleanContent.length > 2000) {
+      error = "Post content must not exceed 2000 characters";
     }
 
     try {
@@ -180,7 +321,7 @@ export class PostController {
           });
         }
 
-        const post = new PostModel(null, user.id, date, cleanTitle, content);
+        const post = new PostModel(null, user.id, cleanTitle, cleanContent);
         await PostModel.create(post);
 
         return res.redirect("/post");
@@ -215,9 +356,8 @@ export class PostController {
         const post = new PostModel(
           id,
           existingPost.user_id,
-          date,
           cleanTitle,
-          content,
+          cleanContent,
         );
         await PostModel.update(post);
 

@@ -14,12 +14,11 @@ export class PostModel extends DatabaseModel {
    * @param {string} title - The post title.
    * @param {string} content - The post content.
    */
-  constructor(id, user_id, date, title, content) {
+  constructor(id, user_id, title, content) {
     super();
 
     this.id = id;
     this.user_id = user_id;
-    this.date = date;
     this.title = title;
     this.content = content;
   }
@@ -37,7 +36,6 @@ export class PostModel extends DatabaseModel {
     return new PostModel(
       postRow.id,
       postRow.user_id,
-      postRow.date,
       postRow.title,
       postRow.content,
     );
@@ -53,7 +51,7 @@ export class PostModel extends DatabaseModel {
       `
       SELECT *
       FROM post
-      ORDER BY date DESC
+      ORDER BY created_at DESC
     `,
     ).then((results) => {
       return results.map((row) => this.tableToModel(row));
@@ -92,10 +90,10 @@ export class PostModel extends DatabaseModel {
   static async create(post) {
     return this.query(
       `
-      INSERT INTO post (user_id, date, title, content)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO post (user_id, title, content)
+      VALUES (?, ?, ?)
     `,
-      [post.user_id, post.date, post.title, post.content],
+      [post.user_id, post.title, post.content],
     );
   }
 
@@ -109,10 +107,10 @@ export class PostModel extends DatabaseModel {
     return this.query(
       `
       UPDATE post
-      SET user_id = ?, date = ?, title = ?, content = ?
+      SET user_id = ?, title = ?, content = ?
       WHERE id = ?
     `,
-      [post.user_id, post.date, post.title, post.content, post.id],
+      [post.user_id, post.title, post.content, post.id],
     );
   }
 

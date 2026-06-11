@@ -122,45 +122,9 @@ export class SessionController {
   static async viewPublicTimetable(req, res) {
     try {
       const user = req.user || null;
-
       const sessions = await SessionActivityModel.getAll();
-      const rawBlogPosts = await PostModel.getAll();
-
-      // =========================
-      // BLOG GROUPING
-      // =========================
-      const blogByDay = {
-        Monday: [],
-        Tuesday: [],
-        Wednesday: [],
-        Thursday: [],
-        Friday: [],
-        Saturday: [],
-        Sunday: [],
-      };
-
-      rawBlogPosts.forEach((post) => {
-        if (!post.date) return;
-
-        const day = new Date(post.date).toLocaleDateString("en-AU", {
-          weekday: "long",
-        });
-
-        if (!blogByDay[day]) return;
-
-        const cleanDate =
-          post.date instanceof Date
-            ? post.date.toISOString().split("T")[0]
-            : post.date.split("T")[0];
-
-        blogByDay[day].push({
-          id: post.id,
-          title: post.title,
-          content: post.content || post.body,
-          date: cleanDate,
-        });
-      });
-
+      
+     
       // =========================
       // BOOKED SESSIONS
       // =========================
@@ -227,14 +191,10 @@ export class SessionController {
         });
       });
 
-      // =========================
-      // RENDER
-      // =========================
-      return res.render("home.ejs", {
+      return res.render("timetable.ejs", {
         user,
         sessionByDay,
         bookedSessionIds,
-        blogByDay,
       });
     } catch (error) {
       console.error(error);

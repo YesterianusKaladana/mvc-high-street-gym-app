@@ -19,7 +19,6 @@ import { PostModel } from "./PostModel.mjs";
  * }
  */
 export class UserPostModel extends DatabaseModel {
-
   /**
    * Creates a combined Post + User object
    *
@@ -97,5 +96,20 @@ export class UserPostModel extends DatabaseModel {
     }
 
     return this.tableToModel(results[0]);
+  }
+
+  static async getAllByRole(role) {
+    const results = await this.query(
+      `
+      SELECT post.*, user.*
+      FROM post
+      INNER JOIN user ON post.user_id = user.id
+      WHERE user.role = ?
+      ORDER BY post.created_at DESC
+    `,
+      [role],
+    );
+
+    return results.map((row) => this.tableToModel(row));
   }
 }
