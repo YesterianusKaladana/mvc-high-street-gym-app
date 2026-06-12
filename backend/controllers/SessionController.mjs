@@ -123,8 +123,7 @@ export class SessionController {
     try {
       const user = req.user || null;
       const sessions = await SessionActivityModel.getAll();
-      
-     
+
       // =========================
       // BOOKED SESSIONS
       // =========================
@@ -215,8 +214,92 @@ export class SessionController {
     try {
       const editId = req.query.edit_id;
 
-      const sessions = await SessionActivityModel.getAll();
+      // =========================
+      // SEARCH FIELDS
+      // =========================
+      const {
+        search,
+        trainer,
+        activity,
+        location,
+        date,
+        start_time,
+        end_time,
+        capacity,
+      } = req.query;
 
+      let sessions = await SessionActivityModel.getAll();
+
+      // =========================
+      //  SEARCH (ALL FIELDS)
+      // =========================
+      if (search) {
+        const q = search.toLowerCase();
+
+        sessions = sessions.filter((s) => {
+          const trainerName =
+            `${s.user.firstName} ${s.user.lastName}`.toLowerCase();
+
+          return (
+            trainerName.includes(q) ||
+            s.activity.name.toLowerCase().includes(q) ||
+            s.location.name.toLowerCase().includes(q) ||
+            (s.session.date || "").toString().toLowerCase().includes(q)
+          );
+        });
+      }
+
+      // =========================
+      // FIELD FILTERS
+      // =========================
+
+      if (trainer) {
+        sessions = sessions.filter((s) =>
+          `${s.user.firstName} ${s.user.lastName}`
+            .toLowerCase()
+            .includes(trainer.toLowerCase()),
+        );
+      }
+
+      if (activity) {
+        sessions = sessions.filter((s) =>
+          s.activity.name.toLowerCase().includes(activity.toLowerCase()),
+        );
+      }
+
+      if (location) {
+        sessions = sessions.filter((s) =>
+          s.location.name.toLowerCase().includes(location.toLowerCase()),
+        );
+      }
+
+      if (date) {
+        sessions = sessions.filter(
+          (s) => (s.session.date || "").toString().slice(0, 10) === date,
+        );
+      }
+
+      if (start_time) {
+        sessions = sessions.filter(
+          (s) => (s.session.start_time || "").slice(0, 5) === start_time,
+        );
+      }
+
+      if (end_time) {
+        sessions = sessions.filter(
+          (s) => (s.session.end_time || "").slice(0, 5) === end_time,
+        );
+      }
+
+      if (capacity) {
+        sessions = sessions.filter(
+          (s) => Number(s.session.capacity) === Number(capacity),
+        );
+      }
+
+      // =========================
+      // CLEAN FORMAT
+      // =========================
       const cleanSessions = sessions.map((item) => ({
         ...item,
         session: {
@@ -252,6 +335,16 @@ export class SessionController {
         locations: await LocationModel.getAll(),
         activities: await ActivityModel.getAll(),
         users,
+
+        // return filters back to UI
+        search,
+        trainer,
+        activity,
+        location,
+        date,
+        start_time,
+        end_time,
+        capacity,
       });
     } catch (error) {
       console.error(error);
@@ -277,6 +370,8 @@ export class SessionController {
       if (action === "update") {
         await SessionModel.update({
           id: selectedSessionId,
+          // this is spread operations In Javascript
+          // Meaning take everything inside req.body and expand (copy) its properties
           ...req.body,
         });
       }
@@ -303,8 +398,15 @@ export class SessionController {
       const user = req.user;
       const editId = req.query.edit_id;
 
-      const { activity, location, trainer, date, start_time, end_time } =
-        req.query;
+      const {
+        activity,
+        location,
+        trainer,
+        date,
+        start_time,
+        end_time,
+        capacity,
+      } = req.query;
 
       let sessions = await SessionActivityModel.getByUserId(user.id);
 
@@ -348,6 +450,10 @@ export class SessionController {
         );
       }
 
+      if (capacity) {
+        sessions = sessions.filter((s) => s.session.capacity == capacity);
+      }
+
       const cleanSessions = sessions.map((item) => ({
         ...item,
         session: {
@@ -385,6 +491,7 @@ export class SessionController {
         date,
         start_time,
         end_time,
+        capacity,
       });
     } catch (error) {
       console.error(error);
@@ -401,7 +508,8 @@ export class SessionController {
   static async handleTrainerSession(req, res) {
     const trainerId = req.user.id;
 
-    const { action, session_id, date, start_time, end_time } = req.body;
+    const { action, session_id, date, start_time, end_time, capacity } =
+      req.body;
 
     try {
       const today = new Date();
@@ -422,6 +530,7 @@ export class SessionController {
           date,
           start_time,
           end_time,
+          capacity,
         });
       }
 
@@ -448,6 +557,7 @@ export class SessionController {
           date,
           start_time,
           end_time,
+          capacity,
         });
       }
 
@@ -602,7 +712,10 @@ export class SessionController {
       return res.redirect("/session/member/view");
     } catch (error) {
       console.error(error);
-      return res.status(500).send("Member booking error");
+      return res.status(500).render("status.ejs", {
+        status: "Error",
+        message: "Member booking error",
+      });
     }
   }
 }

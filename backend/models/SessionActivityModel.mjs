@@ -22,7 +22,6 @@ import { UserModel } from "./UserModel.mjs";
  * It simplifies complex JOIN queries into structured objects.
  */
 export class SessionActivityModel extends DatabaseModel {
-
   /**
    * Creates a combined session object
    *
@@ -56,7 +55,7 @@ export class SessionActivityModel extends DatabaseModel {
       SessionModel.tableToModel(row.session),
       ActivityModel.tableToModel(row.activity),
       LocationModel.tableToModel(row.location),
-      UserModel.tableToModel(row.user)
+      UserModel.tableToModel(row.user),
     );
   }
 
@@ -82,8 +81,9 @@ export class SessionActivityModel extends DatabaseModel {
    * @returns {Promise<SessionActivityModel[]>}
    */
   static getAll() {
-    return this.query(this.baseQuery())
-      .then(rows => rows.map(row => this.tableToModel(row)));
+    return this.query(this.baseQuery()).then((rows) =>
+      rows.map((row) => this.tableToModel(row)),
+    );
   }
 
   /**
@@ -93,11 +93,8 @@ export class SessionActivityModel extends DatabaseModel {
    * @returns {Promise<SessionActivityModel|null>}
    */
   static getById(id) {
-    return this.query(
-      this.baseQuery() + " AND session.id = ?",
-      [id]
-    ).then(rows =>
-      rows.length ? this.tableToModel(rows[0]) : null
+    return this.query(this.baseQuery() + " AND session.id = ?", [id]).then(
+      (rows) => (rows.length ? this.tableToModel(rows[0]) : null),
     );
   }
 
@@ -108,12 +105,9 @@ export class SessionActivityModel extends DatabaseModel {
    * @returns {Promise<SessionActivityModel[]>}
    */
   static getByUserId(userId) {
-    return this.query(
-      this.baseQuery() + " AND session.user_id = ?",
-      [userId]
-    ).then(rows =>
-      rows.map(row => this.tableToModel(row))
-    );
+    return this.query(this.baseQuery() + " AND session.user_id = ?", [
+      userId,
+    ]).then((rows) => rows.map((row) => this.tableToModel(row)));
   }
 
   /**
@@ -134,6 +128,7 @@ export class SessionActivityModel extends DatabaseModel {
         session.date,
         session.start_time,
         session.end_time,
+        session.capacity,
 
         user.first_name,
         user.last_name,
@@ -158,7 +153,7 @@ export class SessionActivityModel extends DatabaseModel {
       ORDER BY session.date DESC
     `);
 
-    return rows.map(row => ({
+    return rows.map((row) => ({
       session: new SessionModel(
         row.id,
         row.user_id,
@@ -167,24 +162,24 @@ export class SessionActivityModel extends DatabaseModel {
         row.date,
         row.start_time?.substring(0, 5) || "",
         row.end_time?.substring(0, 5) || "",
-        
+        row.capacity,
       ),
 
       user: {
         id: row.user_id,
         firstName: row.first_name,
-        lastName: row.last_name
+        lastName: row.last_name,
       },
 
       location: {
         id: row.location_id,
-        name: row.location_name
+        name: row.location_name,
       },
 
       activity: {
         id: row.activity_id,
-        name: row.activity_name
-      }
+        name: row.activity_name,
+      },
     }));
   }
 }

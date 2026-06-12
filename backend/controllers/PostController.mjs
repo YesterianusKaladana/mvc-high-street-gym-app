@@ -77,7 +77,10 @@ export class PostController {
       });
     } catch (err) {
       console.error(err);
-      return res.status(500).send("Failed to load public blog");
+      return res.status(500).render("status.ejs", {
+        status: "Failed to load public blog",
+        message: "An error occurred while loading the public blog.",
+      });
     }
   }
 
@@ -107,9 +110,12 @@ export class PostController {
         search,
         error: null,
       });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).send("Failed to load posts");
+    } catch (error) {
+      console.error(error);
+      return res.status(500).render("status.ejs", {
+        status: "Failed to load posts",
+        message: "An error occurred while loading the posts.",
+      });
     }
   }
 
@@ -130,11 +136,17 @@ export class PostController {
       const user = req.user || req.authenticatedUser;
 
       if (!user) {
-        return res.status(401).send("Not authenticated");
+        return res.status(401).render("status.ejs", {
+          status: "Not Authenticated",
+          message: "You must be logged in to view this post.",
+        });
       }
 
       if (!selectedPost) {
-        return res.status(404).send("Post not found");
+        return res.status(404).render("status.ejs", {
+          status: "Post Not Found",
+          message: "The requested post was not found.",
+        });
       }
 
       const isOwner = selectedPost.user_id === user.id;
@@ -143,7 +155,10 @@ export class PostController {
 
       // Access control: admin + trainer + owner only
       if (!isOwner && !isAdmin && !isTrainer) {
-        return res.status(403).send("You cannot access this post");
+        return res.status(403).render("status.ejs", {
+          status: "Access Denied",
+          message: "You cannot access this post.",
+        });
       }
 
       return res.render("post_management.ejs", {
@@ -153,9 +168,12 @@ export class PostController {
         search: "",
         error: null,
       });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).send("Failed to load post");
+    } catch (error) {
+      console.error(error);
+      return res.status(500).render("status.ejs", {
+        status: "Failed to load post",
+        message: "An error occurred while loading the post.",
+      });
     }
   }
 
@@ -163,7 +181,10 @@ export class PostController {
     try {
       // STRICT ACCESS CONTROL
       if (!req.user || req.user.role !== "member") {
-        return res.status(403).send("Access denied. Members only.");
+        return res.status(403).render("status.ejs", {
+          status: "Access Denied",
+          message: "Access denied. Members only.",
+        });
       }
 
       const posts = await PostModel.getAll();
@@ -172,25 +193,34 @@ export class PostController {
         authenticatedUser: req.user,
         posts: posts,
       });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).send("Failed to load member page");
+    } catch (error) {
+      console.error(error);
+      return res.status(500).render("status.ejs", {
+        status: "Failed to load member page",
+        message: "An error occurred while loading the member page.",
+      });
     }
   }
 
   static async viewCreateMemberPostPage(req, res) {
     try {
       if (!req.user || req.user.role !== "member") {
-        return res.status(403).send("Access denied");
+        return res.status(403).render("status.ejs", {
+          status: "Access Denied",
+          message: "Access denied. Members only.",
+        });
       }
 
       return res.render("member_create_post.ejs", {
         authenticatedUser: req.user,
         error: null,
       });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).send("Failed to load create page");
+    } catch (error) {
+      console.error(error);
+      return res.status(500).render("status.ejs", {
+        status: "Failed to load create page",
+        message: "An error occurred while loading the create page.",
+      });
     }
   }
 
@@ -199,7 +229,10 @@ export class PostController {
       const user = req.user;
 
       if (!user || user.role !== "member") {
-        return res.status(403).send("Access denied. Members only.");
+        return res.status(403).render("status.ejs", {
+          status: "Access Denied",
+          message: "Access denied. Members only.",
+        });
       }
 
       const { title, content } = req.body;
@@ -215,22 +248,24 @@ export class PostController {
       }
 
       if (!cleanTitle || !cleanContent) {
-        return res.status(400).send("Title and content are required");
-      }
-
-      if (
-        containsDangerousHTML(cleanTitle) ||
-        containsDangerousHTML(cleanContent)
-      ) {
-        return res.status(400).send("HTML/Script not allowed");
+        return res.status(400).render("status.ejs", {
+          status: "Invalid Input",
+          message: "Title and content are required",
+        });
       }
 
       if (cleanTitle.length < 2 || cleanTitle.length > 50) {
-        return res.status(400).send("Invalid title length");
+        return res.status(400).render("status.ejs", {
+          status: "Invalid Input",
+          message: "Title must be between 2 and 50 characters",
+        });
       }
 
       if (cleanContent.length < 5 || cleanContent.length > 2000) {
-        return res.status(400).send("Invalid content length");
+        return res.status(400).render("status.ejs", {
+          status: "Invalid Input",
+          message: "Content must be between 5 and 2000 characters",
+        });
       }
 
       // -------------------------
@@ -242,9 +277,12 @@ export class PostController {
 
       // redirect back to member feed
       return res.redirect("/post/member");
-    } catch (err) {
-      console.error(err);
-      return res.status(500).send("Failed to create post");
+    } catch (error) {
+      console.error(error);
+      return res.status(500).render("status.ejs", {
+        status: "Failed to create post",
+        message: "An error occurred while creating the post.",
+      });
     }
   }
 
@@ -338,7 +376,10 @@ export class PostController {
         const isOwner = existingPost.user_id === user.id;
 
         if (!isOwner) {
-          return res.status(403).send("You can only edit your own posts");
+          return res.status(403).render("status.ejs", {
+            status: "Access Denied",
+            message: "You can only edit your own posts.",
+          });
         }
 
         if (error) {
@@ -369,25 +410,36 @@ export class PostController {
        */
       if (action === "delete") {
         if (!existingPost) {
-          return res.status(404).send("Post not found");
+          return res.status(404).render("status.ejs", {
+            status: "Post Not Found",
+            message: "The requested post was not found.",
+          });
         }
 
         const isOwner = existingPost.user_id === user.id;
         const isAdmin = user.role === "admin";
 
         if (!isOwner && !isAdmin) {
-          return res.status(403).send("You cannot delete this post");
+          return res.status(403).render("status.ejs", {
+            status: "Access Denied",
+            message: "You cannot delete this post.",
+          });
         }
 
         await PostModel.delete(id);
 
         return res.redirect("/post");
       }
-
-      return res.status(400).send("Invalid action");
-    } catch (err) {
-      console.error(err);
-      return res.status(500).send("Database error");
+      return res.status(400).render("status.ejs", {
+        status: "Invalid Action",
+        message: "The requested action is not valid.",
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).render("status.ejs", {
+        status: "Database Error",
+        message: "An error occurred while processing your request.",
+      });
     }
   }
 }

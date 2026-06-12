@@ -15,7 +15,6 @@ import { DatabaseModel } from "./DatabaseModel.mjs";
  * - joined session views (via getAllWithDetails)
  */
 export class SessionModel extends DatabaseModel {
-
   /**
    * Creates a SessionModel instance
    *
@@ -26,8 +25,18 @@ export class SessionModel extends DatabaseModel {
    * @param {string|Date} date - Session date
    * @param {string} start_time - Start time (HH:MM)
    * @param {string} end_time - End time (HH:MM)
+   * @param {number} capacity - Maximum number of participants
    */
-  constructor(id, user_id, location_id, activity_id, date, start_time, end_time) {
+  constructor(
+    id,
+    user_id,
+    location_id,
+    activity_id,
+    date,
+    start_time,
+    end_time,
+    capacity,
+  ) {
     super();
 
     this.id = id;
@@ -37,6 +46,7 @@ export class SessionModel extends DatabaseModel {
     this.date = date;
     this.start_time = start_time;
     this.end_time = end_time;
+    this.capacity = capacity;
   }
 
   /**
@@ -59,7 +69,8 @@ export class SessionModel extends DatabaseModel {
       r.activity_id,
       r.date,
       r.start_time?.substring(0, 5) || "",
-      r.end_time?.substring(0, 5) || ""
+      r.end_time?.substring(0, 5) || "",
+      r.capacity,
     );
   }
 
@@ -76,7 +87,7 @@ export class SessionModel extends DatabaseModel {
       ORDER BY date DESC
     `);
 
-    return rows.map(row => this.tableToModel(row));
+    return rows.map((row) => this.tableToModel(row));
   }
 
   /**
@@ -86,12 +97,15 @@ export class SessionModel extends DatabaseModel {
    * @returns {Promise<SessionModel|null>}
    */
   static async getById(id) {
-    const rows = await this.query(`
+    const rows = await this.query(
+      `
       SELECT *
       FROM session
       WHERE id = ?
       AND deleted = 0
-    `, [id]);
+    `,
+      [id],
+    );
 
     if (!rows.length) return null;
 
@@ -108,21 +122,26 @@ export class SessionModel extends DatabaseModel {
    * @param {string} session.date
    * @param {string} session.start_time
    * @param {string} session.end_time
+   * @param {number} session.capacity
    * @returns {Promise<any>}
    */
   static async create(session) {
-    return this.query(`
+    return this.query(
+      `
       INSERT INTO session
-      (user_id, location_id, activity_id, date, start_time, end_time, deleted)
-      VALUES (?, ?, ?, ?, ?, ?, 0)
-    `, [
-      session.user_id,
-      session.location_id,
-      session.activity_id,
-      session.date,
-      session.start_time,
-      session.end_time
-    ]);
+      (user_id, location_id, activity_id, date, start_time, end_time, capacity, deleted)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+    `,
+      [
+        session.user_id,
+        session.location_id,
+        session.activity_id,
+        session.date,
+        session.start_time,
+        session.end_time,
+        session.capacity,
+      ],
+    );
   }
 
   /**
@@ -136,23 +155,28 @@ export class SessionModel extends DatabaseModel {
    * @param {string} session.date
    * @param {string} session.start_time
    * @param {string} session.end_time
+   * @param {number} session.capacity
    * @returns {Promise<any>}
    */
   static async update(session) {
-    return this.query(`
+    return this.query(
+      `
       UPDATE session
-      SET user_id = ?, location_id = ?, activity_id = ?, date = ?, start_time = ?, end_time = ?
+      SET user_id = ?, location_id = ?, activity_id = ?, date = ?, start_time = ?, end_time = ?, capacity = ?
       WHERE id = ?
       AND deleted = 0
-    `, [
-      session.user_id,
-      session.location_id,
-      session.activity_id,
-      session.date,
-      session.start_time,
-      session.end_time,
-      session.id
-    ]);
+    `,
+      [
+        session.user_id,
+        session.location_id,
+        session.activity_id,
+        session.date,
+        session.start_time,
+        session.end_time,
+        session.capacity,
+        session.id,
+      ],
+    );
   }
 
   /**
@@ -164,10 +188,13 @@ export class SessionModel extends DatabaseModel {
    * @returns {Promise<any>}
    */
   static async delete(id) {
-    return this.query(`
+    return this.query(
+      `
       DELETE FROM session
       WHERE id = ?
-    `, [id]);
+    `,
+      [id],
+    );
   }
 
   /**
@@ -188,6 +215,7 @@ export class SessionModel extends DatabaseModel {
         session.date,
         session.start_time,
         session.end_time,
+        session.capacity,
 
         user.first_name,
         user.last_name,
@@ -212,7 +240,7 @@ export class SessionModel extends DatabaseModel {
       ORDER BY session.date DESC
     `);
 
-    return rows.map(row => ({
+    return rows.map((row) => ({
       session: new SessionModel(
         row.id,
         row.user_id,
@@ -220,24 +248,25 @@ export class SessionModel extends DatabaseModel {
         row.activity_id,
         row.date,
         row.start_time?.substring(0, 5) || "",
-        row.end_time?.substring(0, 5) || ""
+        row.end_time?.substring(0, 5) || "",
+        row.capacity,
       ),
 
       user: {
         id: row.user_id,
         firstName: row.first_name,
-        lastName: row.last_name
+        lastName: row.last_name,
       },
 
       location: {
         id: row.location_id,
-        name: row.location_name
+        name: row.location_name,
       },
 
       activity: {
         id: row.activity_id,
-        name: row.activity_name
-      }
+        name: row.activity_name,
+      },
     }));
   }
 }

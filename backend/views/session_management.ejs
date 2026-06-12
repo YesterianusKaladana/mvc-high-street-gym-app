@@ -23,58 +23,126 @@
   <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
     <!-- ================= SESSION LIST ================= -->
-    <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-5 overflow-x-auto">
+    <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-5">
 
       <h2 class="text-xl font-bold mb-4">Sessions</h2>
 
-      <!-- HEADER ROW -->
-      <div class="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_auto] text-sm font-semibold text-gray-500 border-b border-gray-200 pb-2 mb-2">
-        <span>Trainer</span>
-        <span>Location</span>
-        <span>Activity</span>
-        <span>Date</span>
-        <span>Start Time</span>
-        <span>End Time </span>
-        <span class="text-right">Action</span>
-      </div>
+      <!-- SEARCH (ONE LINE) -->
+      <form method="GET" action="/session" class="mb-4">
 
-      <!-- LIST -->
-      <% for (const s of sessions) { %>
+        <div class="flex flex-wrap gap-2 items-center">
 
-        <div class="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_auto] py-3 border-b border-gray-200 hover:bg-blue-50 transition items-center">
+          <input type="text"
+                 name="search"
+                 placeholder="Search trainer, location, activity..."
+                 value="<%= search || '' %>"
+                 class="flex-1 min-w-[220px] border border-gray-300 p-2.5 rounded-lg bg-white
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
 
-          <span class="text-gray-700 font-medium">
-            <%= s.user.firstName %> <%= s.user.lastName %>
-          </span>
+          <input type="date"
+                 name="date"
+                 value="<%= date || '' %>"
+                 class="w-[150px] border border-gray-300 p-2.5 rounded-lg">
 
-          <span class="text-gray-600">
-            <%= s.location.name %>
-          </span>
+          <input type="time"
+                 name="start_time"
+                 value="<%= start_time || '' %>"
+                 class="w-[130px] border border-gray-300 p-2.5 rounded-lg">
 
-          <span class="text-gray-600">
-            <%= s.activity.name %>
-          </span>
+          <input type="time"
+                 name="end_time"
+                 value="<%= end_time || '' %>"
+                 class="w-[130px] border border-gray-300 p-2.5 rounded-lg">
 
-          <span class="text-gray-700">
-            <%= s.session.date %>
-          </span>
+          <input type="number"
+                 name="capacity"
+                 placeholder="Cap"
+                 value="<%= capacity || '' %>"
+                 class="w-[100px] border border-gray-300 p-2.5 rounded-lg">
 
-          <span class="text-gray-700">
-            <%= s.session.start_time %>
-          </span>
+          <button type="submit"
+                  class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium whitespace-nowrap">
+            Search
+          </button>
 
-          <span class="text-gray-700">
-            <%= s.session.end_time %>
-          </span>
-
-          <span class="text-right">
-            <a href="/session?edit_id=<%= s.session.id %>"
-               class="text-blue-600 hover:underline font-medium">
-              Edit
-            </a>
-          </span>
+          <a href="/session"
+             class="px-4 py-2.5 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-200 transition font-medium whitespace-nowrap">
+            Clear
+          </a>
 
         </div>
+
+      </form>
+
+      <!-- ================= SESSION LIST (CARD STYLE) ================= -->
+      <% if (sessions && sessions.length) { %>
+
+        <div class="space-y-4">
+
+          <% for (const s of sessions) { %>
+
+            <div class="border border-gray-200 rounded-xl p-4 hover:bg-blue-50 transition">
+
+              <!-- HEADER -->
+              <div class="flex justify-between items-center mb-3">
+
+                <div class="font-semibold text-gray-900">
+                  <%= s.activity.name %> Session
+                </div>
+
+                <a href="/session?edit_id=<%= s.session.id %>"
+                   class="text-blue-600 hover:underline font-medium">
+                  Edit
+                </a>
+
+              </div>
+
+              <!-- DETAILS -->
+              <div class="grid grid-cols-2 gap-3 text-sm">
+
+                <div>
+                  <p class="text-gray-500">Trainer</p>
+                  <p class="font-medium text-gray-900">
+                    <%= s.user.firstName %> <%= s.user.lastName %>
+                  </p>
+                </div>
+
+                <div>
+                  <p class="text-gray-500">Location</p>
+                  <p class="text-gray-700"><%= s.location.name %></p>
+                </div>
+
+                <div>
+                  <p class="text-gray-500">Date</p>
+                  <p class="text-gray-700"><%= s.session.date %></p>
+                </div>
+
+                <div>
+                  <p class="text-gray-500">Capacity</p>
+                  <p class="text-gray-700"><%= s.session.capacity %></p>
+                </div>
+
+                <div>
+                  <p class="text-gray-500">Start Time</p>
+                  <p class="text-gray-700"><%= s.session.start_time %></p>
+                </div>
+
+                <div>
+                  <p class="text-gray-500">End Time</p>
+                  <p class="text-gray-700"><%= s.session.end_time %></p>
+                </div>
+
+              </div>
+
+            </div>
+
+          <% } %>
+
+        </div>
+
+      <% } else { %>
+
+        <p class="text-gray-500 mt-4">No sessions found.</p>
 
       <% } %>
 
@@ -89,18 +157,18 @@
         <%= isEdit ? "Edit Session" : "Create Session" %>
       </h2>
 
-      <form action="/session" method="post" class="space-y-4">
+      <form action="<%= isEdit ? '/session/' + selectedSession.session.id : '/session' %>" method="post" class="space-y-4">
 
-        <!-- SESSION ID -->
         <input type="hidden"
                name="session_id"
                value="<%= selectedSession?.session?.id || '' %>">
 
-        <!-- USER (TRAINER) -->
+        <!-- TRAINER -->
         <div>
           <label class="block text-sm font-medium text-gray-700">Trainer</label>
           <select name="user_id" required
-                  class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500">
+                  class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg bg-white
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
 
             <option value="">Select Trainer</option>
 
@@ -118,7 +186,8 @@
         <div>
           <label class="block text-sm font-medium text-gray-700">Location</label>
           <select name="location_id" required
-                  class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500">
+                  class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg bg-white
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
 
             <option value="">Select Location</option>
 
@@ -136,7 +205,8 @@
         <div>
           <label class="block text-sm font-medium text-gray-700">Activity</label>
           <select name="activity_id" required
-                  class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500">
+                  class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg bg-white
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
 
             <option value="">Select Activity</option>
 
@@ -155,23 +225,35 @@
           <label class="block text-sm font-medium text-gray-700">Date</label>
           <input type="date" name="date" required
                  value="<%= selectedSession?.session?.date || '' %>"
-                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500">
+                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg bg-white
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
         </div>
 
-        <!-- START TIME -->
+        <!-- START -->
         <div>
           <label class="block text-sm font-medium text-gray-700">Start Time</label>
           <input type="time" name="start_time" required
                  value="<%= selectedSession?.session?.start_time || '' %>"
-                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500">
+                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg bg-white
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
         </div>
 
-        <!-- END TIME -->
+        <!-- END -->
         <div>
           <label class="block text-sm font-medium text-gray-700">End Time</label>
           <input type="time" name="end_time" required
                  value="<%= selectedSession?.session?.end_time || '' %>"
-                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500">
+                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg bg-white
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+        </div>
+
+        <!-- CAPACITY -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Capacity</label>
+          <input type="number" name="capacity" required
+                 value="<%= selectedSession?.session?.capacity || '' %>"
+                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg bg-white
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
         </div>
 
         <!-- BUTTONS -->

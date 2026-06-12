@@ -3,17 +3,17 @@
 
 <head>
   <%- include("partials/head.ejs") %>
-  <title>Member Bookings | HSG</title>
+  <title>My Bookings | HSG</title>
 </head>
 
 <body class="bg-gray-50 text-gray-900">
 
-<main class="max-w-7xl mx-auto p-6">
+<main class="max-w-4xl mx-auto p-6">
 
   <!-- HEADER -->
   <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-6 mb-6">
-    <h1 class="text-2xl font-bold text-gray-900">My Bookings</h1>
-    <p class="text-gray-600 mt-1">View and manage your booked sessions</p>
+    <h1 class="text-2xl font-bold">My Bookings</h1>
+    <p class="text-gray-600 mt-1">Your upcoming and past training sessions</p>
   </div>
 
   <!-- BACK -->
@@ -22,68 +22,65 @@
     ← Back to Dashboard
   </a>
 
-  <!-- BOOKINGS -->
-  <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-5 overflow-x-auto">
-
-    <h2 class="text-xl font-bold mb-4">Bookings</h2>
-
-    <!-- HEADER -->
-    <div class="grid grid-cols-5 gap-4 text-sm font-semibold text-gray-500 border-b pb-2 mb-2">
-      <span>Date</span>
-      <span>Activity</span>
-      <span>Location</span>
-      <span>Trainer</span>
-      <span class="text-right">Action</span>
-    </div>
+  <!-- CONTENT -->
+  <div class="space-y-4">
 
     <% if (!bookings || bookings.length === 0) { %>
 
-      <p class="text-gray-500 py-4">No bookings found.</p>
+      <div class="bg-white border border-gray-200 rounded-xl p-6 text-center text-gray-500">
+        You don’t have any bookings yet.
+      </div>
 
     <% } else { %>
 
-      <% bookings.forEach(function(b) { %>
+      <% bookings.forEach(function(b) { 
+          const s = b.session;
+      %>
 
-      <% const s = b.session; %>
+      <!-- BOOKING CARD -->
+      <div class="bg-white border border-gray-200 shadow-sm rounded-xl p-5 hover:shadow-md transition">
 
-      <div class="grid grid-cols-5 gap-4 py-5 border-b">
+        <!-- TOP ROW -->
+        <div class="flex justify-between items-start">
 
-           <!-- DATE -->
-        <span>
-           <%= b?.created ? new Date(b.created).toLocaleDateString("en-AU") : "-" %>
-        </span>
+          <div>
+            <p class="text-sm text-gray-500">
+              Booked on <%= b?.created ? new Date(b.created).toLocaleDateString("en-AU") : "-" %>
+            </p>
 
-        <!-- ACTIVITY -->
-        <span>
-          <%= s?.activity?.name || "Unknown" %>
-        </span>
+            <h2 class="text-lg font-semibold mt-1">
+              <%= s?.activity?.name || "Unknown Activity" %>
+            </h2>
 
-        <!-- LOCATION -->
-        <span>
-          <%= s?.location?.name || "Unknown" %>
-        </span>
+            <p class="text-gray-600 mt-1">
+              📍 <%= s?.location?.name || "Unknown Location" %>
+            </p>
 
-        <!-- TRAINER -->
-        <span>
-          <%= s?.user?.firstName || "" %> <%= s?.user?.lastName || "" %>
-        </span>
+            <p class="text-gray-600">
+              🧑‍🏫 Trainer: <%= s?.user?.firstName || "" %> <%= s?.user?.lastName || "" %>
+            </p>
+          </div>
 
-     
-      <!-- ACTION -->
-      <div class="text-right">
-        <form method="POST" action="/booking/member">
-          <input type="hidden" name="id" value="<%= b.id %>">
-          <input type="hidden" name="action" value="delete">
+        </div>
 
-          <button class="text-red-600 hover:underline">
-            Cancel
-          </button>
-        </form>
+        <!-- BOTTOM ACTION -->
+        <div class="mt-4 flex justify-end">
+
+          <form method="POST" action="/booking/member">
+            <input type="hidden" name="id" value="<%= b.id %>">
+            <input type="hidden" name="action" value="delete">
+
+            <button
+              class="text-sm text-red-600 hover:text-red-800 font-medium">
+              Cancel booking
+            </button>
+          </form>
+
+        </div>
+
       </div>
 
-      </div>
-
-    <% }) %>
+      <% }) %>
 
     <% } %>
 
