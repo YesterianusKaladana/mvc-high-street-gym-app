@@ -26,7 +26,7 @@ export class PostController {
      */
     this.routes.get(
       "/",
-      AuthenticationController.restrict(["admin", "trainer"]),
+      AuthenticationController.restrict(["admin"]),
       this.viewPosts,
     );
 
@@ -48,13 +48,31 @@ export class PostController {
       this.handleMemberPost,
     );
 
+    this.routes.get(
+      "/trainer",
+      AuthenticationController.restrict(["trainer"]),
+      this.viewTrainerPosts,
+    );
+
+    this.routes.get(
+      "/trainer/create",
+      AuthenticationController.restrict(["trainer"]),
+      this.viewCreateTrainerPostPage,
+    );
+
+    this.routes.post(
+      "/trainer/create",
+      AuthenticationController.restrict(["trainer"]),
+      this.handleTrainerPost,
+    );
+
     /**
      * POST /
      * Handles create, update, delete actions for posts
      */
     this.routes.post(
       "/",
-      AuthenticationController.restrict(["admin", "trainer"]),
+      AuthenticationController.restrict(["admin"]),
       this.handlePostsManagement,
     );
 
@@ -64,7 +82,7 @@ export class PostController {
      */
     this.routes.get(
       "/:id",
-      AuthenticationController.restrict(["admin", "trainer"]),
+      AuthenticationController.restrict(["admin"]),
       this.viewPostById,
     );
   }
@@ -150,16 +168,6 @@ export class PostController {
       }
 
       const isOwner = selectedPost.user_id === user.id;
-      const isAdmin = user.role === "admin";
-      const isTrainer = user.role === "trainer";
-
-      // Access control: admin + trainer + owner only
-      if (!isOwner && !isAdmin && !isTrainer) {
-        return res.status(403).render("status.ejs", {
-          status: "Access Denied",
-          message: "You cannot access this post.",
-        });
-      }
 
       return res.render("post_management.ejs", {
         authenticatedUser: user,
@@ -189,9 +197,12 @@ export class PostController {
 
       const posts = await PostModel.getAll();
 
+      // Filter posts to only include those created by the authenticated member
+      const memberPosts = posts.filter((p) => p.user_id === req.user.id);
+
       return res.render("member_post.ejs", {
         authenticatedUser: req.user,
-        posts: posts,
+        posts: memberPosts,
       });
     } catch (error) {
       console.error(error);
@@ -282,6 +293,154 @@ export class PostController {
       return res.status(500).render("status.ejs", {
         status: "Failed to create post",
         message: "An error occurred while creating the post.",
+      });
+    }
+  }
+
+  static async viewTrainerPosts(req, res) {
+    try {
+      if (!req.user || req.user.role !== "trainer") {
+        return res.status(403).render("status.ejs", {
+          status: "Access Denied",
+          message: "Access denied. Trainers only.",
+        });
+      }
+
+      const posts = await PostModel.getAll();
+      const trainerPosts = posts.filter((p) => p.user_id === req.user.id);
+
+      return res.render("trainer_post.ejs", {
+        authenticatedUser: req.user,
+        posts: trainerPosts,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).render("status.ejs", {
+        status: "Failed to load trainer page",
+        message: "An error occurred while loading the trainer page.",
+      });
+    }
+  }
+
+  static async viewCreateTrainerPostPage(req, res) {
+    try {
+      if (!req.user || req.user.role !== "trainer") {
+        return res.status(403).render("status.ejs", {
+          status: "Access Denied",
+          message: "Access denied. Trainers only.",
+        });
+      }
+
+      return res.render("trainer_create_post.ejs", {
+        authenticatedUser: req.user,
+        error: null,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).render("status.ejs", {
+        status: "Failed to load create page",
+        message: "An error occurred while loading the create page.",
+      });
+    }
+  }
+
+  static async handleTrainerPost(req, res) {
+    try {
+      const user = req.user;
+
+      if (!user || user.role !== "trainer") {
+        return res.status(403).render("status.ejs", {
+          status: "Access Denied",
+          message: "Access denied. Trainers only.",
+        });
+      }
+
+      const { action, id, title, content } = req.body;
+
+      const cleanTitle = title?.trim();
+      const cleanContent = content?.trim();
+
+      function containsDangerousHTML(text) {
+        return /<\s*script.*?>|<\/?\s*script\s*>|<.*?>/i.test(text);
+      }
+
+      // =========================
+      // CREATE
+      // =========================
+      if (!action || action === "create") {
+        if (!cleanTitle || !cleanContent) {
+          return res.status(400).render("status.ejs", {
+            status: "Invalid Input",
+            message: "Title and content are required",
+          });
+        }
+
+        const post = new PostModel(null, user.id, cleanTitle, cleanContent);
+        await PostModel.create(post);
+
+        return res.redirect("/post/trainer");
+      }
+
+      // =========================
+      // UPDATE
+      // =========================
+      if (action === "update") {
+        const post = await PostModel.findById(id);
+
+        if (!post) {
+          return res.status(404).render("status.ejs", {
+            status: "Post Not Found",
+            message: "The requested post was not found.",
+          });
+        }
+
+        if (post.userId !== user.id && user.role !== "admin") {
+          return res.status(403).render("status.ejs", {
+            status: "Access Denied",
+            message: "You are not the owner of this post.",
+          });
+        }
+
+        await PostModel.update(id, {
+          title: cleanTitle,
+          content: cleanContent,
+        });
+
+        return res.redirect("/post/trainer");
+      }
+
+      // =========================
+      // DELETE
+      // =========================
+      if (action === "delete") {
+        const post = await PostModel.getById(id);
+
+        if (!post) {
+          return res.status(404).render("status.ejs", {
+            status: "Post Not Found",
+            message: "The requested post was not found.",
+          });
+        }
+
+        const isOwner = post.user_id === user.id;
+        const isAdmin = user.role === "admin";
+
+        if (!isOwner && !isAdmin) {
+          return res.status(403).render("status.ejs", {
+            status: "Access Denied",
+            message: "You are not allowed to delete this post.",
+          });
+        }
+
+        await PostModel.delete(id);
+
+        return res.redirect("/post/trainer");
+      }
+    } catch (error) {
+      console.error(error);
+      return res.status(500).render("status.ejs", {
+        status: "Server Error",
+        message: "Something went wrong.",
       });
     }
   }

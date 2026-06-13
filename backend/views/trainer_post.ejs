@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <%- include("./partials/head.ejs") %>
+  <title>Trainer Posts</title>
+</head>
+
+<body class="bg-gray-50 text-gray-900">
+
+<main class="max-w-5xl mx-auto px-4 py-6">
+
+  <!-- HEADER -->
+  <div class="flex justify-between items-start gap-4 mb-4">
+
+    <div class="min-w-0">
+      <h1 class="text-2xl sm:text-3xl font-bold">
+        Trainer Posts
+      </h1>
+
+      <p class="text-gray-500 text-sm mt-1">
+        View and manage your trainer posts
+      </p>
+    </div>
+
+    <a href="/post/trainer/create"
+       class="shrink-0 whitespace-nowrap px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+      + Create Post
+    </a>
+
+  </div>
+
+  <!-- BACK BUTTON -->
+  <a href="/authenticate/dashboard"
+     class="inline-flex items-center gap-2 px-4 py-2 mb-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+    ← Back to Dashboard
+  </a>
+
+  <!-- POSTS -->
+  <% if (posts && posts.length > 0) { %>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+      <% posts.forEach(post => { %>
+
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition p-5 flex flex-col">
+
+          <!-- TITLE -->
+          <h2 class="text-lg font-semibold break-words">
+            <%= post.title %>
+          </h2>
+
+          <!-- CONTENT -->
+          <p class="text-gray-600 text-sm mt-3 leading-relaxed break-words flex-grow">
+            <%= post.content.length > 200
+              ? post.content.substring(0, 200) + "..."
+              : post.content %>
+          </p>
+
+          <!-- DATE -->
+          <% if (post.date) { %>
+            <div class="mt-4 text-xs text-gray-400">
+              Posted:
+              <%= new Date(post.date).toLocaleDateString() %>
+            </div>
+          <% } %>
+
+          <!-- ACTION BUTTONS -->
+          <div class="flex flex-wrap gap-2 mt-4">
+            <form action="/post/trainer/create" method="POST">
+              <input type="hidden" name="action" value="delete">
+              <input type="hidden" name="id" value="<%= post.id %>">
+
+              <button type="submit"
+                      class="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm">
+                Delete
+              </button>
+            </form>
+
+          </div>
+
+        </div>
+
+      <% }) %>
+
+    </div>
+
+  <% } else { %>
+
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-8 text-center">
+
+      <h2 class="text-xl font-semibold mb-2">
+        No Posts Yet
+      </h2>
+
+      <p class="text-gray-500 mb-5">
+        Create your first trainer post.
+      </p>
+
+      <a href="/post/trainer/create"
+         class="inline-block px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        + Create Post
+      </a>
+
+    </div>
+
+  <% } %>
+
+</main>
+
+</body>
+</html>
