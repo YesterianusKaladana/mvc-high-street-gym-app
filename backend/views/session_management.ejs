@@ -27,17 +27,15 @@
 
       <h2 class="text-xl font-bold mb-4">Sessions</h2>
 
-      <!-- SEARCH (ONE LINE) -->
+      <!-- SEARCH -->
       <form method="GET" action="/session" class="mb-4">
-
         <div class="flex flex-wrap gap-2 items-center">
 
           <input type="text"
                  name="search"
                  placeholder="Search trainer, location, activity..."
                  value="<%= search || '' %>"
-                 class="flex-1 min-w-[220px] border border-gray-300 p-2.5 rounded-lg bg-white
-                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                 class="flex-1 min-w-[220px] border border-gray-300 p-2.5 rounded-lg">
 
           <input type="date"
                  name="date"
@@ -56,94 +54,81 @@
 
           <input type="number"
                  name="capacity"
-                 placeholder="Cap"
+                 placeholder="Capacity"
                  value="<%= capacity || '' %>"
                  class="w-[100px] border border-gray-300 p-2.5 rounded-lg">
 
           <button type="submit"
-                  class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium whitespace-nowrap">
+                  class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
             Search
           </button>
 
           <a href="/session"
-             class="px-4 py-2.5 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-200 transition font-medium whitespace-nowrap">
+             class="px-4 py-2.5 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200">
             Clear
           </a>
 
         </div>
-
       </form>
 
-      <!-- ================= SESSION LIST (CARD STYLE) ================= -->
+      <!-- SESSION LIST -->
       <% if (sessions && sessions.length) { %>
-
         <div class="space-y-4">
 
-          <% for (const s of sessions) { %>
-
+          <% sessions.forEach(s => { %>
             <div class="border border-gray-200 rounded-xl p-4 hover:bg-blue-50 transition">
 
-              <!-- HEADER -->
-              <div class="flex justify-between items-center mb-3">
-
-                <div class="font-semibold text-gray-900">
+              <div class="flex justify-between mb-3">
+                <div class="font-semibold">
                   <%= s.activity.name %> Session
                 </div>
 
                 <a href="/session?edit_id=<%= s.session.id %>"
-                   class="text-blue-600 hover:underline font-medium">
+                   class="text-blue-600 hover:underline">
                   Edit
                 </a>
-
               </div>
 
-              <!-- DETAILS -->
               <div class="grid grid-cols-2 gap-3 text-sm">
 
                 <div>
                   <p class="text-gray-500">Trainer</p>
-                  <p class="font-medium text-gray-900">
-                    <%= s.user.firstName %> <%= s.user.lastName %>
-                  </p>
+                  <p><%= s.user.firstName %> <%= s.user.lastName %></p>
                 </div>
 
                 <div>
                   <p class="text-gray-500">Location</p>
-                  <p class="text-gray-700"><%= s.location.name %></p>
+                  <p><%= s.location.name %></p>
                 </div>
 
                 <div>
                   <p class="text-gray-500">Date</p>
-                  <p class="text-gray-700"><%= s.session.date %></p>
+                  <p><%= s.session.date %></p>
                 </div>
 
                 <div>
                   <p class="text-gray-500">Capacity</p>
-                  <p class="text-gray-700"><%= s.session.capacity %></p>
+                  <p><%= s.session.capacity %></p>
                 </div>
 
                 <div>
                   <p class="text-gray-500">Start Time</p>
-                  <p class="text-gray-700"><%= s.session.start_time %></p>
+                  <p><%= s.session.start_time %></p>
                 </div>
 
                 <div>
                   <p class="text-gray-500">End Time</p>
-                  <p class="text-gray-700"><%= s.session.end_time %></p>
+                  <p><%= s.session.end_time %></p>
                 </div>
 
               </div>
 
             </div>
-
-          <% } %>
+          <% }) %>
 
         </div>
-
       <% } else { %>
-
         <p class="text-gray-500 mt-4">No sessions found.</p>
-
       <% } %>
 
     </div>
@@ -157,129 +142,128 @@
         <%= isEdit ? "Edit Session" : "Create Session" %>
       </h2>
 
-      <form action="<%= isEdit ? '/session/' + selectedSession.session.id : '/session' %>" method="post" class="space-y-4">
+      <form action="<%= isEdit ? '/session/' + selectedSession.session.id : '/session' %>"
+            method="post"
+            class="space-y-4">
 
         <input type="hidden"
                name="session_id"
                value="<%= selectedSession?.session?.id || '' %>">
 
-        <!-- TRAINER -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Trainer</label>
-          <select name="user_id" required
-                  class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg bg-white
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+        <!-- TRAINER / LOCATION / ACTIVITY -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-            <option value="">Select Trainer</option>
+          <div>
+            <label class="block text-sm font-medium">Trainer</label>
+            <select name="user_id" required class="w-full mt-1 border p-2.5 rounded-lg">
+              <option value="">Select Trainer</option>
+              <% users.forEach(u => { %>
+                <option value="<%= u.id %>"
+                  <%= selectedSession?.session?.user_id === u.id ? "selected" : "" %>>
+                  <%= u.firstName %> <%= u.lastName %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
 
-            <% users.forEach(u => { %>
-              <option value="<%= u.id %>"
-                <%= selectedSession?.session?.user_id === u.id ? "selected" : "" %>>
-                <%= u.firstName %> <%= u.lastName %>
-              </option>
-            <% }) %>
+          <div>
+            <label class="block text-sm font-medium">Location</label>
+            <select name="location_id" required class="w-full mt-1 border p-2.5 rounded-lg">
+              <option value="">Select Location</option>
+              <% locations.forEach(l => { %>
+                <option value="<%= l.id %>"
+                  <%= selectedSession?.session?.location_id === l.id ? "selected" : "" %>>
+                  <%= l.name %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
 
-          </select>
+          <div>
+            <label class="block text-sm font-medium">Activity</label>
+            <select name="activity_id" required class="w-full mt-1 border p-2.5 rounded-lg">
+              <option value="">Select Activity</option>
+              <% activities.forEach(a => { %>
+                <option value="<%= a.id %>"
+                  <%= selectedSession?.session?.activity_id === a.id ? "selected" : "" %>>
+                  <%= a.name %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+
         </div>
 
-        <!-- LOCATION -->
+        <!-- DATE (BLOCK PAST DATE) -->
         <div>
-          <label class="block text-sm font-medium text-gray-700">Location</label>
-          <select name="location_id" required
-                  class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg bg-white
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-
-            <option value="">Select Location</option>
-
-            <% locations.forEach(l => { %>
-              <option value="<%= l.id %>"
-                <%= selectedSession?.session?.location_id === l.id ? "selected" : "" %>>
-                <%= l.name %>
-              </option>
-            <% }) %>
-
-          </select>
-        </div>
-
-        <!-- ACTIVITY -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Activity</label>
-          <select name="activity_id" required
-                  class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg bg-white
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-
-            <option value="">Select Activity</option>
-
-            <% activities.forEach(a => { %>
-              <option value="<%= a.id %>"
-                <%= selectedSession?.session?.activity_id === a.id ? "selected" : "" %>>
-                <%= a.name %>
-              </option>
-            <% }) %>
-
-          </select>
-        </div>
-
-        <!-- DATE -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Date</label>
-          <input type="date" name="date" required
+          <label class="block text-sm font-medium">Date</label>
+          <input type="date"
+                 name="date"
+                 required
+                 min="<%= new Date().toISOString().split('T')[0] %>"
                  value="<%= selectedSession?.session?.date || '' %>"
-                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg bg-white
-                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                 class="w-full mt-1 border p-2.5 rounded-lg">
         </div>
 
-        <!-- START -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Start Time</label>
-          <input type="time" name="start_time" required
-                 value="<%= selectedSession?.session?.start_time || '' %>"
-                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg bg-white
-                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-        </div>
+        <!-- TIME -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-        <!-- END -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700">End Time</label>
-          <input type="time" name="end_time" required
-                 value="<%= selectedSession?.session?.end_time || '' %>"
-                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg bg-white
-                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+          <div>
+            <label class="block text-sm font-medium">Start Time</label>
+            <input type="time"
+                   name="start_time"
+                   required
+                   value="<%= selectedSession?.session?.start_time || '' %>"
+                   class="w-full mt-1 border p-2.5 rounded-lg">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium">End Time</label>
+            <input type="time"
+                   name="end_time"
+                   required
+                   value="<%= selectedSession?.session?.end_time || '' %>"
+                   class="w-full mt-1 border p-2.5 rounded-lg">
+          </div>
+
         </div>
 
         <!-- CAPACITY -->
         <div>
-          <label class="block text-sm font-medium text-gray-700">Capacity</label>
-          <input type="number" name="capacity" required
+          <label class="block text-sm font-medium">Capacity</label>
+          <input type="number"
+                 name="capacity"
+                 min="1"
+                 step="1"
+                 required
                  value="<%= selectedSession?.session?.capacity || '' %>"
-                 class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg bg-white
-                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                 class="w-full mt-1 border p-2.5 rounded-lg">
         </div>
 
         <!-- BUTTONS -->
         <div class="flex gap-3 pt-2">
 
           <button type="reset"
-                  class="px-4 py-2.5 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-200 transition font-medium">
+                  class="px-4 py-2 bg-gray-100 border rounded-lg">
             Clear
           </button>
 
           <% if (!isEdit) { %>
 
             <button type="submit" name="action" value="create"
-                    class="px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">
+                    class="px-4 py-2 bg-green-600 text-white rounded-lg">
               Create
             </button>
 
           <% } else { %>
 
             <button type="submit" name="action" value="update"
-                    class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg">
               Update
             </button>
 
             <button type="submit" name="action" value="delete"
-                    class="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium">
+                    class="px-4 py-2 bg-red-600 text-white rounded-lg">
               Delete
             </button>
 

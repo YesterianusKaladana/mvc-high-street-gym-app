@@ -360,22 +360,53 @@ export class SessionController {
    */
   static async handleSessionManagement(req, res) {
     const selectedSessionId = req.params.id;
-    const { action } = req.body;
+    const { date, start_time, end_time, capacity, action } = req.body;
 
     try {
+      if (action === "create" || action === "update") {
+        const startDateTime = new Date(`${date}T${start_time}`);
+        const endDateTime = new Date(`${date}T${end_time}`);
+        const now = new Date();
+
+        // Block only if session start is before now
+        if (startDateTime < now) {
+          return res.status(400).render("status.ejs", {
+            status: "Validation Error",
+            message: "Session start time cannot be in the past",
+          });
+        }
+
+        // End must be after start
+        if (endDateTime <= startDateTime) {
+          return res.status(400).render("status.ejs", {
+            status: "Validation Error",
+            message: "End time must be after start time",
+          });
+        }
+
+        // Capacity check
+        if (Number(capacity) < 1) {
+          return res.status(400).render("status.ejs", {
+            status: "Validation Error",
+            message: "Capacity must be at least 1",
+          });
+        }
+      }
+
+      // CREATE
       if (action === "create") {
         await SessionModel.create(req.body);
       }
 
+      // UPDATE
       if (action === "update") {
         await SessionModel.update({
           id: selectedSessionId,
-          // this is spread operations In Javascript
-          // Meaning take everything inside req.body and expand (copy) its properties
           ...req.body,
         });
       }
 
+      // DELETE
       if (action === "delete") {
         await SessionModel.delete(selectedSessionId);
       }
@@ -383,7 +414,11 @@ export class SessionController {
       return res.redirect("/session");
     } catch (error) {
       console.error(error);
-      return res.status(500).send("Session error");
+
+      return res.status(500).render("status.ejs", {
+        status: "Server Error",
+        message: "Something went wrong while processing the session",
+      });
     }
   }
 
