@@ -566,6 +566,14 @@ export class SessionController {
         });
       }
 
+      //Capacity Validation
+      if (Number(capacity) < 1) {
+        return res.status(400).render("status.ejs", {
+          status: "Invalid Capacity",
+          message: "Capacity  cannot be 0 must be higher than 0",
+        });
+      }
+
       if (action === "create") {
         await SessionModel.create({
           user_id: trainerId,

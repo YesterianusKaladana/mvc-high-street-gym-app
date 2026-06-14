@@ -246,53 +246,89 @@ export class PostController {
         });
       }
 
-      const { title, content } = req.body;
+      const { action, id, title, content } = req.body;
 
-      const cleanTitle = title?.trim();
-      const cleanContent = content?.trim();
-
-      // -------------------------
-      // VALIDATION (safe + XSS block)
-      // -------------------------
-      function containsDangerousHTML(text) {
+      function containsDangerousHTML(text = "") {
         return /<\s*script.*?>|<\/?\s*script\s*>|<.*?>/i.test(text);
       }
 
-      if (!cleanTitle || !cleanContent) {
+      // =========================
+      // DELETE
+      // =========================
+      if (action === "delete") {
+        const post = await PostModel.getById(id);
+
+        if (!post) {
+          return res.status(404).render("status.ejs", {
+            status: "Post Not Found",
+            message: "The requested post was not found.",
+          });
+        }
+
+        if (post.user_id !== user.id) {
+          return res.status(403).render("status.ejs", {
+            status: "Access Denied",
+            message: "You can only delete your own posts.",
+          });
+        }
+
+        await PostModel.delete(id);
+
+        return res.redirect("/post/member");
+      }
+
+      // =========================
+      // CREATE
+      // =========================
+      const cleanTitle = title?.trim();
+      const cleanContent = content?.trim();
+
+      let error = null;
+
+      // TITLE VALIDATION
+      if (!cleanTitle) {
+        error = "Post title is required";
+      } else if (containsDangerousHTML(cleanTitle)) {
+        error = "HTML or scripts are not allowed in title";
+      } else if (/\d/.test(cleanTitle)) {
+        error = "Post title must not contain numbers";
+      } else if (!/^[A-Z]/.test(cleanTitle)) {
+        error = "Post title must start with an uppercase letter";
+      } else if (cleanTitle.length < 2) {
+        error = "Post title is too short";
+      } else if (cleanTitle.length > 50) {
+        error = "Post title must not exceed 50 characters";
+      }
+
+      // CONTENT VALIDATION
+      else if (!cleanContent) {
+        error = "Post content is required";
+      } else if (containsDangerousHTML(cleanContent)) {
+        error = "HTML or scripts are not allowed in content";
+      } else if (cleanContent.length < 5) {
+        error = "Post content is too short (minimum 5 characters)";
+      } else if (cleanContent.length > 2000) {
+        error = "Post content must not exceed 2000 characters";
+      }
+
+      if (error) {
         return res.status(400).render("status.ejs", {
           status: "Invalid Input",
-          message: "Title and content are required",
+          message: error,
         });
       }
 
-      if (cleanTitle.length < 2 || cleanTitle.length > 50) {
-        return res.status(400).render("status.ejs", {
-          status: "Invalid Input",
-          message: "Title must be between 2 and 50 characters",
-        });
-      }
-
-      if (cleanContent.length < 5 || cleanContent.length > 2000) {
-        return res.status(400).render("status.ejs", {
-          status: "Invalid Input",
-          message: "Content must be between 5 and 2000 characters",
-        });
-      }
-
-      // -------------------------
-      // CREATE POST
-      // -------------------------
       const post = new PostModel(null, user.id, cleanTitle, cleanContent);
 
       await PostModel.create(post);
 
-      // redirect back to member feed
       return res.redirect("/post/member");
     } catch (error) {
       console.error(error);
+
       return res.status(500).render("status.ejs", {
-        status: "Failed to create post",
-        message: "An error occurred while creating the post.",
+        status: "Server Error",
+        message: "An error occurred while processing your request.",
       });
     }
   }
@@ -346,7 +382,12 @@ export class PostController {
 
   static async handleTrainerPost(req, res) {
     try {
+      const { action, id, title, content } = req.body;
       const user = req.user;
+
+      function containsDangerousHTML(text = "") {
+        return /<\s*script.*?>|<\/?\s*script\s*>|<.*?>/i.test(text);
+      }
 
       if (!user || user.role !== "trainer") {
         return res.status(403).render("status.ejs", {
@@ -355,62 +396,8 @@ export class PostController {
         });
       }
 
-      const { action, id, title, content } = req.body;
-
-      const cleanTitle = title?.trim();
-      const cleanContent = content?.trim();
-
-      function containsDangerousHTML(text) {
-        return /<\s*script.*?>|<\/?\s*script\s*>|<.*?>/i.test(text);
-      }
-
       // =========================
-      // CREATE
-      // =========================
-      if (!action || action === "create") {
-        if (!cleanTitle || !cleanContent) {
-          return res.status(400).render("status.ejs", {
-            status: "Invalid Input",
-            message: "Title and content are required",
-          });
-        }
-
-        const post = new PostModel(null, user.id, cleanTitle, cleanContent);
-        await PostModel.create(post);
-
-        return res.redirect("/post/trainer");
-      }
-
-      // =========================
-      // UPDATE
-      // =========================
-      if (action === "update") {
-        const post = await PostModel.findById(id);
-
-        if (!post) {
-          return res.status(404).render("status.ejs", {
-            status: "Post Not Found",
-            message: "The requested post was not found.",
-          });
-        }
-
-        if (post.userId !== user.id && user.role !== "admin") {
-          return res.status(403).render("status.ejs", {
-            status: "Access Denied",
-            message: "You are not the owner of this post.",
-          });
-        }
-
-        await PostModel.update(id, {
-          title: cleanTitle,
-          content: cleanContent,
-        });
-
-        return res.redirect("/post/trainer");
-      }
-
-      // =========================
-      // DELETE
+      // DELETE (NO VALIDATION NEEDED)
       // =========================
       if (action === "delete") {
         const post = await PostModel.getById(id);
@@ -422,13 +409,10 @@ export class PostController {
           });
         }
 
-        const isOwner = post.user_id === user.id;
-        const isAdmin = user.role === "admin";
-
-        if (!isOwner && !isAdmin) {
+        if (post.user_id !== user.id) {
           return res.status(403).render("status.ejs", {
             status: "Access Denied",
-            message: "You are not allowed to delete this post.",
+            message: "You can only delete your own posts.",
           });
         }
 
@@ -436,8 +420,52 @@ export class PostController {
 
         return res.redirect("/post/trainer");
       }
+
+      // =========================
+      // CREATE ONLY
+      // =========================
+      const cleanTitle = title?.trim();
+      const cleanContent = content?.trim();
+
+      let error = null;
+
+      if (!cleanTitle) {
+        error = "Post title is required";
+      } else if (containsDangerousHTML(cleanTitle)) {
+        error = "HTML or scripts are not allowed in title";
+      } else if (/\d/.test(cleanTitle)) {
+        error = "Post title must not contain numbers";
+      } else if (!/^[A-Z]/.test(cleanTitle)) {
+        error = "Post title must start with an uppercase letter";
+      } else if (cleanTitle.length < 2) {
+        error = "Post title is too short";
+      } else if (cleanTitle.length > 50) {
+        error = "Post title must not exceed 50 characters";
+      } else if (!cleanContent) {
+        error = "Post content is required";
+      } else if (containsDangerousHTML(cleanContent)) {
+        error = "HTML or scripts are not allowed in content";
+      } else if (cleanContent.length < 5) {
+        error = "Post content is too short (minimum 5 characters)";
+      } else if (cleanContent.length > 2000) {
+        error = "Post content must not exceed 2000 characters";
+      }
+
+      if (error) {
+        return res.status(400).render("status.ejs", {
+          status: "Invalid Input",
+          message: error,
+        });
+      }
+
+      const post = new PostModel(null, user.id, cleanTitle, cleanContent);
+
+      await PostModel.create(post);
+
+      return res.redirect("/post/trainer");
     } catch (error) {
       console.error(error);
+
       return res.status(500).render("status.ejs", {
         status: "Server Error",
         message: "Something went wrong.",

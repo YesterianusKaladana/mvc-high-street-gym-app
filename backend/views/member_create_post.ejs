@@ -17,38 +17,69 @@
 
   <h1 class="text-3xl font-bold mb-6">Create New Post</h1>
 
-  <form action="/post/member/create" method="post" class="space-y-4 bg-white p-6 rounded-xl shadow">
+  <form
+    action="/post/member/create"
+    method="post"
+    class="space-y-4 bg-white p-6 rounded-xl shadow"
+  >
 
     <input type="hidden" name="action" value="create">
 
     <!-- TITLE -->
     <div>
-      <label class="block font-medium">Title</label>
-      <input type="text"
-             name="title"
-             required
-             class="w-full border p-2 rounded mt-1">
+      <label for="title" class="block font-medium">
+        Title
+      </label>
+
+      <input
+        id="title"
+        type="text"
+        name="title"
+        required
+        class="w-full border p-2 rounded mt-1"
+      >
     </div>
 
     <!-- CONTENT -->
     <div>
-      <label class="block font-medium">Content</label>
-      <textarea name="content"
-                rows="6"
-                required
-                class="w-full border p-2 rounded mt-1"></textarea>
+      <label for="content" class="block font-medium">
+        Content
+      </label>
+
+      <textarea
+        id="content"
+        name="content"
+        rows="6"
+        required
+        class="w-full border p-2 rounded mt-1"
+      ></textarea>
     </div>
 
-    <!-- ERROR -->
+    <!-- ERROR MESSAGE -->
     <% if (error) { %>
-      <p class="text-red-500 text-sm"><%= error %></p>
+      <div class="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded">
+        <%= error %>
+      </div>
     <% } %>
 
-    <!-- BUTTON -->
-    <button type="submit"
-            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-      Publish Post
-    </button>
+    <!-- BUTTONS -->
+    <div class="flex gap-3 pt-2">
+
+      <button
+        type="submit"
+        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+      >
+        Publish Post
+      </button>
+
+      <a
+        href="/post/member"
+        class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+      >
+        Cancel
+      </a>
+
+    </div>
 
   </form>
 
