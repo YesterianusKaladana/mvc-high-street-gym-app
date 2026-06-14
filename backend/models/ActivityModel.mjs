@@ -5,18 +5,19 @@ import { DatabaseModel } from "./DatabaseModel.mjs";
  * Handles all CRUD operations for activity data.
  */
 export class ActivityModel extends DatabaseModel {
-
   /**
    * Creates a new ActivityModel instance.
    *
    * @param {number} id - The unique ID of the activity.
    * @param {string} name - The activity name.
+   * @param {string} description - A description of the activity.
    */
-  constructor(id, name) {
+  constructor(id, name, description) {
     super();
 
     this.id = id;
     this.name = name;
+    this.description = description;
   }
 
   /**
@@ -30,7 +31,8 @@ export class ActivityModel extends DatabaseModel {
     const activityRow = row.activity || row.activities || row;
     return new ActivityModel(
       activityRow.id,
-      activityRow.name
+      activityRow.name,
+      activityRow.description,
     );
   }
 
@@ -40,9 +42,11 @@ export class ActivityModel extends DatabaseModel {
    * @returns {Promise<ActivityModel[]>}
    */
   static async getAll() {
-    return this.query(`
+    return this.query(
+      `
       SELECT * FROM activity
-    `).then((results) => {
+    `,
+    ).then((results) => {
       return results.map((row) => this.tableToModel(row));
     });
   }
@@ -54,11 +58,13 @@ export class ActivityModel extends DatabaseModel {
    * @returns {Promise<ActivityModel|null>}
    */
   static async getById(id) {
-    return this.query(`
+    return this.query(
+      `
       SELECT * FROM activity
       WHERE id = ?
-    `, [id]).then((result) => {
-
+    `,
+      [id],
+    ).then((result) => {
       if (result.length > 0) {
         return this.tableToModel(result[0]);
       }
@@ -74,10 +80,13 @@ export class ActivityModel extends DatabaseModel {
    * @returns {Promise<any>}
    */
   static async create(activity) {
-    return this.query(`
-      INSERT INTO activity (name)
-      VALUES (?)
-    `, [activity.name]);
+    return this.query(
+      `
+      INSERT INTO activity (name, description)
+      VALUES (?, ?)
+    `,
+      [activity.name, activity.description],
+    );
   }
 
   /**
@@ -87,14 +96,14 @@ export class ActivityModel extends DatabaseModel {
    * @returns {Promise<any>}
    */
   static async update(activity) {
-    return this.query(`
+    return this.query(
+      `
       UPDATE activity
-      SET name = ?
+      SET name = ?, description = ?
       WHERE id = ?
-    `, [
-      activity.name,
-      activity.id
-    ]);
+    `,
+      [activity.name, activity.description, activity.id],
+    );
   }
 
   /**
@@ -104,12 +113,15 @@ export class ActivityModel extends DatabaseModel {
    * @returns {Promise<any>}
    */
   static async delete(id) {
-    return this.query(`
+    return this.query(
+      `
       DELETE FROM activity
       WHERE id = ?
-    `, [id]);
+    `,
+      [id],
+    );
   }
 }
 
 // TEST
-// ActivityModel.getAll().then(console.log);
+ActivityModel.getAll().then(console.log);

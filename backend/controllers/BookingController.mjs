@@ -156,7 +156,7 @@ export class BookingController {
     }
   }
 
-    /**
+  /**
    * Handles booking confirmation from a member for a specific session.
    *
    * This function:
@@ -193,7 +193,10 @@ export class BookingController {
       return res.redirect("/session/member"); // back to session page
     } catch (error) {
       console.error(error);
-      return res.redirect("/session/member?error=booking_failed");
+      return res.status(500).render("status.ejs", {
+        status: "Error",
+        message: "Failed to confirm booking",
+      });
     }
   }
 
@@ -223,10 +226,11 @@ export class BookingController {
       }
 
       if (action === "update") {
-        await BookingModel.update(id, {
+        await BookingModel.update({
+          id,
           sessionId,
-          userId: user.id,
           created: new Date(),
+          userId: user.id,
         });
 
         return res.redirect("/booking/member");
@@ -247,7 +251,10 @@ export class BookingController {
       return res.redirect("/booking/member");
     } catch (error) {
       console.error(error);
-      return res.redirect("/booking/member?error=1");
+      return res.status(500).render("status.ejs", {
+        status: "Error",
+        message: "Failed to manage booking",
+      });
     }
   }
 
@@ -333,10 +340,12 @@ export class BookingController {
 
       // UPDATE
       if (action === "update") {
-        await BookingModel.update(id, {
+        console.log("BODY:", req.body);
+        await BookingModel.update({
+          id,
           sessionId,
-          userId,
           created: new Date(),
+          userId,
         });
 
         return res.redirect("/booking?updated=1");
@@ -346,7 +355,11 @@ export class BookingController {
       const existing = await BookingModel.find(userId, sessionId);
 
       if (existing) {
-        return res.redirect("/booking?exists=1");
+        return res.status(409).render("status.ejs", {
+          status: "Booking Exists",
+          message:
+            "This session has already been booked. Double bookings are not allowed.",
+        });
       }
 
       // CREATE
@@ -359,7 +372,10 @@ export class BookingController {
       return res.redirect("/booking?success=1");
     } catch (error) {
       console.error(error);
-      return res.redirect("/booking?error=1");
+      return res.status(500).render("status.ejs", {
+        status: "Error",
+        message: "Failed to manage booking",
+      });
     }
   }
 }

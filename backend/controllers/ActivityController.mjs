@@ -25,7 +25,7 @@ export class ActivityController {
     this.routes.get(
       "/",
       AuthenticationController.restrict(["admin", "trainer"]),
-      this.viewActivities
+      this.viewActivities,
     );
 
     /**
@@ -35,7 +35,7 @@ export class ActivityController {
     this.routes.get(
       "/:id",
       AuthenticationController.restrict(["admin", "trainer"]),
-      this.viewActivities
+      this.viewActivities,
     );
 
     /**
@@ -45,7 +45,7 @@ export class ActivityController {
     this.routes.post(
       "/",
       AuthenticationController.restrict(["admin", "trainer"]),
-      this.handleActivities
+      this.handleActivities,
     );
 
     /**
@@ -55,7 +55,7 @@ export class ActivityController {
     this.routes.post(
       "/:id",
       AuthenticationController.restrict(["admin", "trainer"]),
-      this.handleActivities
+      this.handleActivities,
     );
   }
 
@@ -73,16 +73,18 @@ export class ActivityController {
       let activities = await ActivityModel.getAll();
 
       if (search.trim() !== "") {
-        activities = activities.filter(a =>
-          a.name.toLowerCase().includes(search.toLowerCase())
+        activities = activities.filter(
+          (a) =>
+            a.name.toLowerCase().includes(search.toLowerCase()) ||
+            a.description.toLowerCase().includes(search.toLowerCase()),
         );
       }
 
       const selectedId = req.params.id;
 
       const selectedActivity =
-        activities.find(a => a.id == selectedId) ||
-        new ActivityModel(null, "");
+        activities.find((a) => a.id == selectedId) ||
+        new ActivityModel(null, "", "");
 
       return res.render("activity_management.ejs", {
         authenticatedUser: req.session.user,
@@ -91,10 +93,12 @@ export class ActivityController {
         search,
         error: null,
       });
-
     } catch (err) {
       console.error(err);
-      return res.status(500).send("Failed to load activities");
+      return res.status(500).render("status.ejs", {
+        message: "Failed to load activities",
+        status: "error",
+      });
     }
   }
 
@@ -110,14 +114,24 @@ export class ActivityController {
    * @param {import("express").Response} res
    */
   static async handleActivities(req, res) {
+    // To prevent XSS attacks, we can check if the input contains HTML tags and reject it
+    function containsHTML(input = "") {
+      return /<[^>]*>/g.test(input);
+    }
+
     const { action } = req.body;
     const id = req.params.id || req.body.id;
     const name = req.body.name?.trim();
+    const description = req.body.description?.trim();
 
     let error = null;
 
     // ✅ SAFETY CHECK FIRST
-    if (!name || name.length === 0) {
+    if (containsHTML(name)) {
+      error = "Activity name not allowed HTML scripts";
+    } else if (containsHTML(description)) {
+      error = "Activity description not allowed HTML scripts";
+    } else if (!name || name.length === 0) {
       error = "Activity name is required";
     } else if (/\d/.test(name)) {
       error = "Activity name must not contain numbers";
@@ -129,20 +143,28 @@ export class ActivityController {
       error = "Activity name is too long";
     }
 
+    if (description && description.length > 255) {
+      error = "Activity description must be less than 255 characters";
+    }
+
     if (error) {
       const activities = await ActivityModel.getAll();
-      const selectedActivity = new ActivityModel(id, name);
+      const selectedActivity = new ActivityModel(
+        id,
+        name,
+        req.body.description,
+      );
 
       return res.render("activity_management.ejs", {
         authenticatedUser: req.session.user,
-        activities,          
+        activities,
         selectedActivity,
         search: "",
-        error,              
+        error,
       });
     }
 
-    const activity = new ActivityModel(id, name);
+    const activity = new ActivityModel(id, name, req.body.description);
 
     try {
       if (action === "create") {
@@ -158,10 +180,12 @@ export class ActivityController {
       }
 
       return res.redirect("/activity");
-
     } catch (err) {
       console.error(err);
-      return res.status(500).send("Database error");
+      return res.status(500).render("status.ejs", {
+        status: "error",
+        message: "Database error",
+      });
     }
   }
 }

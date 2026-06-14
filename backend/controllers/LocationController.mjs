@@ -73,8 +73,10 @@ export class LocationController {
       let locations = await LocationModel.getAll();
 
       if (search.trim() !== "") {
-        locations = locations.filter((l) =>
-          l.name.toLowerCase().includes(search.toLowerCase()),
+        locations = locations.filter(
+          (l) =>
+            l.name.toLowerCase().includes(search.toLowerCase()) ||
+            l.description.toLowerCase().includes(search.toLowerCase()),
         );
       }
 
@@ -82,7 +84,7 @@ export class LocationController {
 
       const selectedLocation =
         locations.find((l) => l.id == selectedId) ||
-        new LocationModel(null, "");
+        new LocationModel(null, "", "");
 
       return res.render("location_management.ejs", {
         authenticatedUser: req.session.user,
@@ -109,14 +111,23 @@ export class LocationController {
    * @param {import("express").Response} res
    */
   static async handleLocations(req, res) {
+    // To prevent XSS attacks, we can check if the input contains HTML tags and reject it
+    function containsHTML(input = "") {
+      return /<[^>]*>/g.test(input);
+    }
     const { action } = req.body;
     const id = req.params.id || req.body.id;
     const name = req.body.name?.trim();
+    const description = req.body.description?.trim();
 
     let error = null;
 
     // validation
-    if (/\d/.test(name)) {
+    if (containsHTML(name)) {
+      error = "Location name  not allowed HTML scripts";
+    } else if (containsHTML(description)) {
+      error = "Location description contains invalid characters";
+    } else if (/\d/.test(name)) {
       error = "Location name must not contain numbers";
     } else if (!/^[A-Z]/.test(name)) {
       error = "Location name must start with an uppercase letter";
@@ -126,9 +137,14 @@ export class LocationController {
       error = "Location name is too long";
     }
 
+    // Validation for descriptions
+    if (description && description.length > 200) {
+      error = "Description is too long (max 200 characters)";
+    }
+
     if (error) {
       const locations = await LocationModel.getAll();
-      const selectedLocation = new LocationModel(id, name);
+      const selectedLocation = new LocationModel(id, name, description);
 
       return res.render("location_management.ejs", {
         authenticatedUser: req.session.user,
@@ -139,7 +155,7 @@ export class LocationController {
       });
     }
 
-    const location = new LocationModel(id, name);
+    const location = new LocationModel(id, name, description);
 
     try {
       if (action === "create") {

@@ -46,7 +46,12 @@ export class BookingModel extends DatabaseModel {
    * @returns {Promise<BookingModel[]>}
    */
   static async getAll() {
-    const rows = await this.query("SELECT * FROM booking");
+    const rows = await this.query(`
+      SELECT *
+      FROM booking
+      WHERE deleted = 0
+    `);
+
     return rows.map(row => this.tableToModel(row));
   }
 
@@ -58,7 +63,7 @@ export class BookingModel extends DatabaseModel {
    */
   static async getById(id) {
     const rows = await this.query(
-      "SELECT * FROM booking WHERE id = ?",
+      "SELECT * FROM booking WHERE id = ? AND deleted = 0",
       [id]
     );
 
@@ -137,9 +142,9 @@ export class BookingModel extends DatabaseModel {
       WHERE id = ?
       `,
       [
-        booking.session_id,
+        booking.sessionId,
         booking.created,
-        booking.user_id,
+        booking.userId,
         booking.id
       ]
     );
@@ -152,11 +157,10 @@ export class BookingModel extends DatabaseModel {
    * @returns {Promise<any>}
    */
   static async delete(id) {
-    return this.query(`
-      UPDATE booking
-      SET deleted = 1
-      WHERE id = ?
-    `, [id]);
+    return this.query(
+      "DELETE FROM booking WHERE id = ?",
+      [id]
+    );
   }
 }
 

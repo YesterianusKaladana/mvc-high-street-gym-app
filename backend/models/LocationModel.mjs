@@ -11,12 +11,15 @@ export class LocationModel extends DatabaseModel {
    *
    * @param {number} id - The unique ID of the location.
    * @param {string} name - The location name.
+   * @param {string} description - The location description.
    */
-  constructor(id, name) {
+  constructor(id, name, description) {
     super();
 
     this.id = id;
     this.name = name;
+    this.description = description;
+
   }
 
   /**
@@ -30,7 +33,8 @@ export class LocationModel extends DatabaseModel {
     const locationRow = row.location || row.locations || row;
     return new LocationModel(
       locationRow.id,
-      locationRow.name
+      locationRow.name,
+      locationRow.description
     );
   }
 
@@ -95,10 +99,10 @@ export class LocationModel extends DatabaseModel {
   static async create(location) {
     return this.query(
       `
-      INSERT INTO location (name)
-      VALUES (?)
+      INSERT INTO location (name, description)
+      VALUES (?, ?)
       `,
-      [location.name]
+      [location.name, location.description]
     );
   }
 
@@ -112,11 +116,12 @@ export class LocationModel extends DatabaseModel {
     return this.query(
       `
       UPDATE location
-      SET name = ?
+      SET name = ?, description = ?
       WHERE id = ?
       `,
       [
         location.name,
+        location.description,
         location.id
       ]
     );

@@ -35,7 +35,7 @@
         <input
           type="text"
           name="search"
-          placeholder="Search activity name..."
+          placeholder="Search activity name and description..."
           value="<%= search || '' %>"
           class="w-full border border-gray-300 p-2.5 rounded-lg bg-white
           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
@@ -55,8 +55,9 @@
       </form>
 
       <!-- HEADER ROW -->
-      <div class="grid grid-cols-2 text-sm font-semibold text-gray-500 border-b border-gray-200 pb-2 mb-2">
+      <div class="grid grid-cols-3 text-sm font-semibold text-gray-500 border-b border-gray-200 pb-2 mb-2">
         <span>Activity Name</span>
+        <span>Activity Description</span>
         <span class="text-right">Action</span>
       </div>
 
@@ -65,10 +66,13 @@
 
         <% for (const activity of activities) { %>
 
-          <div class="grid grid-cols-2 py-3 border-b border-gray-200 hover:bg-blue-50 transition">
+          <div class="grid grid-cols-3 py-3 border-b border-gray-200 hover:bg-blue-50 transition">
 
             <span class="font-medium text-gray-900">
               <%= activity.name %>
+            </span>
+            <span class="text-gray-700">
+              <%= activity.description %>
             </span>
 
             <span class="text-right">
@@ -125,6 +129,21 @@
                    </p>
                  <% } %>
                  
+        </div>
+
+        <!-- ACTIVITY DESCRIPTION -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">
+            Activity Description
+          </label>
+
+          <textarea
+            name="description"
+            rows="3"
+            class="w-full mt-1 border border-gray-300 p-2.5 rounded-lg bg-white
+            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+            <%= selectedActivity ? selectedActivity.description : '' %>
+          </textarea>
         </div>
 
         <!-- BUTTONS -->
