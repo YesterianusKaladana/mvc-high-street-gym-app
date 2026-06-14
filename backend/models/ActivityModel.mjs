@@ -124,4 +124,4 @@ export class ActivityModel extends DatabaseModel {
 }
 
 // TEST
-ActivityModel.getAll().then(console.log);
+// ActivityModel.getAll().then(console.log);

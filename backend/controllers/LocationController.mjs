@@ -95,7 +95,10 @@ export class LocationController {
       });
     } catch (err) {
       console.error(err);
-      return res.status(500).send("Failed to load locations");
+      return res.status(500).render("status.ejs", {
+        status: "Internal Server Error",
+        message: "Failed to load locations",
+      });
     }
   }
 
@@ -173,7 +176,10 @@ export class LocationController {
       return res.redirect("/location");
     } catch (err) {
       console.error(err);
-      return res.status(500).send("Database error");
+      return res.status(500).render("status.ejs", {
+        status: "Internal Server Error",
+        message: "Database error",
+      });
     }
   }
 }

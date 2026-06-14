@@ -96,8 +96,8 @@ export class ActivityController {
     } catch (err) {
       console.error(err);
       return res.status(500).render("status.ejs", {
+        status: "Internal Server Error",
         message: "Failed to load activities",
-        status: "error",
       });
     }
   }
@@ -183,7 +183,7 @@ export class ActivityController {
     } catch (err) {
       console.error(err);
       return res.status(500).render("status.ejs", {
-        status: "error",
+        status: "Internal Server Error",
         message: "Database error",
       });
     }

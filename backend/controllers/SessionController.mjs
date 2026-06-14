@@ -348,7 +348,10 @@ export class SessionController {
       });
     } catch (error) {
       console.error(error);
-      return res.status(500).send("Failed to load admin sessions");
+      return res.status(500).render("status.ejs", {
+        status: "Internal Server Error",
+        message: "Failed to load admin sessions",
+      });
     }
   }
 
@@ -530,7 +533,10 @@ export class SessionController {
       });
     } catch (error) {
       console.error(error);
-      return res.status(500).send("Failed to load trainer sessions");
+      return res.status(500).render("status.ejs", {
+        status: "Internal Server Error",
+        message: "Failed to load trainer sessions",
+      });
     }
   }
 
@@ -554,7 +560,10 @@ export class SessionController {
       sessionDate.setHours(0, 0, 0, 0);
 
       if (sessionDate < today) {
-        return res.status(400).send("Cannot create session in the past");
+        return res.status(400).render("status.ejs", {
+          status: "Bad Request",
+          message: "Cannot create session in the past",
+        });
       }
 
       if (action === "create") {
@@ -611,8 +620,11 @@ export class SessionController {
       }
       return res.redirect("/session/trainer/view");
     } catch (error) {
-      console.error(error + "Something went wrong while processing session");
-      return res.redirect("/session/trainer/view");
+      console.error(error);
+      return res.status(500).render("status.ejs", {
+        status: "Internal Server Error",
+        message: "Failed to process session",
+      });
     }
   }
 
@@ -680,7 +692,7 @@ export class SessionController {
     } catch (error) {
       console.error(error);
       return res.status(500).render("status.ejs", {
-        status: "Error",
+        status: "Internal Server Error",
         message: "Failed to load member sessions",
       });
     }
@@ -701,13 +713,19 @@ export class SessionController {
         const existing = await BookingModel.find(userId, sessionId);
 
         if (existing) {
-          return res.status(400).send("You already booked this session");
+          return res.status(400).render("status.ejs", {
+            status: "Bad Request",
+            message: "You already booked this session",
+          });
         }
 
         const targetSession = await SessionModel.getById(sessionId);
 
         if (!targetSession) {
-          return res.status(404).send("Session not found");
+          return res.status(404).render("status.ejs", {
+            status: "Not Found",
+            message: "Session not found",
+          });
         }
 
         const today = new Date();
@@ -717,7 +735,10 @@ export class SessionController {
         sessionDate.setHours(0, 0, 0, 0);
 
         if (sessionDate < today) {
-          return res.status(400).send("Cannot book previous dates");
+          return res.status(422).render("status.ejs", {
+            status: "Invalid Booking ",
+            message: "Cannot book previous dates",
+          });
         }
 
         const user = req.user;
@@ -738,7 +759,10 @@ export class SessionController {
         const booking = await BookingModel.find(userId, sessionId);
 
         if (!booking) {
-          return res.status(404).send("Booking not found");
+          return res.status(404).render("status.ejs", {
+            status: "Not Found",
+            message: "Booking not found",
+          });
         }
 
         await BookingModel.delete(booking.id);
@@ -748,7 +772,7 @@ export class SessionController {
     } catch (error) {
       console.error(error);
       return res.status(500).render("status.ejs", {
-        status: "Error",
+        status: "Internal Server Error",
         message: "Member booking error",
       });
     }

@@ -134,8 +134,10 @@ export class SessionActivityModel extends DatabaseModel {
         user.last_name,
 
         location.name AS location_name,
+        location.description AS location_description,
 
-        activity.name AS activity_name
+        activity.name AS activity_name,
+        activity.description AS activity_description
 
       FROM session
 
@@ -174,11 +176,13 @@ export class SessionActivityModel extends DatabaseModel {
       location: {
         id: row.location_id,
         name: row.location_name,
+        description: row.location_description,
       },
 
       activity: {
         id: row.activity_id,
         name: row.activity_name,
+        description: row.activity_description,
       },
     }));
   }

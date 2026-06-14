@@ -35,7 +35,7 @@ export class AuthenticationController {
         cookie: {
           secure: false,
         },
-      })
+      }),
     );
 
     /**
@@ -67,7 +67,7 @@ export class AuthenticationController {
     this.routes.get(
       "/dashboard",
       this.restrict(["admin", "trainer", "member"]),
-      this.viewDashboard
+      this.viewDashboard,
     );
   }
 
@@ -197,7 +197,7 @@ export class AuthenticationController {
         lastName,
         role || "member",
         email,
-        hashedPassword
+        hashedPassword,
       );
 
       await UserModel.create(newUser);
@@ -255,10 +255,7 @@ export class AuthenticationController {
         });
       }
 
-      const isCorrectPassword = await bcrypt.compare(
-        password,
-        user.password
-      );
+      const isCorrectPassword = await bcrypt.compare(password, user.password);
 
       if (!isCorrectPassword) {
         return res.status(400).render("status.ejs", {
