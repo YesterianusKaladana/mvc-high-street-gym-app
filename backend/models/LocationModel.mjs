@@ -5,7 +5,6 @@ import { DatabaseModel } from "./DatabaseModel.mjs";
  * Handles all CRUD operations for location data.
  */
 export class LocationModel extends DatabaseModel {
-
   /**
    * Creates a new LocationModel instance.
    *
@@ -19,7 +18,6 @@ export class LocationModel extends DatabaseModel {
     this.id = id;
     this.name = name;
     this.description = description;
-
   }
 
   /**
@@ -34,7 +32,7 @@ export class LocationModel extends DatabaseModel {
     return new LocationModel(
       locationRow.id,
       locationRow.name,
-      locationRow.description
+      locationRow.description,
     );
   }
 
@@ -44,9 +42,7 @@ export class LocationModel extends DatabaseModel {
    * @returns {Promise<LocationModel[]>}
    */
   static async getAll() {
-    return this.query(
-      "SELECT * FROM location"
-    ).then((results) => {
+    return this.query("SELECT * FROM location").then((results) => {
       return results.map((row) => this.tableToModel(row));
     });
   }
@@ -58,16 +54,14 @@ export class LocationModel extends DatabaseModel {
    * @returns {Promise<LocationModel|null>}
    */
   static async getById(id) {
-    return this.query(
-      "SELECT * FROM location WHERE id = ?",
-      [id]
-    ).then((result) => {
-
-      if (result.length > 0) {
-        return this.tableToModel(result[0]);
-      }
-      return null;
-    });
+    return this.query("SELECT * FROM location WHERE id = ?", [id]).then(
+      (result) => {
+        if (result.length > 0) {
+          return this.tableToModel(result[0]);
+        }
+        return null;
+      },
+    );
   }
 
   /**
@@ -77,17 +71,15 @@ export class LocationModel extends DatabaseModel {
    * @returns {Promise<LocationModel|null>}
    */
   static async getByName(name) {
-    return this.query(
-      "SELECT * FROM location WHERE name = ?",
-      [name]
-    ).then((result) => {
+    return this.query("SELECT * FROM location WHERE name = ?", [name]).then(
+      (result) => {
+        if (result.length > 0) {
+          return this.tableToModel(result[0]);
+        }
 
-      if (result.length > 0) {
-        return this.tableToModel(result[0]);
-      }
-
-      return null;
-    });
+        return null;
+      },
+    );
   }
 
   /**
@@ -102,7 +94,7 @@ export class LocationModel extends DatabaseModel {
       INSERT INTO location (name, description)
       VALUES (?, ?)
       `,
-      [location.name, location.description]
+      [location.name, location.description],
     );
   }
 
@@ -119,11 +111,7 @@ export class LocationModel extends DatabaseModel {
       SET name = ?, description = ?
       WHERE id = ?
       `,
-      [
-        location.name,
-        location.description,
-        location.id
-      ]
+      [location.name, location.description, location.id],
     );
   }
 
@@ -139,10 +127,12 @@ export class LocationModel extends DatabaseModel {
       DELETE FROM location
       WHERE id = ?
       `,
-      [id]
+      [id],
     );
   }
 }
 
 // TESTING
-// LocationModel.getAll().then((location) => console.log(location));
+// LocationModel.getAll()
+// .then((location) => console.log("location:", location))
+// .catch((err) => console.error("Error fetching location:", err));

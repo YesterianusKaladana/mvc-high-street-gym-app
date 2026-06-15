@@ -87,6 +87,11 @@ export class PostController {
     );
   }
 
+  /**
+   * View public blog page with all posts (no authentication required)
+   * @type {express.RequestHandler}
+   * @returns {Promise<void>}
+   */
   static async viewPublicBlog(req, res) {
     try {
       const posts = await PostModel.getAll();
@@ -185,6 +190,14 @@ export class PostController {
     }
   }
 
+  /**
+   * View member posts page (only shows posts created by the authenticated member)
+   * Access restricted to members only
+   * @type {express.RequestHandler}
+   * @param {*} req
+   * @param {*} res
+   * @returns
+   */
   static async viewMemberPosts(req, res) {
     try {
       // STRICT ACCESS CONTROL
@@ -213,6 +226,13 @@ export class PostController {
     }
   }
 
+  /**
+   * View the page for creating a new post (member only)
+   * @type {express.RequestHandler}
+   * @param {*} req
+   * @param {*} res
+   * @returns
+   */
   static async viewCreateMemberPostPage(req, res) {
     try {
       if (!req.user || req.user.role !== "member") {
@@ -235,6 +255,13 @@ export class PostController {
     }
   }
 
+  /**
+   * Handle member post actions (create, update, delete)
+   * @type {express.RequestHandler}
+   * @param {*} req
+   * @param {*} res
+   * @returns
+   */
   static async handleMemberPost(req, res) {
     try {
       const user = req.user;
@@ -333,6 +360,11 @@ export class PostController {
     }
   }
 
+  /**
+   * View trainer posts page (only shows posts created by the authenticated trainer)
+   * Access restricted to trainers only
+   * @type {express.RequestHandler}
+   */
   static async viewTrainerPosts(req, res) {
     try {
       if (!req.user || req.user.role !== "trainer") {
@@ -358,6 +390,10 @@ export class PostController {
     }
   }
 
+  /**
+   * View the page for creating a new post (trainer only)
+   * @type {express.RequestHandler}
+   */
   static async viewCreateTrainerPostPage(req, res) {
     try {
       if (!req.user || req.user.role !== "trainer") {
@@ -380,6 +416,10 @@ export class PostController {
     }
   }
 
+  /**
+   * Handle trainer post actions (create, update, delete)
+   * @type {express.RequestHandler}
+   */
   static async handleTrainerPost(req, res) {
     try {
       const { action, id, title, content } = req.body;

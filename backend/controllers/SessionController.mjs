@@ -123,10 +123,7 @@ export class SessionController {
     try {
       const user = req.user || null;
       const sessions = await SessionActivityModel.getAll();
-
-      // =========================
-      // BOOKED SESSIONS
-      // =========================
+      // Booked sessions for current user (if logged in)
       let bookedSessionIds = [];
 
       if (user?.id) {
@@ -134,9 +131,7 @@ export class SessionController {
         bookedSessionIds = bookings.map((b) => Number(b.sessionId));
       }
 
-      // =========================
-      // SESSION GROUPING + FIXED EXPIRY
-      // =========================
+      // Group sessions by weekday
       const sessionByDay = {
         Monday: [],
         Tuesday: [],
@@ -230,9 +225,7 @@ export class SessionController {
 
       let sessions = await SessionActivityModel.getAll();
 
-      // =========================
-      //  SEARCH (ALL FIELDS)
-      // =========================
+      // Search across multiple fields (trainer name, activity, location, date)
       if (search) {
         const q = search.toLowerCase();
 
@@ -249,10 +242,7 @@ export class SessionController {
         });
       }
 
-      // =========================
-      // FIELD FILTERS
-      // =========================
-
+      // Individual field filters
       if (trainer) {
         sessions = sessions.filter((s) =>
           `${s.user.firstName} ${s.user.lastName}`
@@ -297,9 +287,7 @@ export class SessionController {
         );
       }
 
-      // =========================
-      // CLEAN FORMAT
-      // =========================
+      // CLEAN FORMATTING FOR UI
       const cleanSessions = sessions.map((item) => ({
         ...item,
         session: {
