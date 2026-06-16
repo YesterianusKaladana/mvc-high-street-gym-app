@@ -272,7 +272,9 @@ export class BookingController {
       const locations = await LocationModel.getAll();
       const activity = await ActivityModel.getAll();
 
-      const enriched = bookings.map((b) => {
+      const search = (req.query.search || "").toLowerCase();
+
+      let enriched = bookings.map((b) => {
         const session = sessions.find((s) => s.session.id === b.sessionId);
         const member = users.find((u) => u.id === b.userId);
 
@@ -282,6 +284,33 @@ export class BookingController {
           user: member || null,
         };
       });
+
+      // SEARCH
+      if (search) {
+        enriched = enriched.filter((b) => {
+          const memberName =
+            `${b.user?.firstName || ""} ${b.user?.lastName || ""}`.toLowerCase();
+
+          const trainerName =
+            `${b.session?.user?.firstName || ""} ${b.session?.user?.lastName || ""}`.toLowerCase();
+
+          const activityName = (b.session?.activity?.name || "").toLowerCase();
+
+          const locationName = (b.session?.location?.name || "").toLowerCase();
+
+          const sessionTime = String(
+            b.session?.session?.start_time || "",
+          ).toLowerCase();
+
+          return (
+            memberName.includes(search) ||
+            trainerName.includes(search) ||
+            activityName.includes(search) ||
+            locationName.includes(search) ||
+            sessionTime.includes(search)
+          );
+        });
+      }
 
       const editId = req.query.edit;
 
@@ -303,6 +332,7 @@ export class BookingController {
         activity,
         selectedBooking,
         user: req.user,
+        search: req.query.search || "",
       });
     } catch (error) {
       console.error(error);
