@@ -33,7 +33,7 @@ app.use(express.static(path.join(import.meta.dirname, "dist")));
 // ✅ session middleware
 app.use(AuthenticationController.middleware);
 
-// ✅ routes (order matters!)
+// ✅ Routes for controllers
 app.use("/authenticate", AuthenticationController.routes);
 app.use("/booking", BookingController.routes);
 app.use("/user", UserController.routes);
