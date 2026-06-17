@@ -177,6 +177,7 @@ export class AuthenticationController {
         return res.status(400).render("status.ejs", {
           status: "Validation Error",
           message: errors.join("<br>"),
+          returnUrl: "/register",
         });
       }
 
@@ -186,6 +187,7 @@ export class AuthenticationController {
         return res.status(400).render("status.ejs", {
           status: "Error",
           message: "Email already exists",
+          returnUrl: "/register",
         });
       }
 
@@ -211,6 +213,7 @@ export class AuthenticationController {
       return res.status(500).render("status.ejs", {
         status: "Error",
         message: "Registration failed",
+        returnUrl: "/register",
       });
     }
   }
@@ -233,6 +236,7 @@ export class AuthenticationController {
       return res.status(400).render("status.ejs", {
         status: "Error",
         message: "Email and password are required",
+        returnUrl: "/authenticate",
       });
     }
 
@@ -245,6 +249,7 @@ export class AuthenticationController {
         return res.status(400).render("status.ejs", {
           status: "Login Failed",
           message: "Invalid email or password",
+          returnUrl: "/authenticate",
         });
       }
 
@@ -252,6 +257,7 @@ export class AuthenticationController {
         return res.status(400).render("status.ejs", {
           status: "Login Failed",
           message: "Invalid email or password",
+          returnUrl: "/authenticate",
         });
       }
 
@@ -261,6 +267,7 @@ export class AuthenticationController {
         return res.status(400).render("status.ejs", {
           status: "Login Failed",
           message: "Invalid email or password",
+          returnUrl: "/authenticate",
         });
       }
 
@@ -277,6 +284,7 @@ export class AuthenticationController {
           return res.status(500).render("status.ejs", {
             status: "Error",
             message: "Session error",
+            returnUrl: "/authenticate",
           });
         }
 
@@ -288,6 +296,7 @@ export class AuthenticationController {
       return res.status(500).render("status.ejs", {
         status: "Error",
         message: "Authentication failed",
+        returnUrl: "/authenticate",
       });
     }
   }

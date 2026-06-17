@@ -86,7 +86,7 @@ export class BookingController {
     try {
       const user = req.user;
 
-      const bookings = await BookingModel.getByUser(user.id);
+      const bookings = await BookingModel.getByUserId(user.id);
       const sessions = await SessionActivityModel.getAll();
 
       const enriched = bookings.map((b) => {
@@ -152,6 +152,7 @@ export class BookingController {
       return res.status(500).render("status.ejs", {
         status: "Error",
         message: "Failed to load confirmation page",
+        returnUrl: "/booking/member/confirm",
       });
     }
   }
@@ -196,6 +197,7 @@ export class BookingController {
       return res.status(500).render("status.ejs", {
         status: "Error",
         message: "Failed to confirm booking",
+        returnUrl: "/session/member",
       });
     }
   }
@@ -254,6 +256,7 @@ export class BookingController {
       return res.status(500).render("status.ejs", {
         status: "Error",
         message: "Failed to manage booking",
+        returnUrl: "/booking/member",
       });
     }
   }
@@ -339,6 +342,7 @@ export class BookingController {
       return res.status(500).render("status.ejs", {
         status: "Error",
         message: "Failed to load admin bookings",
+        returnUrl: "/booking",
       });
     }
   }
@@ -389,6 +393,7 @@ export class BookingController {
           status: "Booking Exists",
           message:
             "This session has already been booked. Double bookings are not allowed.",
+          returnUrl: "/booking",
         });
       }
 
@@ -405,6 +410,7 @@ export class BookingController {
       return res.status(500).render("status.ejs", {
         status: "Error",
         message: "Failed to manage booking",
+        returnUrl: "/booking",
       });
     }
   }

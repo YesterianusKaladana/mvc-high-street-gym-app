@@ -119,12 +119,15 @@ export class PostController {
       let posts = await PostModel.getAll();
       const search = req.query.search || "";
 
-      // Filter posts by title if search query exists
-      if (search) {
-        posts = posts.filter((p) =>
-          p.title.toLowerCase().includes(search.toLowerCase()),
-        );
-      }
+      // Filter posts by title and content if search query exists
+    if (search) {
+      const keyword = search.toLowerCase();
+
+      posts = posts.filter((p) =>
+        (p.title && p.title.toLowerCase().includes(keyword)) ||
+        (p.content && p.content.toLowerCase().includes(keyword))
+      );
+    }
 
       return res.render("post_management.ejs", {
         authenticatedUser: req.user,
@@ -342,6 +345,7 @@ export class PostController {
         return res.status(400).render("status.ejs", {
           status: "Invalid Input",
           message: error,
+          returnUrl: "/post/member"
         });
       }
 
@@ -356,6 +360,7 @@ export class PostController {
       return res.status(500).render("status.ejs", {
         status: "Server Error",
         message: "An error occurred while processing your request.",
+        returnUrl: "/post/member",
       });
     }
   }
@@ -386,6 +391,7 @@ export class PostController {
       return res.status(500).render("status.ejs", {
         status: "Failed to load trainer page",
         message: "An error occurred while loading the trainer page.",
+        returnUrl: "/"
       });
     }
   }
@@ -495,6 +501,7 @@ export class PostController {
         return res.status(400).render("status.ejs", {
           status: "Invalid Input",
           message: error,
+          returnUrl: "/post/trainer"
         });
       }
 
@@ -509,6 +516,7 @@ export class PostController {
       return res.status(500).render("status.ejs", {
         status: "Server Error",
         message: "Something went wrong.",
+        returnUrl: "/post/trainer"
       });
     }
   }

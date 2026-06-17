@@ -127,7 +127,7 @@ export class SessionController {
       let bookedSessionIds = [];
 
       if (user?.id) {
-        const bookings = await BookingModel.getById(user.id);
+        const bookings = await BookingModel.getByUserId(user.id);
         bookedSessionIds = bookings.map((b) => Number(b.sessionId));
       }
 
@@ -200,52 +200,58 @@ export class SessionController {
   }
 
   /**
-   * Admin session management view
+   *  View Admin Manage sessions Page
+   * @type {express.RequestHandler}
    *
-   * @param {import("express").Request} req
-   * @param {import("express").Response} res
    */
   static async viewSessionManagement(req, res) {
     try {
       const editId = req.query.edit_id;
 
       // =========================
-      // SEARCH FIELDS
+      // CLEAN QUERY PARAMS
       // =========================
-      const {
-        search,
-        trainer,
-        activity,
-        location,
-        date,
-        start_time,
-        end_time,
-        capacity,
-      } = req.query;
+      const clean = (v) => (v && v.trim() !== "" ? v : null);
+
+      const search = clean(req.query.search);
+      const trainer = clean(req.query.trainer);
+      const activity = clean(req.query.activity);
+      const location = clean(req.query.location);
+      const date = clean(req.query.date);
+      const start_time = clean(req.query.start_time);
+      const end_time = clean(req.query.end_time);
+      const capacity = clean(req.query.capacity);
 
       let sessions = await SessionActivityModel.getAll();
 
-      // Search across multiple fields (trainer name, activity, location, date)
+      // =========================
+      // GLOBAL SEARCH
+      // =========================
       if (search) {
         const q = search.toLowerCase();
 
         sessions = sessions.filter((s) => {
           const trainerName =
-            `${s.user.firstName} ${s.user.lastName}`.toLowerCase();
+            `${s.user?.firstName || ""} ${s.user?.lastName || ""}`.toLowerCase();
+
+          const sessionDate = (s.session?.date || "").toString().slice(0, 10);
 
           return (
             trainerName.includes(q) ||
-            s.activity.name.toLowerCase().includes(q) ||
-            s.location.name.toLowerCase().includes(q) ||
-            (s.session.date || "").toString().toLowerCase().includes(q)
+            (s.activity?.name || "").toLowerCase().includes(q) ||
+            (s.location?.name || "").toLowerCase().includes(q) ||
+            sessionDate.includes(q)
           );
         });
       }
 
-      // Individual field filters
+      // =========================
+      // INDIVIDUAL FILTERS
+      // =========================
+
       if (trainer) {
         sessions = sessions.filter((s) =>
-          `${s.user.firstName} ${s.user.lastName}`
+          `${s.user?.firstName || ""} ${s.user?.lastName || ""}`
             .toLowerCase()
             .includes(trainer.toLowerCase()),
         );
@@ -253,51 +259,75 @@ export class SessionController {
 
       if (activity) {
         sessions = sessions.filter((s) =>
-          s.activity.name.toLowerCase().includes(activity.toLowerCase()),
+          (s.activity?.name || "")
+            .toLowerCase()
+            .includes(activity.toLowerCase()),
         );
       }
 
       if (location) {
         sessions = sessions.filter((s) =>
-          s.location.name.toLowerCase().includes(location.toLowerCase()),
+          (s.location?.name || "")
+            .toLowerCase()
+            .includes(location.toLowerCase()),
         );
       }
 
+      // =========================
+      // DATE FILTER (FIXED)
+      // =========================
       if (date) {
-        sessions = sessions.filter(
-          (s) => (s.session.date || "").toString().slice(0, 10) === date,
-        );
+        sessions = sessions.filter((s) => {
+          if (!s.session?.date) return false;
+
+          const sessionDate = new Date(s.session.date)
+            .toISOString()
+            .split("T")[0];
+
+          return sessionDate === date;
+        });
       }
 
+      // =========================
+      // TIME FILTERS
+      // =========================
       if (start_time) {
         sessions = sessions.filter(
-          (s) => (s.session.start_time || "").slice(0, 5) === start_time,
+          (s) => (s.session?.start_time || "").slice(0, 5) === start_time,
         );
       }
 
       if (end_time) {
         sessions = sessions.filter(
-          (s) => (s.session.end_time || "").slice(0, 5) === end_time,
+          (s) => (s.session?.end_time || "").slice(0, 5) === end_time,
         );
       }
 
+      // =========================
+      // CAPACITY FILTER
+      // =========================
       if (capacity) {
         sessions = sessions.filter(
-          (s) => Number(s.session.capacity) === Number(capacity),
+          (s) => Number(s.session?.capacity) === Number(capacity),
         );
       }
 
-      // CLEAN FORMATTING FOR UI
+      // =========================
+      // FORMAT FOR UI ONLY
+      // =========================
       const cleanSessions = sessions.map((item) => ({
         ...item,
         session: {
           ...item.session,
-          date: item.session.date
-            ? new Date(item.session.date).toLocaleDateString("en-CA")
+          date: item.session?.date
+            ? new Date(item.session.date).toISOString().split("T")[0]
             : "",
         },
       }));
 
+      // =========================
+      // EDIT SESSION
+      // =========================
       let selectedSession = null;
 
       if (editId) {
@@ -313,9 +343,15 @@ export class SessionController {
         }
       }
 
+      // =========================
+      // USERS (TRAINERS ONLY)
+      // =========================
       const allUsers = await UserModel.getAll();
       const users = allUsers.filter((u) => u.role === "trainer");
 
+      // =========================
+      // RENDER
+      // =========================
       return res.render("session_management.ejs", {
         user: req.user,
         sessions: cleanSessions,
@@ -324,7 +360,6 @@ export class SessionController {
         activities: await ActivityModel.getAll(),
         users,
 
-        // return filters back to UI
         search,
         trainer,
         activity,
@@ -339,6 +374,7 @@ export class SessionController {
       return res.status(500).render("status.ejs", {
         status: "Internal Server Error",
         message: "Failed to load admin sessions",
+        returnUrl: "/session",
       });
     }
   }
@@ -364,6 +400,7 @@ export class SessionController {
           return res.status(400).render("status.ejs", {
             status: "Validation Error",
             message: "Session start time cannot be in the past",
+            returnUrl: "/session",
           });
         }
 
@@ -372,6 +409,7 @@ export class SessionController {
           return res.status(400).render("status.ejs", {
             status: "Validation Error",
             message: "End time must be after start time",
+            returnUrl: "/session",
           });
         }
 
@@ -380,6 +418,7 @@ export class SessionController {
           return res.status(400).render("status.ejs", {
             status: "Validation Error",
             message: "Capacity must be at least 1",
+            returnUrl: "/session",
           });
         }
       }
@@ -409,6 +448,7 @@ export class SessionController {
       return res.status(500).render("status.ejs", {
         status: "Server Error",
         message: "Something went wrong while processing the session",
+        returnUrl: "/session",
       });
     }
   }
@@ -524,6 +564,7 @@ export class SessionController {
       return res.status(500).render("status.ejs", {
         status: "Internal Server Error",
         message: "Failed to load trainer sessions",
+        returnUrl: "/session/trainer",
       });
     }
   }
@@ -636,7 +677,7 @@ export class SessionController {
 
       const sessions = await SessionActivityModel.getAll();
 
-      const bookings = await BookingModel.getByUser(user.id);
+      const bookings = await BookingModel.getByUserId(user.id);
       const bookedSessionIds = bookings.map((b) => Number(b.sessionId));
 
       const sessionByDay = {

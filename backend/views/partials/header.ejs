@@ -5,11 +5,11 @@
 
     <div class="flex items-center justify-between h-16">
       <!-- Logo -->
-      <a href="/" class="text-base sm:text-lg font-bold text-gray-800">
-        Session Timetable
+      <a href="/" class="text-base sm:text-lg font-bold text-gray-600">
+        HSG Fitness Center
       </a>
 
-      <!-- Hamburger (mobile) -->
+      <!-- Hamburger -->
       <label for="menu-toggle" class="cursor-pointer md:hidden">
         <svg
           class="w-8 h-8 text-gray-800"
@@ -27,24 +27,28 @@
       </label>
 
       <!-- Desktop menu -->
-      <nav class="hidden md:flex items-center gap-3 text-sm">
+      <nav class="hidden md:flex items-center gap-4 text-sm">
+        <a
+          href="/session/view"
+          class="px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+        >
+          Timetable
+        </a>
         <a
           href="/post/public"
           class="px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
         >
-          Blog Posts
+          Blog
         </a>
-
         <a
           href="/authenticate"
           class="px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
         >
           Login
         </a>
-
         <a
           href="/authenticate/register"
-          class="px-3 py-2 rounded border border-blue-600 text-blue-600 hover:bg-blue-50"
+          class="px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
         >
           Register
         </a>
@@ -52,24 +56,31 @@
     </div>
 
     <!-- Mobile menu -->
-    <nav class="hidden peer-checked:block md:hidden pb-4 space-y-2">
+    <nav class="hidden peer-checked:block md:hidden pb-4 space-y-3">
+      <a
+        href="/session/view"
+        class="block w-full text-center px-3 py-3 rounded bg-blue-600 text-white hover:bg-blue-700 hover:scale-[1.02] transition"
+      >
+        Timetable
+      </a>
+
       <a
         href="/post/public"
-        class="block w-full text-center px-3 py-3 rounded bg-blue-600 text-white"
+        class="block w-full text-center px-3 py-3 rounded bg-blue-600 text-white hover:bg-blue-700 hover:scale-[1.02] transition"
       >
-        Blog Posts
+        Blog
       </a>
 
       <a
         href="/authenticate"
-        class="block w-full text-center px-3 py-3 rounded bg-blue-600 text-white"
+        class="block w-full text-center px-3 py-3 rounded bg-blue-600 text-white hover:bg-blue-700 hover:scale-[1.02] transition"
       >
         Login
       </a>
 
       <a
         href="/authenticate/register"
-        class="block w-full text-center px-3 py-3 rounded border border-blue-600 text-blue-600 bg-white"
+        class="block w-full text-center px-3 py-3 rounded bg-blue-600 text-white hover:bg-blue-700 hover:scale-[1.02] transition"
       >
         Register
       </a>

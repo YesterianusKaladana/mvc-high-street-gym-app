@@ -180,19 +180,19 @@ export class SessionModel extends DatabaseModel {
   }
 
   /**
-   * Permanently deletes a session
-   *
-   * ⚠️ WARNING: This is a HARD DELETE (not soft delete)
-   *
-   * @param {number} id
-   * @returns {Promise<any>}
-   */
+ * Soft deletes a session (marks as deleted)
+ *
+ * @param {number} id
+ * @returns {Promise<any>}
+ */
   static async delete(id) {
     return this.query(
       `
-      DELETE FROM session
+      UPDATE session
+      SET deleted = 1
       WHERE id = ?
-    `,
+      AND deleted = 0
+      `,
       [id],
     );
   }

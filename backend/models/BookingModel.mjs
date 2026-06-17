@@ -1,7 +1,6 @@
 import { DatabaseModel } from "./DatabaseModel.mjs";
 
 export class BookingModel extends DatabaseModel {
-
   /**
    * Represents a booking record.
    *
@@ -36,7 +35,7 @@ export class BookingModel extends DatabaseModel {
       b.session_id,
       b.created,
       b.user_id,
-      b.deleted
+      b.deleted,
     );
   }
 
@@ -52,7 +51,7 @@ export class BookingModel extends DatabaseModel {
       WHERE deleted = 0
     `);
 
-    return rows.map(row => this.tableToModel(row));
+    return rows.map((row) => this.tableToModel(row));
   }
 
   /**
@@ -64,7 +63,7 @@ export class BookingModel extends DatabaseModel {
   static async getById(id) {
     const rows = await this.query(
       "SELECT * FROM booking WHERE id = ? AND deleted = 0",
-      [id]
+      [id],
     );
 
     return rows.length ? this.tableToModel(rows[0]) : null;
@@ -76,14 +75,17 @@ export class BookingModel extends DatabaseModel {
    * @param {number} userId - User ID
    * @returns {Promise<BookingModel[]>}
    */
-  static async getByUser(userId) {
-    const rows = await this.query(`
+  static async getByUserId(userId) {
+    const rows = await this.query(
+      `
       SELECT *
       FROM booking
       WHERE user_id = ? AND deleted = 0
-    `, [userId]);
+    `,
+      [userId],
+    );
 
-    return rows.map(row => this.tableToModel(row));
+    return rows.map((row) => this.tableToModel(row));
   }
 
   /**
@@ -94,11 +96,14 @@ export class BookingModel extends DatabaseModel {
    * @returns {Promise<BookingModel|null>}
    */
   static async find(userId, sessionId) {
-    const rows = await this.query(`
+    const rows = await this.query(
+      `
       SELECT *
       FROM booking
       WHERE user_id = ? AND session_id = ? AND deleted = 0
-    `, [userId, sessionId]);
+    `,
+      [userId, sessionId],
+    );
 
     return rows.length ? this.tableToModel(rows[0]) : null;
   }
@@ -114,14 +119,13 @@ export class BookingModel extends DatabaseModel {
   static async create(booking) {
     const created = new Date().toISOString().slice(0, 19).replace("T", " ");
 
-    return this.query(`
+    return this.query(
+      `
       INSERT INTO booking (session_id, created, user_id, deleted)
       VALUES (?, ?, ?, 0)
-    `, [
-      booking.sessionId,
-      created,
-      booking.userId
-    ]);
+    `,
+      [booking.sessionId, created, booking.userId],
+    );
   }
 
   /**
@@ -141,12 +145,7 @@ export class BookingModel extends DatabaseModel {
       SET session_id = ?, created = ?, user_id = ?
       WHERE id = ?
       `,
-      [
-        booking.sessionId,
-        booking.created,
-        booking.userId,
-        booking.id
-      ]
+      [booking.sessionId, booking.created, booking.userId, booking.id],
     );
   }
 
@@ -157,13 +156,9 @@ export class BookingModel extends DatabaseModel {
    * @returns {Promise<any>}
    */
   static async delete(id) {
-    return this.query(
-      "DELETE FROM booking WHERE id = ?",
-      [id]
-    );
+    return this.query("DELETE FROM booking WHERE id = ?", [id]);
   }
 }
-
 
 // TESTING AREA
 // BookingModel.getAll().then((booking) => console.log(booking));

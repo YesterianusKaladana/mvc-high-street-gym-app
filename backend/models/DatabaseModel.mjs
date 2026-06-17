@@ -35,7 +35,7 @@ export class DatabaseModel {
    * @param {Array} values - Optional values for the query
    * @returns {Promise<any>} The result from the database
    */
-  static query(sql, values) {
+  static async query(sql, values) {
     return this.connection.query(sql, values).then(([result]) => result);
   }
 

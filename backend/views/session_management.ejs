@@ -13,13 +13,12 @@
   <h1 class="text-3xl font-bold mb-2">Session Management</h1>
   <p class="text-gray-600 mb-6">Create, edit, and manage sessions</p>
 
-  <!-- BACK BUTTON -->
+  <!-- BACK -->
   <a href="/authenticate/dashboard"
      class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition mb-6 font-medium">
     ← Back to Dashboard
   </a>
 
-  <!-- GRID -->
   <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
     <!-- ================= SESSION LIST ================= -->
@@ -27,37 +26,44 @@
 
       <h2 class="text-xl font-bold mb-4">Sessions</h2>
 
-      <!-- SEARCH -->
+      <!-- FILTER FORM -->
       <form method="GET" action="/session" class="mb-4">
+
         <div class="flex flex-wrap gap-2 items-center">
 
+          <!-- SEARCH -->
           <input type="text"
                  name="search"
-                 placeholder="Search trainer, location, activity..."
+                 placeholder="Search trainer, activity, location, date..."
                  value="<%= search || '' %>"
                  class="flex-1 min-w-[220px] border border-gray-300 p-2.5 rounded-lg">
 
+          <!-- DATE -->
           <input type="date"
                  name="date"
                  value="<%= date || '' %>"
-                 class="w-[150px] border border-gray-300 p-2.5 rounded-lg">
+                 class="w-[160px] border border-gray-300 p-2.5 rounded-lg">
 
+          <!-- START TIME -->
           <input type="time"
                  name="start_time"
                  value="<%= start_time || '' %>"
-                 class="w-[130px] border border-gray-300 p-2.5 rounded-lg">
+                 class="w-[140px] border border-gray-300 p-2.5 rounded-lg">
 
+          <!-- END TIME -->
           <input type="time"
                  name="end_time"
                  value="<%= end_time || '' %>"
-                 class="w-[130px] border border-gray-300 p-2.5 rounded-lg">
+                 class="w-[140px] border border-gray-300 p-2.5 rounded-lg">
 
+          <!-- CAPACITY -->
           <input type="number"
                  name="capacity"
                  placeholder="Capacity"
                  value="<%= capacity || '' %>"
-                 class="w-[100px] border border-gray-300 p-2.5 rounded-lg">
+                 class="w-[120px] border border-gray-300 p-2.5 rounded-lg">
 
+          <!-- BUTTONS -->
           <button type="submit"
                   class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
             Search
@@ -73,14 +79,16 @@
 
       <!-- SESSION LIST -->
       <% if (sessions && sessions.length) { %>
+
         <div class="space-y-4">
 
           <% sessions.forEach(s => { %>
             <div class="border border-gray-200 rounded-xl p-4 hover:bg-blue-50 transition">
 
+              <!-- HEADER -->
               <div class="flex justify-between mb-3">
                 <div class="font-semibold">
-                  <%= s.activity.name %> Session
+                  <%= s.activity?.name || "Unknown Activity" %> Session
                 </div>
 
                 <a href="/session?edit_id=<%= s.session.id %>"
@@ -89,36 +97,44 @@
                 </a>
               </div>
 
+              <!-- DETAILS -->
               <div class="grid grid-cols-2 gap-3 text-sm">
 
                 <div>
                   <p class="text-gray-500">Trainer</p>
-                  <p><%= s.user.firstName %> <%= s.user.lastName %></p>
+                  <p>
+                    <%= s.user?.firstName || "" %>
+                    <%= s.user?.lastName || "" %>
+                  </p>
                 </div>
 
                 <div>
                   <p class="text-gray-500">Location</p>
-                  <p><%= s.location.name %></p>
+                  <p><%= s.location?.name || "" %></p>
                 </div>
 
                 <div>
                   <p class="text-gray-500">Date</p>
-                  <p><%= s.session.date %></p>
+                  <p>
+                    <%= s.session?.date
+                      ? new Date(s.session.date).toISOString().split("T")[0]
+                      : "" %>
+                  </p>
                 </div>
 
                 <div>
                   <p class="text-gray-500">Capacity</p>
-                  <p><%= s.session.capacity %></p>
+                  <p><%= s.session?.capacity || "" %></p>
                 </div>
 
                 <div>
                   <p class="text-gray-500">Start Time</p>
-                  <p><%= s.session.start_time %></p>
+                  <p><%= s.session?.start_time || "" %></p>
                 </div>
 
                 <div>
                   <p class="text-gray-500">End Time</p>
-                  <p><%= s.session.end_time %></p>
+                  <p><%= s.session?.end_time || "" %></p>
                 </div>
 
               </div>
@@ -127,6 +143,7 @@
           <% }) %>
 
         </div>
+
       <% } else { %>
         <p class="text-gray-500 mt-4">No sessions found.</p>
       <% } %>
@@ -150,98 +167,74 @@
                name="session_id"
                value="<%= selectedSession?.session?.id || '' %>">
 
-        <!-- TRAINER / LOCATION / ACTIVITY -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- TRAINER -->
+        <select name="user_id" class="w-full border p-2.5 rounded-lg" required>
+          <option value="">Select Trainer</option>
+          <% users.forEach(u => { %>
+            <option value="<%= u.id %>"
+              <%= selectedSession?.session?.user_id === u.id ? "selected" : "" %>>
+              <%= u.firstName %> <%= u.lastName %>
+            </option>
+          <% }) %>
+        </select>
 
-          <div>
-            <label class="block text-sm font-medium">Trainer</label>
-            <select name="user_id" required class="w-full mt-1 border p-2.5 rounded-lg">
-              <option value="">Select Trainer</option>
-              <% users.forEach(u => { %>
-                <option value="<%= u.id %>"
-                  <%= selectedSession?.session?.user_id === u.id ? "selected" : "" %>>
-                  <%= u.firstName %> <%= u.lastName %>
-                </option>
-              <% }) %>
-            </select>
-          </div>
+        <!-- LOCATION -->
+        <select name="location_id" class="w-full border p-2.5 rounded-lg" required>
+          <option value="">Select Location</option>
+          <% locations.forEach(l => { %>
+            <option value="<%= l.id %>"
+              <%= selectedSession?.session?.location_id === l.id ? "selected" : "" %>>
+              <%= l.name %>
+            </option>
+          <% }) %>
+        </select>
 
-          <div>
-            <label class="block text-sm font-medium">Location</label>
-            <select name="location_id" required class="w-full mt-1 border p-2.5 rounded-lg">
-              <option value="">Select Location</option>
-              <% locations.forEach(l => { %>
-                <option value="<%= l.id %>"
-                  <%= selectedSession?.session?.location_id === l.id ? "selected" : "" %>>
-                  <%= l.name %>
-                </option>
-              <% }) %>
-            </select>
-          </div>
+        <!-- ACTIVITY -->
+        <select name="activity_id" class="w-full border p-2.5 rounded-lg" required>
+          <option value="">Select Activity</option>
+          <% activities.forEach(a => { %>
+            <option value="<%= a.id %>"
+              <%= selectedSession?.session?.activity_id === a.id ? "selected" : "" %>>
+              <%= a.name %>
+            </option>
+          <% }) %>
+        </select>
 
-          <div>
-            <label class="block text-sm font-medium">Activity</label>
-            <select name="activity_id" required class="w-full mt-1 border p-2.5 rounded-lg">
-              <option value="">Select Activity</option>
-              <% activities.forEach(a => { %>
-                <option value="<%= a.id %>"
-                  <%= selectedSession?.session?.activity_id === a.id ? "selected" : "" %>>
-                  <%= a.name %>
-                </option>
-              <% }) %>
-            </select>
-          </div>
+        <!-- DATE -->
+        <input type="date"
+               name="date"
+               value="<%= selectedSession?.session?.date || '' %>"
+               min="<%= new Date().toISOString().split('T')[0] %>"
+               class="w-full border p-2.5 rounded-lg"
+               required>
 
-        </div>
+        <!-- TIMES -->
+        <div class="grid grid-cols-2 gap-4">
 
-        <!-- DATE (BLOCK PAST DATE) -->
-        <div>
-          <label class="block text-sm font-medium">Date</label>
-          <input type="date"
-                 name="date"
-                 required
-                 min="<%= new Date().toISOString().split('T')[0] %>"
-                 value="<%= selectedSession?.session?.date || '' %>"
-                 class="w-full mt-1 border p-2.5 rounded-lg">
-        </div>
+          <input type="time"
+                 name="start_time"
+                 value="<%= selectedSession?.session?.start_time || '' %>"
+                 class="border p-2.5 rounded-lg"
+                 required>
 
-        <!-- TIME -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-          <div>
-            <label class="block text-sm font-medium">Start Time</label>
-            <input type="time"
-                   name="start_time"
-                   required
-                   value="<%= selectedSession?.session?.start_time || '' %>"
-                   class="w-full mt-1 border p-2.5 rounded-lg">
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium">End Time</label>
-            <input type="time"
-                   name="end_time"
-                   required
-                   value="<%= selectedSession?.session?.end_time || '' %>"
-                   class="w-full mt-1 border p-2.5 rounded-lg">
-          </div>
+          <input type="time"
+                 name="end_time"
+                 value="<%= selectedSession?.session?.end_time || '' %>"
+                 class="border p-2.5 rounded-lg"
+                 required>
 
         </div>
 
         <!-- CAPACITY -->
-        <div>
-          <label class="block text-sm font-medium">Capacity</label>
-          <input type="number"
-                 name="capacity"
-                 min="1"
-                 step="1"
-                 required
-                 value="<%= selectedSession?.session?.capacity || '' %>"
-                 class="w-full mt-1 border p-2.5 rounded-lg">
-        </div>
+        <input type="number"
+               name="capacity"
+               min="1"
+               value="<%= selectedSession?.session?.capacity || '' %>"
+               class="w-full border p-2.5 rounded-lg"
+               required>
 
         <!-- BUTTONS -->
-        <div class="flex gap-3 pt-2">
+        <div class="flex gap-3">
 
           <button type="reset"
                   class="px-4 py-2 bg-gray-100 border rounded-lg">
