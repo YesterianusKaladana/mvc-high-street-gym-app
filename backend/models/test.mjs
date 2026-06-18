@@ -22,9 +22,3 @@ console.log("=== SESSION DETAILS ===");
 const sessions = await SessionActivityModel.getByUserId(7);
 
 console.log(sessions);
-
-console.log("=== BOOKING DETAILS ===");
-
-const bookingActivity = await BookingActivityModel.getAll();
-
-console.log(bookingActivity);

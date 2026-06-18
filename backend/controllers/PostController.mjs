@@ -120,14 +120,15 @@ export class PostController {
       const search = req.query.search || "";
 
       // Filter posts by title and content if search query exists
-    if (search) {
-      const keyword = search.toLowerCase();
+      if (search) {
+        const keyword = search.toLowerCase();
 
-      posts = posts.filter((p) =>
-        (p.title && p.title.toLowerCase().includes(keyword)) ||
-        (p.content && p.content.toLowerCase().includes(keyword))
-      );
-    }
+        posts = posts.filter(
+          (p) =>
+            (p.title && p.title.toLowerCase().includes(keyword)) ||
+            (p.content && p.content.toLowerCase().includes(keyword)),
+        );
+      }
 
       return res.render("post_management.ejs", {
         authenticatedUser: req.user,
@@ -197,9 +198,6 @@ export class PostController {
    * View member posts page (only shows posts created by the authenticated member)
    * Access restricted to members only
    * @type {express.RequestHandler}
-   * @param {*} req
-   * @param {*} res
-   * @returns
    */
   static async viewMemberPosts(req, res) {
     try {
@@ -232,9 +230,6 @@ export class PostController {
   /**
    * View the page for creating a new post (member only)
    * @type {express.RequestHandler}
-   * @param {*} req
-   * @param {*} res
-   * @returns
    */
   static async viewCreateMemberPostPage(req, res) {
     try {
@@ -261,9 +256,6 @@ export class PostController {
   /**
    * Handle member post actions (create, update, delete)
    * @type {express.RequestHandler}
-   * @param {*} req
-   * @param {*} res
-   * @returns
    */
   static async handleMemberPost(req, res) {
     try {
@@ -282,9 +274,7 @@ export class PostController {
         return /<\s*script.*?>|<\/?\s*script\s*>|<.*?>/i.test(text);
       }
 
-      // =========================
-      // DELETE
-      // =========================
+      // Delete
       if (action === "delete") {
         const post = await PostModel.getById(id);
 
@@ -307,9 +297,7 @@ export class PostController {
         return res.redirect("/post/member");
       }
 
-      // =========================
-      // CREATE
-      // =========================
+      // Create
       const cleanTitle = title?.trim();
       const cleanContent = content?.trim();
 
@@ -345,7 +333,7 @@ export class PostController {
         return res.status(400).render("status.ejs", {
           status: "Invalid Input",
           message: error,
-          returnUrl: "/post/member"
+          returnUrl: "/post/member",
         });
       }
 
@@ -391,7 +379,7 @@ export class PostController {
       return res.status(500).render("status.ejs", {
         status: "Failed to load trainer page",
         message: "An error occurred while loading the trainer page.",
-        returnUrl: "/"
+        returnUrl: "/",
       });
     }
   }
@@ -442,9 +430,7 @@ export class PostController {
         });
       }
 
-      // =========================
-      // DELETE (NO VALIDATION NEEDED)
-      // =========================
+      // Delete
       if (action === "delete") {
         const post = await PostModel.getById(id);
 
@@ -467,9 +453,7 @@ export class PostController {
         return res.redirect("/post/trainer");
       }
 
-      // =========================
       // CREATE ONLY
-      // =========================
       const cleanTitle = title?.trim();
       const cleanContent = content?.trim();
 
@@ -501,7 +485,7 @@ export class PostController {
         return res.status(400).render("status.ejs", {
           status: "Invalid Input",
           message: error,
-          returnUrl: "/post/trainer"
+          returnUrl: "/post/trainer",
         });
       }
 
@@ -516,7 +500,7 @@ export class PostController {
       return res.status(500).render("status.ejs", {
         status: "Server Error",
         message: "Something went wrong.",
-        returnUrl: "/post/trainer"
+        returnUrl: "/post/trainer",
       });
     }
   }

@@ -159,9 +159,9 @@ export class UserController {
         user.password = await bcrypt.hash(user.password, 10);
       }
 
-      // ======================================================
-      // CREATE USER
-      // ======================================================
+      /**
+       * Create User
+       */
       if (action === "create") {
         const { firstName, lastName, role, email, password } = formData;
 
@@ -219,9 +219,9 @@ export class UserController {
         return res.redirect("/user");
       }
 
-      // ======================================================
-      // UPDATE USER
-      // ======================================================
+      /**
+       * Update user
+       */
       if (action === "update") {
         const existingUser = await UserModel.getById(selectedUserId);
 
@@ -239,9 +239,9 @@ export class UserController {
         return res.redirect("/user");
       }
 
-      // ======================================================
-      // DELETE USER
-      // ======================================================
+      /**
+       * Delete User
+       */
       if (action === "delete") {
         const result = await UserModel.delete(selectedUserId);
 
