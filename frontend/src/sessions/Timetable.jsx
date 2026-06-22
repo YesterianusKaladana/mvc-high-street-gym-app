@@ -1,101 +1,74 @@
-import {  FaSearch, FaSellsy } from "react-icons/fa";
-import { useNavigate } from "react-router";
+import { FaSearch } from "react-icons/fa";
 import { useCallback, useEffect, useState } from "react";
 import { fetchAPI } from "../api.mjs";
 
 function Timetable() {
-  const navigate = useNavigate();
   const [sessions, setSessions] = useState([]);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
 
-  const getSessions = useCallback(
-    (filter = "") => {
-      setSessions([]);
-      setError(null);
-      const request =
-        filter.length > 0
-          ? fetchAPI("GET", "/sessions?filter=" + filter)
-          : fetchAPI("GET", "/sessions");
+  const getSessions = useCallback(() => {
+    setError(null);
+    setLoading(true);
 
-      request
-        .then((response) => {
-          if (response.status == 200) {
-            if (response.body.length > 0) {
-              setSessions(response.body);
-              setError(null);
-            } else {
-              setSessions([]);
-              setError("No results found");
-            }
-          } else {
-            setError(response.body.message);
-          }
-        })
-        .catch((error) => {
-          setError(error);
-        });
-    },
-    [setSessions, setError],
-  );
+    fetchAPI("GET", "/api/sessions")
+      .then((res) => {
+        if (res.status === 200) {
+          setSessions(res.body || []);
+        } else {
+          setError(res.body?.message || "Error loading sessions");
+        }
+      })
+      .catch((err) => setError(String(err)))
+      .finally(() => setLoading(false));
+  }, []);
 
   useEffect(() => {
     getSessions();
   }, [getSessions]);
 
   return (
-    <section className="flex flex-col items-center">
-      <div className="join p-4 self-stretch">
+    <section className="p-4">
+
+      <div className="flex gap-2 mb-4">
         <input
-          onChange={(e) => setFilter(e.target.value)}
+          className="border p-2"
           value={filter}
-          className="input join-item grow"
+          onChange={(e) => setFilter(e.target.value)}
           placeholder="search sessions"
-          type="text"
         />
-        <button onClick={() => getSessions(filter)} className="btn join-item">
+
+        <button onClick={getSessions} className="btn">
           <FaSearch />
         </button>
       </div>
-      {error && <span className="p-4">{error}</span>}
-      {!error && sessions.length == 0 ? (
-        <span className="loading loading-spinner loading-xl">
-          Loading sessions...
-        </span>
+
+      {error && <p className="text-red-600">{error}</p>}
+
+      {loading ? (
+        <p>Loading sessions...</p>
+      ) : sessions.length === 0 ? (
+        <p>No sessions found</p>
       ) : (
-        <ul className="list self-stretch">
-          {sessions.map((session) => (
-            <li key={session.id} className="list-row">
-               <div>
-                    <div>
-                    Trainer: {session.first_name} {session.last_name}
-                    </div>
+        <ul>
+          {sessions.map((s) => (
+            <li key={s.id} className="border p-3 my-2">
 
-                    <div>
-                    Location: {session.location_name}
-                    </div>
+              <div>Session ID: {s.id}</div>
 
-                    <div>
-                    Activity: {session.activity_name}
-                    </div>
-                    <div>
-                    Date: {session.date}
-                    </div>
-                    <div>
-                    Start Time: {session.start_time}
-                    </div>
-                    <div>
-                    End Time: {session.end_time}
-                    </div>
+              <div>Trainer: {s.trainer_name}</div>
+              <div>Activity: {s.activity_name}</div>
+              <div>Location: {s.location_name}</div>
 
-                </div>
+              <div>Date: {s.date}</div>
+              <div>Start: {s.start_time}</div>
+              <div>End: {s.end_time}</div>
 
-              <button
-                onClick={() => navigate("/sessions/" + session.id)}
-                className="btn btn-ghost text-xl"
-              >
+              <button className="btn">
                 Book now
               </button>
+
             </li>
           ))}
         </ul>

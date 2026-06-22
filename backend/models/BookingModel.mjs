@@ -156,7 +156,14 @@ export class BookingModel extends DatabaseModel {
    * @returns {Promise<any>}
    */
   static async delete(id) {
-    return this.query("DELETE FROM booking WHERE id = ?", [id]);
+    return this.query(
+      `
+      UPDATE booking
+      SET deleted = 1
+      WHERE id = ?
+      `,
+      [id],
+    );
   }
 }
 

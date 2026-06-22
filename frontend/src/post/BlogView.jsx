@@ -11,7 +11,6 @@ function BlogView() {
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    //Parse the user's role directly from application's session layout
     const loadPosts = () => {
         const authKey = localStorage.getItem("authKey");
 

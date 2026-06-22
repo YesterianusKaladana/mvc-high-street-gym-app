@@ -49,6 +49,7 @@ export class ApiPostController {
   static async getPosts(req, res) {
     try {
       const posts = await PostModel.getAll();
+
       console.log("Posts from DB:", posts);
       return res.status(200).json(posts);
     } catch (error) {
@@ -100,72 +101,220 @@ export class ApiPostController {
    *                   type: string
    */
   static async createPost(req, res) {
-    if (!req.authenticatedUser) {
-      return res.status(401).json({
-        message: "Unauthorized",
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const post = new PostModel(
+        null,
+        req.user.id,
+        req.body.post.title,
+        req.body.post.content,
+      );
+
+      const result = await PostModel.create(post);
+
+      return res.status(201).json({
+        id: result.insertId,
+        message: "Post created.",
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        message: "Failed to create post",
       });
     }
-
-    const post = new PostModel(
-      null,
-      req.authenticatedUser.id,
-      req.body.post.title,
-      req.body.post.content,
-    );
-
-    const result = await PostModel.create(post);
-
-    return res.status(201).json({
-      id: result.insertId,
-      message: "Post created.",
-    });
   }
 
   /**
-   * Get byId
+   * Get post by ID
+   *
+   * This endpoint retrieves a single post based on its ID.
+   * It validates the ID, checks if the post exists,
+   * and returns proper error responses if needed.
+   *
+   * @type {express.RequestHandler}
    * @openapi
    * /api/post/{id}:
    *   get:
    *     summary: "Get post by ID"
    *     tags: [Posts]
+   *     security:
+   *       - ApiKey: []
    *     parameters:
    *       - in: path
    *         name: id
    *         required: true
+   *         description: ID of the post to retrieve
    *         schema:
    *           type: integer
+   *           example: 1
    *     responses:
    *       200:
-   *         description: Post found
+   *         description: Post found successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: "#/components/schemas/Post"
+   *       400:
+   *         description: Invalid post ID
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Invalid post ID
    *       404:
    *         description: Post not found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Post not found
+   *       500:
+   *         $ref: "#/components/responses/Error"
    */
   static async getPostById(req, res) {
-    const post = await PostModel.getById(Number(req.params.id));
+    try {
+      // Convert route param to number
+      const id = Number(req.params.id);
 
-    if (!post) {
-      return res.status(404).json({ message: "Post not found" });
+      // Validate ID
+      if (Number.isNaN(id)) {
+        return res.status(400).json({
+          message: "Invalid post ID",
+        });
+      }
+
+      // Fetch post from database
+      const post = await PostModel.getById(id);
+
+      // Handle not found case
+      if (!post) {
+        return res.status(404).json({
+          message: "Post not found",
+        });
+      }
+
+      // Return post data
+      return res.status(200).json(post);
+    } catch (error) {
+      // Log server error for debugging
+      console.error(error);
+
+      return res.status(500).json({
+        message: "Failed to fetch post",
+      });
     }
-
-    return res.status(200).json(post);
   }
 
   /**
    * Delete Post
+   *
+   * Deletes a post by ID.
+   * Only the owner of the post is allowed to delete it.
+   *
+   * @type {express.RequestHandler}
    * @openapi
    * /api/post/{id}:
    *   delete:
    *     summary: "Delete post"
    *     tags: [Posts]
+   *     security:
+   *       - ApiKey: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         description: ID of the post to delete
+   *         schema:
+   *           type: integer
+   *           example: 1
    *     responses:
    *       200:
-   *         description: Deleted successfully
+   *         description: Post deleted successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Post deleted successfully
+   *       400:
+   *         description: Invalid post ID
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Invalid post ID
+   *       403:
+   *         description: Forbidden (not owner of post)
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Forbidden
+   *       404:
+   *         description: Post not found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Post not found
+   *       500:
+   *         $ref: "#/components/responses/Error"
    */
   static async deletePost(req, res) {
-    await PostModel.delete(Number(req.params.id));
+    try {
+      const id = Number(req.params.id);
 
-    return res.status(200).json({
-      message: "Post deleted successfully",
-    });
+      if (Number.isNaN(id)) {
+        return res.status(400).json({
+          message: "Invalid post ID",
+        });
+      }
+
+      const post = await PostModel.getById(id);
+
+      if (!post) {
+        return res.status(404).json({
+          message: "Post not found",
+        });
+      }
+
+      // ownership check
+      if (post.user_id !== req.user.id) {
+        return res.status(403).json({
+          message: "Forbidden",
+        });
+      }
+
+      await PostModel.delete(id);
+
+      return res.status(200).json({
+        message: "Post deleted successfully",
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        message: "Failed to delete post",
+      });
+    }
   }
 }

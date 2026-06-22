@@ -12,47 +12,43 @@ export class ApiSessionsController {
     this.routes.get("/xml", this.getSessionsXML);
     this.routes.get("/trainer/:id", this.getTrainerSessionsById);
     this.routes.delete("/:id", this.deleteTrainerSessions);
+
+    // Testing purpose routes
+    this.routes.get("/debug/db", async (req, res) => {
+      const rows = await SessionModel.getAll();
+      console.log("DB RAW:", rows);
+      res.json(rows);
+    });
   }
 
   /**
-   * @type {express.RequestHandler}
    * @openapi
    * /api/sessions:
-   *    get:
-   *        summary: "Get the list of all sessions"
-   *        tags: [Sessions]
-   *        parameters:
-   *          - name: filter
-   *            in: query
-   *            description: Search filter on session names and activities
-   *            required: false
-   *            schema:
-   *                type: string
-   *                example: boxing
-   *        responses:
-   *            '200':
-   *                description: "Session list"
-   *                content:
-   *                    application/json:
-   *                        schema:
-   *                            type: array
-   *                            items:
-   *                                $ref: "#/components/schemas/Session"
-   *            '500':
-   *                $ref: "#/components/responses/Error"
-   *
+   *   get:
+   *     summary: Get all sessions with full details
+   *     tags: [Sessions]
+   *     responses:
+   *       200:
+   *         description: List of sessions with activity, location and trainer
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: "#/components/schemas/SessionActivity"
+   *       500:
+   *         description: Server error
    */
   static async getSessions(req, res) {
     try {
-      const sessions = await SessionModel.getAll();
-      console.log("Sessions from DB:", sessions);
+      const sessions = await SessionActivityModel.getAll();
 
-      res.status(200).json(sessions);
+      console.log("SESSION COUNT:", sessions.length);
+
+      return res.status(200).json(sessions);
     } catch (error) {
       console.error(error);
-      res.status(500).json({
-        message: "Failed to load sessions from database",
-      });
+      return res.status(500).json({ message: error.message });
     }
   }
 

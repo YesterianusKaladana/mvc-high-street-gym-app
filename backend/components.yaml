@@ -95,14 +95,79 @@ components:
           type: boolean
           example: false
 
-    Bookings:
+    SessionActivity:
+      type: object
+      required:
+        - session
+        - activity
+        - location
+        - user
+      properties:
+        session:
+          type: object
+          required:
+            - id
+            - user_id
+            - location_id
+            - activity_id
+            - date
+            - start_time
+            - end_time
+            - capacity
+          properties:
+            id:
+              type: integer
+            user_id:
+              type: integer
+            location_id:
+              type: integer
+            activity_id:
+              type: integer
+            date:
+              type: string
+            start_time:
+              type: string
+            end_time:
+              type: string
+            capacity:
+              type: integer
+
+        activity:
+          type: object
+          required: [id, name]
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+
+        location:
+          type: object
+          required: [id, name]
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+
+        user:
+          type: object
+          required: [id, firstName, lastName]
+          properties:
+            id:
+              type: integer
+            firstName:
+              type: string
+            lastName:
+              type: string
+
+    Booking:
       type: object
       required:
         - id
         - session_id
         - created
         - user_id
-        - deleted
       properties:
         id:
           type: number
@@ -110,16 +175,13 @@ components:
         session_id:
           type: number
           example: 12
-        created:
-          type: string
-          format: date
-          example: "2026-06-06"
         user_id:
           type: number
           example: 5
-        deleted:
-          type: boolean
-          example: false
+        created:
+          type: string
+          format: date-time
+          example: "2026-06-06 14:30:00"
 
     Post:
       type: object
