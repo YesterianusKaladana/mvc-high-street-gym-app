@@ -20,7 +20,7 @@ export class DatabaseModel {
   static {
     this.connection = mysql.createPool({
       host: "localhost",
-      user: "gym_database_user",
+      user: "gym_database",
       password: "streetgym2026",
       database: "gym_database",
       nestTables: true,
