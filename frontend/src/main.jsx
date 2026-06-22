@@ -11,7 +11,7 @@ import UserInformation from './user/UserInformation';
 import TrainerSession from './sessions/TrainerSession';
 import Timetable from './sessions/Timetable';
 import CreatePost from './post/CreatePost';
-import EditPost from './post/EditPost';
+import DeletePost from './post/DeletePost';
 
 const router = createBrowserRouter([
   {
@@ -38,8 +38,8 @@ const router = createBrowserRouter([
         Component: CreatePost
       },
       {
-        path: "/edit/:id",
-        Component: EditPost
+        path: "/delete/:id",
+        Component: DeletePost
       },
       {
         path: "/update", 

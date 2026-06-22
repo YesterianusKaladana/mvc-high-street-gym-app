@@ -17,8 +17,7 @@ function LoginView() {
   
   useEffect(() => {
     if (user) {
-      // FIX: Changed "/LoginView" to "/timetable" to prevent an infinite redirect loop
-      if (user.role === "member") {
+          if (user.role === "member") {
         navigate("/timetable"); 
       } else if (user.role === "trainer") {
         navigate("/sessionTrainer");

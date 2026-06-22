@@ -59,7 +59,6 @@ function Layout() {
           <header className="flex items-center justify-center bg-base-100 border-b border-base-200 py-4 px-6">
             <button
               className="flex items-center gap-2 hover:opacity-80 transition active:scale-95"
-              // FIX: Changed fallback redirect destination from "/timetable" to "/MakeBooking" for logged-in members
               onClick={() => navigate(user ? (user.role === "trainer" ? "/sessionTrainer" : "/MakeBooking") : "/")}
             >
               <CgGym className="text-3xl text-success" />

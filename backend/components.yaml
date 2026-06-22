@@ -126,7 +126,6 @@ components:
       required:
         - id
         - user_id
-        - date
         - title
         - content
       properties:
@@ -136,10 +135,6 @@ components:
         user_id:
           type: number
           example: 1
-        date:
-          type: string
-          format: date
-          example: "2026-06-06"
         title:
           type: string
           example: "My first post"

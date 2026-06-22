@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router";
-import { IoMdCreate } from "react-icons/io";
+import { IoMdCreate, IoMdTrash } from "react-icons/io";
 import { fetchAPI } from "../api.mjs";
 
 function BlogView() {
@@ -11,6 +11,7 @@ function BlogView() {
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    //Parse the user's role directly from application's session layout
     const loadPosts = () => {
         const authKey = localStorage.getItem("authKey");
 
@@ -59,9 +60,9 @@ function BlogView() {
                             <button
                                 type="button"
                                 className="btn btn-primary"
-                                onClick={() => navigate(`/edit/${post.id}`)}
+                                onClick={() => navigate(`/delete/${post.id}`)}
                             >
-                                Edit
+                                Delete
                             </button>
                         </li>
                     ))}

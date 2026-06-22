@@ -7,7 +7,6 @@ function CreatePost() {
 
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
-    const [date, setDate] = useState(""); 
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
 
@@ -60,14 +59,6 @@ function CreatePost() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     required
-                />
-
-                {/* ✅ Date input */}
-                <input
-                    type="date"
-                    className="input input-bordered w-full mb-4"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
                 />
 
                 <textarea

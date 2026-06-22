@@ -12,7 +12,7 @@ export class ApiPostController {
 
     this.routes.post(
       "/",
-      ApiAuthenticationController.restrict(["member"]),
+      ApiAuthenticationController.restrict(["member", "trainer"]),
       this.createPost,
     );
 
@@ -20,12 +20,6 @@ export class ApiPostController {
       "/:id",
       ApiAuthenticationController.restrict(["member", "trainer"]),
       this.getPostById,
-    );
-
-    this.routes.put(
-      "/:id",
-      ApiAuthenticationController.restrict(["member", "trainer"]),
-      this.updatePost,
     );
 
     this.routes.delete(
@@ -53,12 +47,11 @@ export class ApiPostController {
    *                 $ref: "#/components/schemas/Post"
    */
   static async getPosts(req, res) {
-    try{
+    try {
       const posts = await PostModel.getAll();
       console.log("Posts from DB:", posts);
-      return res.status(200).json(posts)
-
-    } catch(error){
+      return res.status(200).json(posts);
+    } catch (error) {
       console.error(error);
       return res.status(500).json({
         message: "Failed to load posts from database",
@@ -108,7 +101,7 @@ export class ApiPostController {
    */
   static async createPost(req, res) {
     if (!req.authenticatedUser) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         message: "Unauthorized",
       });
     }
@@ -116,7 +109,6 @@ export class ApiPostController {
     const post = new PostModel(
       null,
       req.authenticatedUser.id,
-      new Date().toISOString().split("T")[0],
       req.body.post.title,
       req.body.post.content,
     );
@@ -156,23 +148,6 @@ export class ApiPostController {
     }
 
     return res.status(200).json(post);
-  }
-
-  /**
-   * Update Post
-   * @openapi
-   * /api/post/{id}:
-   *   put:
-   *     summary: "Update post"
-   *     tags: [Posts]
-   *     responses:
-   *       501:
-   *         description: Not implemented
-   */
-  static async updatePost(req, res) {
-    return res.status(501).json({
-      message: "Not implemented",
-    });
   }
 
   /**
