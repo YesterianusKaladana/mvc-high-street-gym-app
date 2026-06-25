@@ -13,7 +13,10 @@ function Layout() {
   const location = useLocation();
   const { user, logout } = useAuthenticate();
 
-  const isAuthView = location.pathname === "/" || location.pathname === "/register";
+  const isAuthView = 
+  location.pathname === "/" ||
+  location.pathname === "/register" ||
+  location.pathname === "/login" ;
 
   const navItems = [
     {
@@ -29,7 +32,7 @@ function Layout() {
       visible: user && user.role === "member",
     },
     {
-      path: "/BlogView",
+      path: "/blog",
       icon: <FaBlog />,
       label: "Blog",
       visible: true, // Visible to guests, members, and trainers
@@ -62,7 +65,7 @@ function Layout() {
               onClick={() => navigate(user ? (user.role === "trainer" ? "/sessionTrainer" : "/MakeBooking") : "/")}
             >
               <CgGym className="text-3xl text-success" />
-              <h1 className="text-xl font-black tracking-tight text-neutral">High Street Gym</h1>
+              <h1 className="text-xl font-black tracking-tight text-neutral">HSG Fitness Community</h1>
             </button>
           </header>
 
@@ -77,7 +80,7 @@ function Layout() {
           <nav className="grid grid-flow-col auto-cols-max justify-around items-center py-2 bg-base-100 border-t border-base-200 px-2">
             {navItems.map(({ path, icon, label, visible }) => {
               if (!visible) return null;
-              if (isAuthView && path !== "/BlogView") return null;
+              if (isAuthView && path !== "/blog") return null;
 
               const isActive = location.pathname === path;
 
@@ -114,8 +117,8 @@ function Layout() {
 
           {/* Footer Branding Footnotes */}
           <footer className="text-center text-[10px] text-base-content/40 py-4 border-t border-base-200/50 bg-base-50">
-            <p>© {new Date().getFullYear()} HSG — Yesterianus Kaladana.</p>
-            <p className="mt-0.5">
+            <p className="text-black">© {new Date().getFullYear()} HSG — Yesterianus Kaladana.</p>
+            <p className=" text-black mt-0.5">
               <button
                 onClick={() => navigate("/privacy-policy")}
                 className="underline hover:text-success transition"

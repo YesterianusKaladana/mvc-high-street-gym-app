@@ -31,7 +31,7 @@ function LoginView() {
   return (
     <section className="flex justify-center items-center min-h-screen bg-base-200 px-4">
       <div className="card w-full max-w-md shadow-xl bg-base-100 p-6">
-        <h1 className="text-3xl font-bold text-center mb-6">Login</h1>
+        <h1 className="text-3xl font-bold text-center mb-6">Login to your account!</h1>
 
         <form className="space-y-4" onSubmit={onLoginSubmit}>
           <label className="form-control w-full">

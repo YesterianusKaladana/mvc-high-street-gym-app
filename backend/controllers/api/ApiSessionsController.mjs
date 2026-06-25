@@ -12,13 +12,6 @@ export class ApiSessionsController {
     this.routes.get("/xml", this.getSessionsXML);
     this.routes.get("/trainer/:id", this.getTrainerSessionsById);
     this.routes.delete("/:id", this.deleteTrainerSessions);
-
-    // Testing purpose routes
-    this.routes.get("/debug/db", async (req, res) => {
-      const rows = await SessionModel.getAll();
-      console.log("DB RAW:", rows);
-      res.json(rows);
-    });
   }
 
   /**
@@ -41,14 +34,16 @@ export class ApiSessionsController {
    */
   static async getSessions(req, res) {
     try {
-      const sessions = await SessionActivityModel.getAll();
+      const sessions = await SessionModel.getAll();
 
-      console.log("SESSION COUNT:", sessions.length);
+      console.log("Sessions from DB:", sessions);
 
       return res.status(200).json(sessions);
     } catch (error) {
       console.error(error);
-      return res.status(500).json({ message: error.message });
+      return res.status(500).json({
+        message: "Failed to load sessions from database",
+      });
     }
   }
 
@@ -86,16 +81,16 @@ export class ApiSessionsController {
 
       sessions.forEach((s) => {
         xml += `
-    <session>
-      <id>${s.id}</id>
-      <user_id>${s.user_id}</user_id>
-      <location_id>${s.location_id}</location_id>
-      <activity_id>${s.activity_id}</activity_id>
-      <date>${s.date}</date>
-      <start_time>${s.start_time}</start_time>
-      <end_time>${s.end_time}</end_time>
-      <capacity>${s.capacity}</capacity>
-    </session>`;
+          <session>
+            <id>${s.id}</id>
+            <user_id>${s.user_id}</user_id>
+            <location_id>${s.location_id}</location_id>
+            <activity_id>${s.activity_id}</activity_id>
+            <date>${s.date}</date>
+            <start_time>${s.start_time}</start_time>
+            <end_time>${s.end_time}</end_time>
+            <capacity>${s.capacity}</capacity>
+          </session>`;
       });
 
       xml += `\n</sessions>`;

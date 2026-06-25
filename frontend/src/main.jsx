@@ -22,7 +22,7 @@ const router = createBrowserRouter([
         Component: Timetable,
       },
       {
-        path: "/LoginView",
+        path: "/login",
         Component: LoginView
       },
       {
@@ -30,7 +30,7 @@ const router = createBrowserRouter([
         Component: Register
       },
       {
-        path: "/BlogView",
+        path: "/blog",
         Component: BlogView
       },
       {

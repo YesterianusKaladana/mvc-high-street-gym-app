@@ -61,6 +61,7 @@ function BlogView() {
                                 className="btn btn-primary"
                                 onClick={() => navigate(`/delete/${post.id}`)}
                             >
+                                <IoMdTrash />
                                 Delete
                             </button>
                         </li>

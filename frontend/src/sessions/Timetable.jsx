@@ -1,80 +1,139 @@
 import { FaSearch } from "react-icons/fa";
+import { CiLogin } from "react-icons/ci";
 import { useCallback, useEffect, useState } from "react";
 import { fetchAPI } from "../api.mjs";
+import { useNavigate } from "react-router";
 
 function Timetable() {
-  const [sessions, setSessions] = useState([]);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("");
+    const [sessions, setSessions] = useState([]);
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [filter, setFilter] = useState("");
+    const navigate = useNavigate();
 
-  const getSessions = useCallback(() => {
-    setError(null);
-    setLoading(true);
+    const getSessions = useCallback(() => {
+        setError(null);
+        setLoading(true);
 
-    fetchAPI("GET", "/api/sessions")
-      .then((res) => {
-        if (res.status === 200) {
-          setSessions(res.body || []);
-        } else {
-          setError(res.body?.message || "Error loading sessions");
-        }
-      })
-      .catch((err) => setError(String(err)))
-      .finally(() => setLoading(false));
-  }, []);
+        const authKey = localStorage.getItem("authKey");
 
-  useEffect(() => {
-    getSessions();
-  }, [getSessions]);
+        fetchAPI("GET", "/session/", null, authKey)
+            .then((res) => {
+                if (res.status === 200) {
+                    setSessions(res.body || []);
+                } else {
+                    setError(res.body?.message || "Error loading sessions");
+                }
+            })
+            .catch((err) => setError(String(err)))
+            .finally(() => setLoading(false));
+    }, []);
 
-  return (
-    <section className="p-4">
+    useEffect(() => {
+        getSessions();
+    }, [getSessions]);
 
-      <div className="flex gap-2 mb-4">
-        <input
-          className="border p-2"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          placeholder="search sessions"
-        />
+    const filteredSessions = sessions.filter(
+        (s) =>
+            s.activity_name?.toLowerCase().includes(filter.toLowerCase()) ||
+            s.trainer_name?.toLowerCase().includes(filter.toLowerCase()) ||
+            s.location_name?.toLowerCase().includes(filter.toLowerCase())
+    );
 
-        <button onClick={getSessions} className="btn">
-          <FaSearch />
-        </button>
-      </div>
+    return (
+        <section className="flex flex-col items-center p-6 min-h-screen bg-b-200">
+            <div className="w-full max-w-4xl">
 
-      {error && <p className="text-red-600">{error}</p>}
+               {/* Header / Navbar */}
+                <div className="w-full flex justify-between items-center mb-6">
 
-      {loading ? (
-        <p>Loading sessions...</p>
-      ) : sessions.length === 0 ? (
-        <p>No sessions found</p>
-      ) : (
-        <ul>
-          {sessions.map((s) => (
-            <li key={s.id} className="border p-3 my-2">
+                    {/* Left side - Title */}
+                    <h2 className="text-3xl font-bold">
+                        Sessions
+                    </h2>
 
-              <div>Session ID: {s.id}</div>
+                    {/* Right side - Login */}
+                    <button
+                        className="btn btn-primary flex items-center gap-2 hover:scale-105 transition"
+                        onClick={() => navigate("/login")}
+                    >
+                        <CiLogin className="text-xl" />
+                        Login
+                    </button>
 
-              <div>Trainer: {s.trainer_name}</div>
-              <div>Activity: {s.activity_name}</div>
-              <div>Location: {s.location_name}</div>
+                </div>
 
-              <div>Date: {s.date}</div>
-              <div>Start: {s.start_time}</div>
-              <div>End: {s.end_time}</div>
+                <div className="flex gap-2 mb-6">
+                    <input
+                        className="input input-bordered w-full"
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
+                        placeholder="Search sessions..."
+                    />
 
-              <button className="btn">
-                Book now
-              </button>
+                    <button
+                        onClick={getSessions}
+                        className="btn btn-primary"
+                    >
+                        <FaSearch />
+                    </button>
+                </div>
 
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
+                {loading ? (
+                    <div className="flex justify-center">
+                        <span className="loading loading-spinner loading-lg"></span>
+                    </div>
+                ) : error ? (
+                    <p className="text-red-500">{error}</p>
+                ) : filteredSessions.length === 0 ? (
+                    <p>No sessions found.</p>
+                ) : (
+                    <ul className="space-y-4">
+                        {filteredSessions.map((session) => (
+                            <li
+                                key={session.id}
+                                className="p-4 bg-white rounded-xl shadow"
+                            >
+                                <h3 className="text-xl font-bold">
+                                    {session.activity_name}
+                                </h3>
+
+                                <p className="text-sm text-gray-500">
+                                    Session ID: {session.id}
+                                </p>
+
+                                <div className="mt-2 space-y-1">
+                                    <p>
+                                        <strong>Trainer:</strong>{" "}
+                                        {session.trainer_name}
+                                    </p>
+
+                                    <p>
+                                        <strong>Location:</strong>{" "}
+                                        {session.location_name}
+                                    </p>
+
+                                    <p>
+                                        <strong>Date:</strong>{" "}
+                                        {session.date}
+                                    </p>
+
+                                    <p>
+                                        <strong>Time:</strong>{" "}
+                                        {session.start_time} - {session.end_time}
+                                    </p>
+                                </div>
+
+                                <button className="btn btn-primary mt-4">
+                                    Book Now
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+        </section>
+    );
 }
 
 export default Timetable;

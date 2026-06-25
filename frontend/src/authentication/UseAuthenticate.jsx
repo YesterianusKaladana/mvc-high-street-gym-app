@@ -85,7 +85,6 @@ export function useAuthenticate(restrictToRoles = null) {
           if (response.status === 200) {
             const tokenKey = response.body.key;
             localStorage.setItem("auth-key", tokenKey);
-            // FIX: Let getUser handle updating the status to "loaded" naturally when it's done!
             getUser(tokenKey); 
           } else {
             setStatus(response.body?.message || "Authentication failed");
@@ -109,7 +108,7 @@ export function useAuthenticate(restrictToRoles = null) {
         setStatus("logged out");
         navigate("/");
       });
-  }, [user, setUser, setStatus, navigate]); // FIX: Added proper tracking dependencies here
+  }, [user, setUser, setStatus, navigate]); 
 
   // Refresh helper function 
   const refresh = useCallback(() => {

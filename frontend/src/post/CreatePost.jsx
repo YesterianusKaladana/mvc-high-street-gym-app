@@ -20,7 +20,7 @@ function CreatePost() {
         try {
             const res = await fetchAPI(
                 "POST",
-                "/api/post/",
+                "/post/",
                 {
                     title,
                     content,
@@ -32,7 +32,7 @@ function CreatePost() {
                 throw new Error(res?.message || "Failed to create post");
             }
 
-            navigate("/BlogView");
+            navigate("/blog");
         } catch (err) {
             setError(err.message);
         } finally {

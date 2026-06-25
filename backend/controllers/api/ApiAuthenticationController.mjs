@@ -1,6 +1,7 @@
 import express from "express";
 import { UserModel } from "../../models/UserModel.mjs";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 export class ApiAuthenticationController {
   static routes = express.Router();
@@ -42,7 +43,7 @@ export class ApiAuthenticationController {
     next();
   }
 
-    /**
+  /**
    *
    * @type {express.RequestHandler}
    * @openapi
@@ -85,7 +86,7 @@ export class ApiAuthenticationController {
           await UserModel.update(user);
 
           res.status(200).json({
-            key: authenticationKey,
+            authenticationKey: authenticationKey,
           });
         } else {
           res.status(400).json({
