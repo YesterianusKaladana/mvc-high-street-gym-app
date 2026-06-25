@@ -1,2 +1,2 @@
 # mvc-high-street-gym-app
-High Street Gym Project Full Stack Web Development
+A full-stack web development project involving frontend and backend implementation.
