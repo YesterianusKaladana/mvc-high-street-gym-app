@@ -62,7 +62,7 @@ export class LocationController {
   /**
    * View all locations
    * Supports search by location name and selecting a location by ID
-   *
+   * @type {express.RequestHandler}
    * @param {import("express").Request} req
    * @param {import("express").Response} res
    */
@@ -109,7 +109,7 @@ export class LocationController {
    * - create
    * - update
    * - delete
-   *
+   * @type {express.RequestHandler}
    * @param {import("express").Request} req
    * @param {import("express").Response} res
    */

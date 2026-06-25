@@ -115,7 +115,7 @@ export class SessionController {
   /**
    * Public timetable view
    * Displays sessions grouped by weekday and blog posts by weekday
-   *
+   * @type {express.RequestHandler}
    * @param {import("express").Request} req
    * @param {import("express").Response} res
    */
@@ -208,9 +208,7 @@ export class SessionController {
     try {
       const editId = req.query.edit_id;
 
-      // =========================
       // CLEAN QUERY PARAMS
-      // =========================
       const clean = (v) => (v && v.trim() !== "" ? v : null);
 
       const search = clean(req.query.search);
@@ -224,9 +222,7 @@ export class SessionController {
 
       let sessions = await SessionActivityModel.getAll();
 
-      // =========================
       // GLOBAL SEARCH
-      // =========================
       if (search) {
         const q = search.toLowerCase();
 
@@ -245,10 +241,7 @@ export class SessionController {
         });
       }
 
-      // =========================
       // INDIVIDUAL FILTERS
-      // =========================
-
       if (trainer) {
         sessions = sessions.filter((s) =>
           `${s.user?.firstName || ""} ${s.user?.lastName || ""}`
@@ -273,9 +266,7 @@ export class SessionController {
         );
       }
 
-      // =========================
-      // DATE FILTER (FIXED)
-      // =========================
+      // DATE FILTER
       if (date) {
         sessions = sessions.filter((s) => {
           if (!s.session?.date) return false;
@@ -381,7 +372,7 @@ export class SessionController {
 
   /**
    * Admin CRUD handler for sessions
-   *
+   * @type {express.RequestHandler}
    * @param {import("express").Request} req
    * @param {import("express").Response} res
    */
@@ -455,7 +446,7 @@ export class SessionController {
 
   /**
    * Trainer session view with filtering
-   *
+   * @type {express.RequestHandler}
    * @param {import("express").Request} req
    * @param {import("express").Response} res
    */
@@ -571,7 +562,7 @@ export class SessionController {
 
   /**
    * Trainer session CRUD handler
-   *
+   * @type {express.RequestHandler}
    * @param {import("express").Request} req
    * @param {import("express").Response} res
    */
@@ -667,7 +658,7 @@ export class SessionController {
 
   /**
    * Member session view with booking status
-   *
+   * @type {express.RequestHandler}
    * @param {import("express").Request} req
    * @param {import("express").Response} res
    */
@@ -737,7 +728,7 @@ export class SessionController {
 
   /**
    * Member booking handler (book/cancel sessions)
-   *
+   * @type {express.RequestHandler}
    * @param {import("express").Request} req
    * @param {import("express").Response} res
    */

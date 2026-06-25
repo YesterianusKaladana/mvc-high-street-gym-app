@@ -66,7 +66,7 @@ export class UserController {
    * - Search by name or email
    * - Filter by role
    * - Select specific user by ID
-   *
+   * @type {express.RequestHandler}
    * @param {import("express").Request} req
    * @param {import("express").Response} res
    */
@@ -132,7 +132,7 @@ export class UserController {
    * Includes:
    * - validation (email, password, name format)
    * - password hashing using bcrypt
-   *
+   * @type {express.RequestHandler}
    * @param {import("express").Request} req
    * @param {import("express").Response} res
    */

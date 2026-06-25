@@ -110,7 +110,7 @@ export class PostController {
   /**
    * View all posts
    * Supports optional search by title
-   * @type {express.Request}
+   * @type {express.RequestHandler}
    * @param {import("express").Request} req
    * @param {import("express").Response} res
    */
@@ -152,7 +152,7 @@ export class PostController {
    * - Admin: full access
    * - Trainer: full access
    * - Owner: can view their own post
-   *
+   *@type {express.RequestHandler}
    * @param {import("express").Request} req
    * @param {import("express").Response} res
    */

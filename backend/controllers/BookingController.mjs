@@ -78,6 +78,7 @@ export class BookingController {
 
   /**
    * Member booking page view
+   * @type {express.RequestHandler}
    *
    * @param {import("express").Request} req
    * @param {import("express").Response} res
@@ -123,7 +124,7 @@ export class BookingController {
 
   /**
    * Booking confirmation page
-   *
+   * @type {express.RequestHandler}
    * @param {import("express").Request} req
    * @param {import("express").Response} res
    */
@@ -209,7 +210,7 @@ export class BookingController {
    * - Create booking
    * - Update booking
    * - Delete booking
-   *
+   * @type {express.RequestHandler}
    * @param {import("express").Request} req
    * @param {import("express").Response} res
    */
@@ -349,7 +350,7 @@ export class BookingController {
 
   /**
    * Admin booking CRUD handler
-   *
+   * @type {express.RequestHandler}
    * @param {import("express").Request} req
    * @param {import("express").Response} res
    */
