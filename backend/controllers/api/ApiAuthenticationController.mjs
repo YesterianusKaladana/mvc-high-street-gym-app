@@ -14,147 +14,155 @@ export class ApiAuthenticationController {
   }
 
   /**
-   * This middleware checks for the API key header in the incoming request
-   * and loads the respective user into req.authenticatedUser if found
-   * @private
-   * @type {express.RequestHandler}
+   * Middleware: loads user from API key
    */
   static async #APIAuthenticationProvider(req, res, next) {
     const authenticationKey = req.headers["x-auth-key"];
+
     if (authenticationKey) {
       try {
-        // Get user by their authentication key
         req.authenticatedUser =
           await UserModel.getByAuthenticationKey(authenticationKey);
       } catch (error) {
         if (error == "not found") {
-          res.status(404).json({
-            message: "Failed to authenticate - key not found",
+          return res.status(401).json({
+            message: "Invalid authentication key - key not found",
           });
         } else {
           console.error(error);
-          res.status(500).json({
+          return res.status(500).json({
             message: "Failed to authenticate - database error",
           });
         }
-        return;
       }
     }
+
     next();
   }
 
-  
   /**
- * @openapi
- * /api/authenticate:
- *   post:
- *     summary: "Authenticate with email and password"
- *     tags: [Authentication]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: "#/components/schemas/UserCredentials"
- *     responses:
- *       '200':
- *         $ref: "#/components/responses/LoginSuccessful"
- *       '400':
- *         $ref: "#/components/responses/Error"
- *       '404':
- *         $ref: "#/components/responses/NotFound"
- *       '500':
- *         $ref: "#/components/responses/Error"
- *
- *   delete:
- *     summary: "Deauthenticate with API key header"
- *     tags: [Authentication]
- *     security:
- *       - ApiKey: []
- *     responses:
- *       '200':
- *         $ref: "#/components/responses/Updated"
- *       '404':
- *         $ref: "#/components/responses/NotFound"
- *       '500':
- *         $ref: "#/components/responses/Error"
- */
+   * @openapi
+   * /api/authenticate:
+   *   post:
+   *     summary: "Authenticate with email and password"
+   *     tags: [Authentication]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: "#/components/schemas/UserCredentials"
+   *     responses:
+   *       '200':
+   *         $ref: "#/components/responses/LoginSuccessful"
+   *       '400':
+   *         $ref: "#/components/responses/Error"
+   *       '404':
+   *         $ref: "#/components/responses/NotFound"
+   *       '500':
+   *         $ref: "#/components/responses/Error"
+   *
+   *   delete:
+   *     summary: "Deauthenticate with API key header"
+   *     tags: [Authentication]
+   *     security:
+   *       - ApiKey: []
+   *     responses:
+   *       '200':
+   *         $ref: "#/components/responses/Updated"
+   *       '404':
+   *         $ref: "#/components/responses/NotFound"
+   *       '500':
+   *         $ref: "#/components/responses/Error"
+   */
   static async handleAuthenticate(req, res) {
     if (req.method == "POST") {
       try {
         const user = await UserModel.getByEmail(req.body.email);
-        if (await bcrypt.compare(req.body.password, user.password)) {
-          const authenticationKey = crypto.randomUUID();
-          user.authenticationKey = authenticationKey;
-          await UserModel.update(user);
 
-          res.status(200).json({
-            authenticationKey: authenticationKey,
-          });
-        } else {
-          res.status(400).json({
+        // prevent crash when user doesn't exist
+        if (!user) {
+          return res.status(400).json({
             message: "Invalid credentials",
           });
         }
-      } catch (error) {
-        switch (error) {
-          case "not found":
-            res.status(400).json({
-              message: "Invalid credentials",
-            });
-            break;
-          default:
-            console.error(error);
-            res.status(500).json({
-              message: "Failed to authenticate user",
-            });
-            break;
+
+        const passwordMatch = await bcrypt.compare(
+          req.body.password,
+          user.password,
+        );
+
+        if (!passwordMatch) {
+          return res.status(400).json({
+            message: "Invalid credentials",
+          });
         }
+
+        const authenticationKey = crypto.randomUUID();
+        user.authenticationKey = authenticationKey;
+        await UserModel.update(user);
+
+        return res.status(200).json({
+          authenticationKey,
+        });
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+          message: "Failed to authenticate user",
+        });
       }
-    } else if (req.method == "DELETE") {
-      if (req.authenticatedUser) {
+    }
+
+    if (req.method == "DELETE") {
+      try {
+        if (!req.authenticatedUser) {
+          return res.status(401).json({
+            message: "Please login to access the requested resources",
+          });
+        }
+
         const user = await UserModel.getByAuthenticationKey(
           req.authenticatedUser.authenticationKey,
         );
+
         user.authenticationKey = null;
         await UserModel.update(user);
 
-        res.status(200).json({
+        return res.status(200).json({
           message: "Deauthentication successful",
         });
-      } else {
-        res.status(401).json({
-          message: "Please login to access the request resources",
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+          message: "Failed to deauthenticate user",
         });
       }
     }
   }
 
   /**
-   *
-   * @param {Array<"member"|"admin"|"trainer"|"any"} allowedRoles
-   * @type {express.requestHandler}
+   * Role restriction middleware
    */
   static restrict(allowedRoles) {
     return function (req, res, next) {
-      if (req.authenticatedUser) {
-        if (
-          allowedRoles == "any" ||
-          allowedRoles.includes(req.authenticatedUser.role)
-        ) {
-          next();
-        } else {
-          res.status(403).json({
-            message: "Access forbidden",
-            errors: ["Role does not have access to the requested resource"],
-          });
-        }
-      } else {
-        res.status(401).json({
+      if (!req.authenticatedUser) {
+        return res.status(401).json({
           message: "Not authenticated",
           errors: ["Please authenticate to access the requested resource"],
         });
       }
+
+      if (
+        allowedRoles !== "any" &&
+        !allowedRoles.includes(req.authenticatedUser.role)
+      ) {
+        return res.status(403).json({
+          message: "Access forbidden",
+          errors: ["Role does not have access to the requested resource"],
+        });
+      }
+
+      next();
     };
   }
 }
