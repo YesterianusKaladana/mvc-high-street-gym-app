@@ -43,39 +43,42 @@ export class ApiAuthenticationController {
     next();
   }
 
+  
   /**
-   *
-   * @type {express.RequestHandler}
-   * @openapi
-   * /api/authenticate:
-   *    post:
-   *        summary: "Authenticate with email and password"
-   *        tags: [Authentication]
-   *        requestBody:
-   *            required: true
-   *            content:
-   *                application/json:
-   *                    schema:
-   *                        $ref: "#/components/schemas/UserCredentials"
-   *        responses:
-   *            '200':
-   *                $ref: "#/components/responses/LoginSuccessful"
-   *            '400':
-   *                $ref: "#/components/responses/Error"
-   *            '500':
-   *                $ref: "#/components/responses/Error"
-   *    delete:
-   *        summary: "Deauthenticate with API key header"
-   *        tags: [Authentication]
-   *        security:
-   *            - ApiKey: []
-   *        responses:
-   *            '200':
-   *                $ref: "#/components/responses/Updated"
-   *            default:
-   *                $ref: "#/components/responses/Error"
-   *
-   */
+ * @openapi
+ * /api/authenticate:
+ *   post:
+ *     summary: "Authenticate with email and password"
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/UserCredentials"
+ *     responses:
+ *       '200':
+ *         $ref: "#/components/responses/LoginSuccessful"
+ *       '400':
+ *         $ref: "#/components/responses/Error"
+ *       '404':
+ *         $ref: "#/components/responses/NotFound"
+ *       '500':
+ *         $ref: "#/components/responses/Error"
+ *
+ *   delete:
+ *     summary: "Deauthenticate with API key header"
+ *     tags: [Authentication]
+ *     security:
+ *       - ApiKey: []
+ *     responses:
+ *       '200':
+ *         $ref: "#/components/responses/Updated"
+ *       '404':
+ *         $ref: "#/components/responses/NotFound"
+ *       '500':
+ *         $ref: "#/components/responses/Error"
+ */
   static async handleAuthenticate(req, res) {
     if (req.method == "POST") {
       try {

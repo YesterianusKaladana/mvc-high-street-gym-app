@@ -84,7 +84,7 @@ components:
           type: string
           enum: [admin, member, trainer]
           example: trainer
-        email:
+        email: 
           type: string
           format: email
           example: your@gmail.com.au
