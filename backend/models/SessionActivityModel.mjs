@@ -118,13 +118,79 @@ export class SessionActivityModel extends DatabaseModel {
    *
    * @returns {Promise<Array>}
    */
-  static async getAllWithDetails() {
+  // static async getAllWithDetails() {
+  //   const rows = await this.query(`
+  //     SELECT
+  //       session.id,
+  //       session.user_id,
+  //       session.location_id,
+  //       session.activity_id,
+  //       session.date,
+  //       session.start_time,
+  //       session.end_time,
+  //       session.capacity,
+
+  //       user.first_name,
+  //       user.last_name,
+
+  //       location.name AS location_name,
+  //       location.description AS location_description,
+
+  //       activity.name AS activity_name,
+  //       activity.description AS activity_description
+
+  //     FROM session
+
+  //     INNER JOIN user
+  //       ON session.user_id = user.id
+
+  //     INNER JOIN location
+  //       ON session.location_id = location.id
+
+  //     INNER JOIN activity
+  //       ON session.activity_id = activity.id
+
+  //     WHERE session.deleted = 0
+
+  //     ORDER BY session.date DESC
+  //   `);
+
+  //   return rows.map((row) => ({
+  //     session: new SessionModel(
+  //       row.id,
+  //       row.user_id,
+  //       row.location_id,
+  //       row.activity_id,
+  //       row.date,
+  //       row.start_time?.substring(0, 5) || "",
+  //       row.end_time?.substring(0, 5) || "",
+  //       row.capacity,
+  //     ),
+
+  //     user: {
+  //       id: row.user_id,
+  //       firstName: row.first_name,
+  //       lastName: row.last_name,
+  //     },
+
+  //     location: {
+  //       id: row.location_id,
+  //       name: row.location_name,
+  //       description: row.location_description,
+  //     },
+
+  //     activity: {
+  //       id: row.activity_id,
+  //       name: row.activity_name,
+  //       description: row.activity_description,
+  //     },
+  //   }));
+  // }
+
+    static async getAllWithDetails() {
     const rows = await this.query(`
       SELECT
-        session.id,
-        session.user_id,
-        session.location_id,
-        session.activity_id,
+        session.id AS session_id,
         session.date,
         session.start_time,
         session.end_time,
@@ -134,10 +200,8 @@ export class SessionActivityModel extends DatabaseModel {
         user.last_name,
 
         location.name AS location_name,
-        location.description AS location_description,
 
-        activity.name AS activity_name,
-        activity.description AS activity_description
+        activity.name AS activity_name
 
       FROM session
 
@@ -156,34 +220,16 @@ export class SessionActivityModel extends DatabaseModel {
     `);
 
     return rows.map((row) => ({
-      session: new SessionModel(
-        row.id,
-        row.user_id,
-        row.location_id,
-        row.activity_id,
-        row.date,
-        row.start_time?.substring(0, 5) || "",
-        row.end_time?.substring(0, 5) || "",
-        row.capacity,
-      ),
+      session_id: row.session_id,
+      activity_name: row.activity_name,
+      location_name: row.location_name,
+      trainer_name: `${row.first_name} ${row.last_name}`,
 
-      user: {
-        id: row.user_id,
-        firstName: row.first_name,
-        lastName: row.last_name,
-      },
+      date: row.date,
+      start_time: row.start_time?.substring(0, 5),
+      end_time: row.end_time?.substring(0, 5),
 
-      location: {
-        id: row.location_id,
-        name: row.location_name,
-        description: row.location_description,
-      },
-
-      activity: {
-        id: row.activity_id,
-        name: row.activity_name,
-        description: row.activity_description,
-      },
+      capacity: row.capacity
     }));
   }
 }

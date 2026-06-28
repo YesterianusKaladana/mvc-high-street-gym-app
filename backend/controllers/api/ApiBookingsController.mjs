@@ -16,7 +16,7 @@ export class ApiBookingsController {
    * Create a new booking
    * @type {express.RequestHandler}
    * @openapi
-   * /api/bookings:
+   * /api/booking:
    *   post:
    *     summary: Create a new booking
    *     tags: [Bookings]
@@ -77,7 +77,7 @@ export class ApiBookingsController {
    * Get bookings for logged-in user
    * @type {express.RequestHandler}
    * @openapi
-   * /api/bookings:
+   * /api/booking:
    *   get:
    *     summary: Get bookings for logged-in user
    *     tags: [Bookings]
@@ -112,7 +112,7 @@ export class ApiBookingsController {
    * Delete booking
    * @type {express.RequestHandler}
    * @openapi
-   * /api/bookings/{id}:
+   * /api/booking/{id}:
    *   delete:
    *     summary: Delete a booking
    *     tags: [Bookings]
@@ -167,7 +167,7 @@ export class ApiBookingsController {
    * Export bookings as XML
    * @type {express.RequestHandler}
    * @openapi
-   * /api/bookings/xml:
+   * /api/booking/xml:
    *   get:
    *     summary: Export bookings to XML
    *     tags: [Bookings]

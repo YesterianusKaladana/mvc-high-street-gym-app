@@ -77,6 +77,6 @@ export class ApiController {
     this.routes.use("/session", ApiSessionsController.routes);
     this.routes.use("/post", ApiPostController.routes);
     this.routes.use("/user", ApiUserController.routes);
-    this.routes.use("/bookings", ApiBookingsController.routes);
+    this.routes.use("/booking", ApiBookingsController.routes);
   }
 }

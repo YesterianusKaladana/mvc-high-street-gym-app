@@ -1,41 +1,5 @@
 components:
   schemas:
-    Session:
-      type: object
-      required:
-        - id
-        - user_id
-        - location_id
-        - activity_id
-        - date
-        - start_time
-        - end_time
-      properties:
-        id:
-          type: number
-          example: 1
-        user_id:
-          type: number
-          example: 1
-        location_id:
-          type: number
-          example: 2
-        activity_id:
-          type: number
-          example: 3
-        date:
-          type: string
-          format: date
-          example: "2026-06-06"
-        start_time:
-          type: string
-          example: "15:00"
-          description: "HH:mm format"
-        end_time:
-          type: string
-          example: "16:00"
-          description: "HH:mm format"
-
     UserCredentials:
       type: object
       required:
@@ -45,10 +9,10 @@ components:
         email:
           type: string
           format: email
-          example: your@gmail.com.au
+          example: "your@gmail.com.au"
         password:
           type: string
-          example: abc123
+          example: "abc123"
 
     AuthenticationKey:
       type: object
@@ -84,7 +48,7 @@ components:
           type: string
           enum: [admin, member, trainer]
           example: trainer
-        email: 
+        email:
           type: string
           format: email
           example: your@gmail.com.au
@@ -95,71 +59,42 @@ components:
           type: boolean
           example: false
 
-    SessionActivity:
+    Session:
       type: object
       required:
-        - session
-        - activity
-        - location
-        - user
+        - id
+        - trainer_name
+        - location_name
+        - activity_name
+        - date
+        - start_time
+        - end_time
+        - capacity
       properties:
-        session:
-          type: object
-          required:
-            - id
-            - user_id
-            - location_id
-            - activity_id
-            - date
-            - start_time
-            - end_time
-            - capacity
-          properties:
-            id:
-              type: integer
-            user_id:
-              type: integer
-            location_id:
-              type: integer
-            activity_id:
-              type: integer
-            date:
-              type: string
-            start_time:
-              type: string
-            end_time:
-              type: string
-            capacity:
-              type: integer
-
-        activity:
-          type: object
-          required: [id, name]
-          properties:
-            id:
-              type: integer
-            name:
-              type: string
-
-        location:
-          type: object
-          required: [id, name]
-          properties:
-            id:
-              type: integer
-            name:
-              type: string
-
-        user:
-          type: object
-          required: [id, firstName, lastName]
-          properties:
-            id:
-              type: integer
-            firstName:
-              type: string
-            lastName:
-              type: string
+        id:
+          type: integer
+          example: 1
+        trainer_name:
+          type: string
+          example: "Yesterianus"
+        location_name:
+          type: string
+          example: "Westlake"
+        activity_name:
+          type: string
+          example: "Yoga"
+        date:
+          type: string
+          example: "2026-06-18"
+        start_time:
+          type: string
+          example: "09:58:00"
+        end_time:
+          type: string
+          example: "11:58:00"
+        capacity:
+          type: number
+          example: 3
 
     Booking:
       type: object

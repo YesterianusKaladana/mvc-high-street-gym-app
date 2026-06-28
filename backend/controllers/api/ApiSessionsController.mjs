@@ -15,77 +15,61 @@ export class ApiSessionsController {
   }
 
   /**
+   * Get all sessions with details
    * @openapi
-   * /api/sessions:
+   * /api/session:
    *   get:
-   *     summary: Get all sessions with full details
-   *     tags: [Sessions]
+   *     summary: "Get all sessions"
+   *     tags: [Session]
    *     responses:
    *       200:
-   *         description: List of sessions with activity, location and trainer
+   *         description: List of sessions
    *         content:
    *           application/json:
    *             schema:
    *               type: array
    *               items:
-   *                 $ref: "#/components/schemas/SessionActivity"
+   *                 $ref: "#/components/schemas/Session"
+   *
    *       500:
-   *         description: Server error
+   *         description: Failed to load sessions from database
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: "Failed to load sessions from database"
    */
   static async getSessions(req, res) {
     try {
-      const sessions = await SessionModel.getAll();
-
-      console.log("Sessions from DB:", sessions);
+      const sessions = await SessionActivityModel.getAll();
 
       return res.status(200).json(sessions);
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error("SESSION ERROR:", err);
+
       return res.status(500).json({
         message: "Failed to load sessions from database",
+        error: err.message,
       });
     }
   }
 
-  /**
-   * @type {express.RequestHandler}
-   * @openapi
-   * /api/sessions/xml:
-   *    get:
-   *        summary: "Get all sessions in XML format"
-   *        tags: [Sessions]
-   *        description: Returns all session records formatted as XML instead of JSON.
-   *        responses:
-   *            '200':
-   *                description: "XML session list"
-   *                content:
-   *                    application/xml:
-   *                        schema:
-   *                            type: string
-   *                            example: |
-   *                              <?xml version="1.0"?>
-   *                              <sessions>
-   *                                <session>
-   *                                  <id>1</id>
-   *                                  <user_id>2</user_id>
-   *                                </session>
-   *                              </sessions>
-   *            '500':
-   *                $ref: "#/components/responses/Error"
-   */
   static async getSessionsXML(req, res) {
     try {
-      const sessions = await SessionModel.getAll();
+      const sessions = await SessionActivityModel.getAllWithDetails();
 
       let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<sessions>\n`;
 
       sessions.forEach((s) => {
         xml += `
           <session>
-            <id>${s.id}</id>
-            <user_id>${s.user_id}</user_id>
-            <location_id>${s.location_id}</location_id>
-            <activity_id>${s.activity_id}</activity_id>
+            <session_id>${s.session_id}</session_id>
+            <activity_name>${s.activity_name}</activity_name>
+            <location_name>${s.location_name}</location_name>
+            <trainer_name>${s.trainer_name}</trainer_name>
             <date>${s.date}</date>
             <start_time>${s.start_time}</start_time>
             <end_time>${s.end_time}</end_time>
@@ -105,77 +89,21 @@ export class ApiSessionsController {
     }
   }
 
-  /**
-   * @type {express.RequestHandler}
-   * @openapi
-   * /api/sessions/trainer/{id}:
-   *    get:
-   *        summary: "Get sessions by trainer ID"
-   *        tags: [Sessions]
-   *        description: Returns all sessions created by a specific trainer.
-   *        parameters:
-   *          - name: id
-   *            in: path
-   *            required: true
-   *            description: Trainer user ID
-   *            schema:
-   *              type: integer
-   *              example: 1
-   *        responses:
-   *            '200':
-   *                description: "Trainer session list"
-   *                content:
-   *                    application/json:
-   *                        schema:
-   *                            type: array
-   *                            items:
-   *                                $ref: "#/components/schemas/Session"
-   *            '500':
-   *                $ref: "#/components/responses/Error"
-   */
   static async getTrainerSessionsById(req, res) {
     try {
       const { id } = req.params;
+
       const sessions = await SessionActivityModel.getByUserId(id);
+
       return res.status(200).json(sessions);
     } catch (error) {
       console.error(error);
-      res.status(500).json({
+      return res.status(500).json({
         message: "Failed to load trainer sessions",
       });
     }
   }
 
-  /**
-   * @type {express.RequestHandler}
-   * @openapi
-   * /api/sessions/{id}:
-   *    delete:
-   *        summary: "Delete a session by ID"
-   *        tags: [Sessions]
-   *        description: Soft deletes a session.
-   *        parameters:
-   *          - name: id
-   *            in: path
-   *            required: true
-   *            description: Session ID to delete
-   *            schema:
-   *              type: integer
-   *              example: 10
-   *        responses:
-   *            '200':
-   *                description: "Session deleted successfully"
-   *                content:
-   *                    application/json:
-   *                        schema:
-   *                            type: object
-   *                            properties:
-   *                                message:
-   *                                    type: string
-   *                                    example: Session deleted successfully
-   *            '500':
-   *                $ref: "#/components/responses/Error"
-   */
   static async deleteTrainerSessions(req, res) {
     try {
       const { id } = req.params;

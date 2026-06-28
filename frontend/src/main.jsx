@@ -9,9 +9,9 @@ import Register from './authentication/Register'
 import BlogView from './post/BlogView'
 import UserInformation from './user/UserInformation';
 import TrainerSession from './sessions/TrainerSession';
-import Timetable from './sessions/Timetable';
 import CreatePost from './post/CreatePost';
 import DeletePost from './post/DeletePost';
+import SessionView from './sessions/SessionView';
 
 const router = createBrowserRouter([
   {
@@ -19,7 +19,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        Component: Timetable,
+        Component: SessionView,
       },
       {
         path: "/login",
