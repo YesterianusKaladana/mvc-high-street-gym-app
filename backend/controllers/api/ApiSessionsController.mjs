@@ -44,7 +44,7 @@ export class ApiSessionsController {
    */
   static async getSessions(req, res) {
     try {
-      const sessions = await SessionActivityModel.getAll();
+      const sessions = await SessionActivityModel.getAllWithDetails();
 
       return res.status(200).json(sessions);
     } catch (err) {
