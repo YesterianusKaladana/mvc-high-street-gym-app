@@ -20,9 +20,9 @@ function SessionView() {
       const authKey = localStorage.getItem("authKey");
 
       const url =
-        search.trim().length > 0
-          ? `/session/?filter=${search}`
-          : "/session/";
+        search.trim()
+          ? `/session?filter=${encodeURIComponent(search)}`
+          : "/session";
 
       const response = await fetchAPI("GET", url, null, authKey);
 
@@ -32,15 +32,14 @@ function SessionView() {
 
       const data = response.body;
 
-      if (!Array.isArray(data) || data.length === 0) {
-        setSessions([]);
-        setError("No sessions found");
-        return;
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid response format");
       }
 
       setSessions(data);
     } catch (err) {
-      setError(String(err.message || err));
+      setError(err.message || String(err));
+      setSessions([]);
     } finally {
       setIsLoading(false);
     }
@@ -56,13 +55,14 @@ function SessionView() {
 
   return (
     <section className="flex flex-col items-center">
+      
       {/* SEARCH BAR */}
       <div className="join p-4 self-stretch">
         <input
           onChange={(e) => setFilter(e.target.value)}
           value={filter}
           className="input join-item grow"
-          placeholder="search sessions"
+          placeholder="Search sessions..."
           type="text"
         />
 
@@ -79,36 +79,51 @@ function SessionView() {
       </div>
 
       {/* ERROR */}
-      {error && <span className="p-4 text-red-500">{error}</span>}
+      {error && (
+        <span className="p-4 text-red-500 font-semibold">
+          {error}
+        </span>
+      )}
 
       {/* LOADING */}
       {isLoading ? (
         <span className="loading loading-spinner loading-xl"></span>
+      ) : sessions.length === 0 ? (
+        <p className="p-4 opacity-60">No sessions available</p>
       ) : (
         <ul className="list self-stretch">
           {sessions.map((session) => (
             <li key={session.session_id} className="list-row">
-              <div>
-                <FaSearch className="size-10" />
-              </div>
 
               <div>
-                <div className="font-bold">{session.activity_name}</div>
+                <div className="font-bold">
+                  {session.activity_name}
+                </div>
 
                 <div className="text-xs uppercase opacity-60 font-semibold">
                   {session.location_name}
                 </div>
 
                 <div className="text-xs opacity-70">
-                  {session.date} | {session.start_time} - {session.end_time}
+                  {session.date} ({session.weekday}) |{" "}
+                  {session.start_time} - {session.end_time}
                 </div>
 
                 <div className="text-xs opacity-70">
                   Trainer: {session.trainer_name}
                 </div>
+
+                {session.isExpired && (
+                  <div className="text-xs text-red-500 font-semibold">
+                    Expired
+                  </div>
+                )}
               </div>
 
-              <button className="btn btn-ghost text-xl">
+              <button
+                className="btn btn-ghost text-xl"
+                disabled={session.isExpired}
+              >
                 Book
               </button>
             </li>

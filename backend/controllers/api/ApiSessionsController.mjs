@@ -15,22 +15,56 @@ export class ApiSessionsController {
   }
 
   /**
-   * Get all sessions with details
+   * Get all sessions with full details (public API)
+   *
    * @openapi
    * /api/session:
    *   get:
-   *     summary: "Get all sessions"
-   *     tags: [Session]
+   *     summary: Get all sessions
+   *     description: Returns all gym sessions with activity, location, trainer, and computed expiry status.
+   *     tags:
+   *       - Session
    *     responses:
    *       200:
-   *         description: List of sessions
+   *         description: Successfully retrieved sessions
    *         content:
    *           application/json:
    *             schema:
    *               type: array
    *               items:
-   *                 $ref: "#/components/schemas/Session"
-   *
+   *                 type: object
+   *                 properties:
+   *                   session_id:
+   *                     type: integer
+   *                     example: 1
+   *                   activity_name:
+   *                     type: string
+   *                     example: Yoga
+   *                   location_name:
+   *                     type: string
+   *                     example: Studio A
+   *                   trainer_name:
+   *                     type: string
+   *                     example: John Smith
+   *                   date:
+   *                     type: string
+   *                     format: date
+   *                     example: "2026-07-20"
+   *                   weekday:
+   *                     type: string
+   *                     example: Monday
+   *                   start_time:
+   *                     type: string
+   *                     example: "09:00"
+   *                   end_time:
+   *                     type: string
+   *                     example: "10:00"
+   *                   capacity:
+   *                     type: integer
+   *                     example: 20
+   *                   isExpired:
+   *                     type: boolean
+   *                     example: false
    *       500:
    *         description: Failed to load sessions from database
    *         content:
@@ -40,13 +74,44 @@ export class ApiSessionsController {
    *               properties:
    *                 message:
    *                   type: string
-   *                   example: "Failed to load sessions from database"
+   *                   example: Failed to load sessions from database
+   *                 error:
+   *                   type: string
+   *                   example: Database connection failed
    */
   static async getSessions(req, res) {
     try {
       const sessions = await SessionActivityModel.getAllWithDetails();
 
-      return res.status(200).json(sessions);
+      const now = new Date();
+
+      const formattedSessions = sessions.map((item) => {
+        const [hh, mm] = (item.end_time || "00:00").slice(0, 5).split(":");
+
+        const sessionEnd = new Date(item.date);
+        sessionEnd.setHours(Number(hh), Number(mm), 0, 0);
+
+        const isExpired = sessionEnd.getTime() < now.getTime();
+
+        const weekday = new Date(item.date).toLocaleDateString("en-AU", {
+          weekday: "long",
+        });
+
+        return {
+          session_id: item.session_id,
+          activity_name: item.activity_name,
+          location_name: item.location_name,
+          trainer_name: item.trainer_name,
+          date: item.date,
+          weekday,
+          start_time: item.start_time,
+          end_time: item.end_time,
+          capacity: item.capacity,
+          isExpired,
+        };
+      });
+
+      return res.status(200).json(formattedSessions);
     } catch (err) {
       console.error("SESSION ERROR:", err);
 
