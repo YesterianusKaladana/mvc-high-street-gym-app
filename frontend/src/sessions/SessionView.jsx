@@ -97,20 +97,23 @@ function SessionView() {
 
               <div>
                 <div className="font-bold">
-                  {session.activity_name}
+                 Activity: {session.activity_name}
                 </div>
 
                 <div className="text-xs uppercase opacity-60 font-semibold">
-                  {session.location_name}
+                  Location: {session.location_name}
                 </div>
 
                 <div className="text-xs opacity-70">
-                  {session.date} ({session.weekday}) |{" "}
-                  {session.start_time} - {session.end_time}
+                  Date: {session.date} ({session.weekday}) |{" "}
                 </div>
 
                 <div className="text-xs opacity-70">
-                  Trainer: {session.trainer_name}
+                  Time: {session.start_time} - {session.end_time}
+                </div>
+
+                <div className="text-xs opacity-70">
+                  Trainer: {session.trainer?.first_name} {session.trainer?.last_name}
                 </div>
 
                 {session.isExpired && (
