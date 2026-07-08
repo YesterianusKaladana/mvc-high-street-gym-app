@@ -180,6 +180,7 @@ export class SessionController {
           end_time: s.end_time,
           date: cleanDate,
           trainer_name: item.user.firstName + " " + item.user.lastName,
+          capacity: s.capacity,
           isExpired,
           isBooked: bookedSessionIds.includes(s.id),
         });
@@ -708,6 +709,7 @@ export class SessionController {
           end_time: item.session.end_time,
           date: cleanDate,
           trainer_name: item.user.firstName + " " + item.user.lastName,
+          capacity: item.session.capacity,
           isBooked: bookedSessionIds.includes(item.session.id),
         });
       });
@@ -766,6 +768,15 @@ export class SessionController {
           return res.status(422).render("status.ejs", {
             status: "Invalid Booking ",
             message: "Cannot book previous dates",
+          });
+        }
+
+        const bookings = await BookingModel.getBySessionId(sessionId);
+
+        if (bookings.length >= targetSession.capacity) {
+          return res.status(400).render("status.ejs", {
+            status: "Session Full",
+            message: "This session has reached maximum capacity",
           });
         }
 
