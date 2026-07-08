@@ -113,123 +113,59 @@ export class SessionActivityModel extends DatabaseModel {
   /**
    * Retrieves all sessions with extended formatted details
    *
-   * NOTE:
-   * This returns a flattened structure instead of SessionActivityModel
    *
    * @returns {Promise<Array>}
    */
-  // static async getAllWithDetails() {
-  //   const rows = await this.query(`
-  //     SELECT
-  //       session.id,
-  //       session.user_id,
-  //       session.location_id,
-  //       session.activity_id,
-  //       session.date,
-  //       session.start_time,
-  //       session.end_time,
-  //       session.capacity,
-
-  //       user.first_name,
-  //       user.last_name,
-
-  //       location.name AS location_name,
-  //       location.description AS location_description,
-
-  //       activity.name AS activity_name,
-  //       activity.description AS activity_description
-
-  //     FROM session
-
-  //     INNER JOIN user
-  //       ON session.user_id = user.id
-
-  //     INNER JOIN location
-  //       ON session.location_id = location.id
-
-  //     INNER JOIN activity
-  //       ON session.activity_id = activity.id
-
-  //     WHERE session.deleted = 0
-
-  //     ORDER BY session.date DESC
-  //   `);
-
-  //   return rows.map((row) => ({
-  //     session: new SessionModel(
-  //       row.id,
-  //       row.user_id,
-  //       row.location_id,
-  //       row.activity_id,
-  //       row.date,
-  //       row.start_time?.substring(0, 5) || "",
-  //       row.end_time?.substring(0, 5) || "",
-  //       row.capacity,
-  //     ),
-
-  //     user: {
-  //       id: row.user_id,
-  //       firstName: row.first_name,
-  //       lastName: row.last_name,
-  //     },
-
-  //     location: {
-  //       id: row.location_id,
-  //       name: row.location_name,
-  //       description: row.location_description,
-  //     },
-
-  //     activity: {
-  //       id: row.activity_id,
-  //       name: row.activity_name,
-  //       description: row.activity_description,
-  //     },
-  //   }));
-  // }
-
-    static async getAllWithDetails() {
+  static async getAllWithDetails() {
     const rows = await this.query(`
-      SELECT
-        session.id AS session_id,
-        session.date,
-        session.start_time,
-        session.end_time,
-        session.capacity,
+        SELECT
+          session.id AS session_id,
+          session.date,
+          session.start_time,
+          session.end_time,
+          session.capacity,
 
-        user.first_name,
-        user.last_name,
+          user.first_name,
+          user.last_name,
 
-        location.name AS location_name,
+          location.name AS location_name,
 
-        activity.name AS activity_name
+          activity.name AS activity_name
 
-      FROM session
+        FROM session
 
-      INNER JOIN user
-        ON session.user_id = user.id
+        INNER JOIN user
+          ON session.user_id = user.id
 
-      INNER JOIN location
-        ON session.location_id = location.id
+        INNER JOIN location
+          ON session.location_id = location.id
 
-      INNER JOIN activity
-        ON session.activity_id = activity.id
+        INNER JOIN activity
+          ON session.activity_id = activity.id
 
-      WHERE session.deleted = 0
+        WHERE session.deleted = 0
 
-      ORDER BY session.date DESC
+        ORDER BY session.date DESC
     `);
 
+    console.log("RAW ROWS:", rows);
+
     return rows.map((row) => ({
-      session_id: row.session_id,
-      activity_name: row.activity_name,
-      location_name: row.location_name,
-      trainer_name: `${row.first_name} ${row.last_name}`,
+      session_id: row.session.session_id,
 
-      date: row.date,
-      start_time: row.start_time?.substring(0, 5),
-      end_time: row.end_time?.substring(0, 5),
+      activity_name: row.activity.activity_name,
 
-      capacity: row.capacity
+      location_name: row.location.location_name,
+
+      trainer_name: `${row.user.first_name} ${row.user.last_name}`,
+
+      date: row.session.date,
+
+      start_time: row.session.start_time?.substring(0, 5),
+
+      end_time: row.session.end_time?.substring(0, 5),
+
+      capacity: row.session.capacity,
     }));
   }
 }

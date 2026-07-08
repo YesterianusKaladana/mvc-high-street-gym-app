@@ -83,6 +83,8 @@ export class ApiSessionsController {
     try {
       const sessions = await SessionActivityModel.getAllWithDetails();
 
+      console.log("DATABASE SESSIONS:", sessions);
+
       const now = new Date();
 
       const formattedSessions = sessions.map((item) => {
