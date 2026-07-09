@@ -21,7 +21,7 @@ export class ApiSessionsController {
    * /api/session:
    *   get:
    *     summary: Get all sessions
-   *     description: Returns all gym sessions with activity, location, trainer, and computed expiry status.
+   *     description: Returns all gym sessions with activity, location, trainer and capacity information.
    *     tags:
    *       - Session
    *     responses:
@@ -61,10 +61,7 @@ export class ApiSessionsController {
    *                     example: "10:00"
    *                   capacity:
    *                     type: integer
-   *                     example: 20
-   *                   isExpired:
-   *                     type: boolean
-   *                     example: false
+   *                     example: 2
    *       500:
    *         description: Failed to load sessions from database
    *         content:
@@ -109,7 +106,6 @@ export class ApiSessionsController {
           start_time: item.start_time,
           end_time: item.end_time,
           capacity: item.capacity,
-          isExpired,
         };
       });
 

@@ -120,16 +120,11 @@ function SessionView() {
                   Capacity: {session.capacity} people
                 </div>
 
-                {session.isExpired && (
-                  <div className="text-xs text-red-500 font-semibold">
-                    Expired
-                  </div>
-                )}
               </div>
 
-              <button
-                className="btn btn-ghost text-xl"
-                disabled={session.isExpired}
+             <button
+                className="text-sm btn btn-primary btn-outline"
+                onClick={() => navigate("/login")}
               >
                 Book
               </button>

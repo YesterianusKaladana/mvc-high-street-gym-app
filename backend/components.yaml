@@ -207,6 +207,19 @@ components:
                 type: string
                 example: "You do not have permission to perform this action"
 
+    Unauthorized:
+      description: "Unauthorized - invalid login credentials"
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+                example: "Invalid email or password"
+
     Error:
       description: "An error has occurred"
       content:

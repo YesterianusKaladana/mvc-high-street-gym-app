@@ -55,10 +55,8 @@ export class ApiAuthenticationController {
    *     responses:
    *       '200':
    *         $ref: "#/components/responses/LoginSuccessful"
-   *       '400':
-   *         $ref: "#/components/responses/Error"
-   *       '404':
-   *         $ref: "#/components/responses/NotFound"
+   *       '401':
+   *         $ref: "#/components/responses/Unauthorized"
    *       '500':
    *         $ref: "#/components/responses/Error"
    *
@@ -70,8 +68,8 @@ export class ApiAuthenticationController {
    *     responses:
    *       '200':
    *         $ref: "#/components/responses/Updated"
-   *       '404':
-   *         $ref: "#/components/responses/NotFound"
+   *       '401':
+   *         $ref: "#/components/responses/Unauthorized"
    *       '500':
    *         $ref: "#/components/responses/Error"
    */
@@ -82,8 +80,8 @@ export class ApiAuthenticationController {
 
         // prevent crash when user doesn't exist
         if (!user) {
-          return res.status(400).json({
-            message: "Invalid credentials",
+          return res.status(401).json({
+            message: "Invalid email or password",
           });
         }
 
@@ -93,8 +91,8 @@ export class ApiAuthenticationController {
         );
 
         if (!passwordMatch) {
-          return res.status(400).json({
-            message: "Invalid credentials",
+          return res.status(401).json({
+            message: "Invalid email or password",
           });
         }
 
