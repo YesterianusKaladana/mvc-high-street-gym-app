@@ -55,7 +55,7 @@ function SessionView() {
 
   return (
     <section className="flex flex-col items-center">
-      
+
       {/* SEARCH BAR */}
       <div className="join p-4 self-stretch">
         <input
@@ -101,11 +101,11 @@ function SessionView() {
                 </div>
 
                 <div className="text-xs uppercase opacity-60 font-semibold">
-                   {session.location_name}
+                  {session.location_name}
                 </div>
 
                 <div className="text-xs opacity-70">
-                  {session.date} ({session.weekday}) |{" "}
+                  {session.date} ({session.weekday})
                 </div>
 
                 <div className="text-xs opacity-70">
@@ -113,7 +113,7 @@ function SessionView() {
                 </div>
 
                 <div className="text-xs opacity-70">
-                  Trainer: {session.trainer_name} 
+                  Trainer: {session.trainer_name}
                 </div>
 
                 <div className="text-xs opacity-70">
@@ -122,7 +122,7 @@ function SessionView() {
 
               </div>
 
-             <button
+              <button
                 className="text-sm btn btn-primary btn-outline"
                 onClick={() => navigate("/login")}
               >

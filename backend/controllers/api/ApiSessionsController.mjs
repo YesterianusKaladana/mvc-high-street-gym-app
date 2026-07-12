@@ -15,7 +15,7 @@ export class ApiSessionsController {
   }
 
   /**
-   * Get all sessions with full details (public API)
+   * Get all sessions with full details
    *
    * @openapi
    * /api/session:
@@ -25,56 +25,23 @@ export class ApiSessionsController {
    *     tags:
    *       - Session
    *     responses:
-   *       200:
+   *       '200':
    *         description: Successfully retrieved sessions
    *         content:
    *           application/json:
    *             schema:
    *               type: array
    *               items:
-   *                 type: object
-   *                 properties:
-   *                   session_id:
-   *                     type: integer
-   *                     example: 1
-   *                   activity_name:
-   *                     type: string
-   *                     example: Yoga
-   *                   location_name:
-   *                     type: string
-   *                     example: Studio A
-   *                   trainer_name:
-   *                     type: string
-   *                     example: John Smith
-   *                   date:
-   *                     type: string
-   *                     format: date
-   *                     example: "2026-07-20"
-   *                   weekday:
-   *                     type: string
-   *                     example: Monday
-   *                   start_time:
-   *                     type: string
-   *                     example: "09:00"
-   *                   end_time:
-   *                     type: string
-   *                     example: "10:00"
-   *                   capacity:
-   *                     type: integer
-   *                     example: 2
-   *       500:
-   *         description: Failed to load sessions from database
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 message:
-   *                   type: string
-   *                   example: Failed to load sessions from database
-   *                 error:
-   *                   type: string
-   *                   example: Database connection failed
+   *                 $ref: "#/components/schemas/Session"
+   *
+   *       '401':
+   *         $ref: "#/components/responses/Unauthorized"
+   *
+   *       '403':
+   *         $ref: "#/components/responses/Forbidden"
+   *
+   *       '500':
+   *         $ref: "#/components/responses/Error"
    */
   static async getSessions(req, res) {
     try {
@@ -92,17 +59,12 @@ export class ApiSessionsController {
 
         const isExpired = sessionEnd.getTime() < now.getTime();
 
-        const weekday = new Date(item.date).toLocaleDateString("en-AU", {
-          weekday: "long",
-        });
-
         return {
           session_id: item.session_id,
           activity_name: item.activity_name,
           location_name: item.location_name,
           trainer_name: item.trainer_name,
           date: item.date,
-          weekday,
           start_time: item.start_time,
           end_time: item.end_time,
           capacity: item.capacity,

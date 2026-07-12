@@ -31,14 +31,13 @@ export class ApiUserController {
   }
 
   /**
-   * Register a new user
-   *
-   * @type {express.RequestHandler}
    * @openapi
    * /api/user:
    *   post:
-   *     summary: "Register a new user"
-   *     tags: [User]
+   *     summary: Register a new member
+   *     tags:
+   *       - User
+   *
    *     requestBody:
    *       required: true
    *       content:
@@ -51,27 +50,18 @@ export class ApiUserController {
    *             properties:
    *               email:
    *                 type: string
-   *                 example: test@example.com
+   *                 example: user@gmail.com
    *               password:
    *                 type: string
    *                 example: password123
-   *               name:
-   *                 type: string
-   *                 example: John Doe
+   *
    *     responses:
    *       201:
-   *         description: Member created successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 id:
-   *                   type: integer
-   *                 message:
-   *                   type: string
+   *         description: User created successfully
+   *
    *       400:
    *         description: Missing required fields
+   *
    *       500:
    *         $ref: "#/components/responses/Error"
    */
@@ -95,56 +85,102 @@ export class ApiUserController {
 
       return res.status(201).json({
         id: result.insertId,
+
         message: "Member created successfully",
       });
     } catch (error) {
       console.error(error);
+
       return res.status(500).json({
-        message: "Failed to create new user",
-        errors: [error.message || error],
+        message: "Failed to create user",
+
+        errors: [
+          {
+            path: req.path,
+            message: error.message,
+          },
+        ],
       });
     }
   }
 
   /**
-   * Get user by ID
+   * @openapi
+   * /api/user/self:
+   *   get:
+   *     summary: Get current authenticated user
+   *     tags:
+   *       - User
    *
-   * @type {express.RequestHandler}
+   *     security:
+   *       - ApiKey: []
+   *
+   *     responses:
+   *
+   *       200:
+   *         description: Current user information
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: "#/components/schemas/User"
+   *
+   *       401:
+   *         $ref: "#/components/responses/Unauthorized"
+   *
+   *       403:
+   *         $ref: "#/components/responses/Forbidden"
+   *
+   *       500:
+   *         $ref: "#/components/responses/Error"
+   */
+  static async getAuthenticatedUser(req, res) {
+    return res.status(200).json(req.authenticatedUser);
+  }
+
+  /**
    * @openapi
    * /api/user/{id}:
    *   get:
-   *     summary: "Get user by ID"
-   *     tags: [User]
+   *     summary: Get user by ID
+   *     tags:
+   *       - User
+   *
    *     security:
    *       - ApiKey: []
+   *
    *     parameters:
-   *       - in: path
-   *         name: id
+   *       - name: id
+   *         in: path
    *         required: true
-   *         description: User ID
    *         schema:
    *           type: integer
-   *           example: 1
+   *
    *     responses:
+   *
    *       200:
    *         description: User found
    *         content:
    *           application/json:
    *             schema:
    *               $ref: "#/components/schemas/User"
-   *       400:
-   *         description: Invalid user ID
+   *
+   *       401:
+   *         $ref: "#/components/responses/Unauthorized"
+   *
    *       403:
-   *         description: Forbidden
+   *         $ref: "#/components/responses/Forbidden"
+   *
    *       404:
-   *         description: User not found
+   *         $ref: "#/components/responses/NotFound"
+   *
    *       500:
    *         $ref: "#/components/responses/Error"
    */
   static async getUserById(req, res) {
     try {
       const requestedId = Number(req.params.id);
-      const user = req.user;
+
+      const user = req.authenticatedUser;
 
       if (Number.isNaN(requestedId)) {
         return res.status(400).json({
@@ -154,7 +190,7 @@ export class ApiUserController {
 
       if (!user || (user.id !== requestedId && user.role !== "admin")) {
         return res.status(403).json({
-          message: "Forbidden: You are not allowed to access this user's data",
+          message: "Forbidden",
         });
       }
 
@@ -169,68 +205,70 @@ export class ApiUserController {
       return res.status(200).json(foundUser);
     } catch (error) {
       console.error(error);
+
       return res.status(500).json({
-        message: "Failed to load user from database",
+        message: "Failed to load user",
+
+        errors: [
+          {
+            path: req.path,
+            message: error.message,
+          },
+        ],
       });
     }
   }
 
   /**
-   * Update user personal information
-   *
-   * @type {express.RequestHandler}
    * @openapi
    * /api/user/{id}:
    *   patch:
-   *     summary: "Update user information"
-   *     tags: [User]
+   *     summary: Update user information
+   *     tags:
+   *       - User
+   *
    *     security:
    *       - ApiKey: []
+   *
    *     parameters:
-   *       - in: path
-   *         name: id
+   *       - name: id
+   *         in: path
    *         required: true
    *         schema:
    *           type: integer
-   *           example: 1
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             properties:
-   *               name:
-   *                 type: string
-   *               email:
-   *                 type: string
-   *               password:
-   *                 type: string
+   *
    *     responses:
+   *
    *       200:
-   *         description: User updated successfully
-   *       400:
-   *         description: Invalid request
+   *         $ref: "#/components/responses/Updated"
+   *
+   *       401:
+   *         $ref: "#/components/responses/Unauthorized"
+   *
    *       403:
-   *         description: Forbidden
+   *         $ref: "#/components/responses/Forbidden"
+   *
    *       404:
-   *         description: User not found
+   *         $ref: "#/components/responses/NotFound"
+   *
    *       500:
    *         $ref: "#/components/responses/Error"
    */
   static async UserPersonalInformation(req, res) {
     try {
-      const user = req.user;
+      const user = req.authenticatedUser;
+
       const targetUserId = Number(req.params.id);
 
       if (!user || user.id !== targetUserId) {
         return res.status(403).json({
-          message: "You are not allowed to update this user.",
+          message: "You are not allowed to update this user",
         });
       }
 
       const updateData = {
         ...req.body,
+
         id: targetUserId,
       };
 
@@ -247,38 +285,21 @@ export class ApiUserController {
       }
 
       return res.status(404).json({
-        message: "User not found - update failed",
+        message: "User not found",
       });
     } catch (error) {
       console.error(error);
+
       return res.status(500).json({
         message: "Failed to update user",
+
+        errors: [
+          {
+            path: req.path,
+            message: error.message,
+          },
+        ],
       });
     }
-  }
-
-  /**
-   * Get current authenticated user
-   *
-   * @type {express.RequestHandler}
-   * @openapi
-   * /api/user/self:
-   *   get:
-   *     summary: "Get current authenticated user"
-   *     tags: [User]
-   *     security:
-   *       - ApiKey: []
-   *     responses:
-   *       200:
-   *         description: Current user data
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/User"
-   *       500:
-   *         $ref: "#/components/responses/Error"
-   */
-  static async getAuthenticatedUser(req, res) {
-    return res.status(200).json(req.user);
   }
 }

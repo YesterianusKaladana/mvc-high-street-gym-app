@@ -46,15 +46,19 @@ components:
           example: Doe
         role:
           type: string
-          enum: [admin, member, trainer]
+          enum:
+            - admin
+            - member
+            - trainer
           example: trainer
         email:
           type: string
           format: email
-          example: your@gmail.com.au
+          example: "your@gmail.com.au"
         authenticationKey:
           type: string
           format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
         deleted:
           type: boolean
           example: false
@@ -62,7 +66,7 @@ components:
     Session:
       type: object
       required:
-        - id
+        - session_id
         - trainer_name
         - location_name
         - activity_name
@@ -71,7 +75,7 @@ components:
         - end_time
         - capacity
       properties:
-        id:
+        session_id:
           type: integer
           example: 1
         trainer_name:
@@ -85,7 +89,7 @@ components:
           example: "Yoga"
         date:
           type: string
-          example: "2026-06-18"
+          format: date
         start_time:
           type: string
           example: "09:58:00"
@@ -141,6 +145,27 @@ components:
           type: boolean
           example: false
 
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: "Unauthorized request"
+
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              path:
+                type: string
+                example: "/api/session"
+              message:
+                type: string
+                example: "'x-auth-key' header required"
+
   responses:
     LoginSuccessful:
       description: "Login successful"
@@ -156,6 +181,23 @@ components:
           schema:
             $ref: "#/components/schemas/User"
 
+    Created:
+      description: "Item created"
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - id
+              - message
+            properties:
+              id:
+                type: number
+                example: 1
+              message:
+                type: string
+                example: "Item created"
+
     Updated:
       description: "Item updated"
       content:
@@ -167,71 +209,30 @@ components:
                 type: string
                 example: "Item updated"
 
-    Created:
-      description: "Item created"
-      content:
-        application/json:
-          schema:
-            type: object
-            required: [id, message]
-            properties:
-              id:
-                type: number
-                example: 1
-              message:
-                type: string
-                example: "Item created"
-
     NotFound:
       description: "Item not found"
       content:
         application/json:
           schema:
-            type: object
-            required: [message]
-            properties:
-              message:
-                type: string
-                example: "Item not found"
+            $ref: "#/components/schemas/ErrorResponse"
 
     Forbidden:
-      description: "Forbidden - you do not have permission"
+      description: "Forbidden - insufficient permissions"
       content:
         application/json:
           schema:
-            type: object
-            required:
-              - message
-            properties:
-              message:
-                type: string
-                example: "You do not have permission to perform this action"
+            $ref: "#/components/schemas/ErrorResponse"
 
     Unauthorized:
-      description: "Unauthorized - invalid login credentials"
+      description: "Unauthorized - missing or invalid authentication"
       content:
         application/json:
           schema:
-            type: object
-            required:
-              - message
-            properties:
-              message:
-                type: string
-                example: "Invalid email or password"
+            $ref: "#/components/schemas/ErrorResponse"
 
     Error:
-      description: "An error has occurred"
+      description: "Internal server error"
       content:
         application/json:
           schema:
-            type: object
-            required: [message]
-            properties:
-              message:
-                type: string
-                example: "Something went wrong"
-              errors:
-                type: array
-                items:
-                  type: string
+            $ref: "#/components/schemas/ErrorResponse"
