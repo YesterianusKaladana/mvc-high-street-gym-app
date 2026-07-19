@@ -12,6 +12,8 @@ import TrainerSession from './sessions/TrainerSession';
 import CreatePost from './post/CreatePost';
 import DeletePost from './post/DeletePost';
 import SessionView from './sessions/SessionView';
+import BrowseSessionView from './sessions/BrowseSessionView';
+import BookingView from './booking/BookingView';
 
 const router = createBrowserRouter([
   {
@@ -24,6 +26,14 @@ const router = createBrowserRouter([
       {
         path: "/login",
         Component: LoginView
+      },
+      {
+        path: "/timetable",
+        Component: BrowseSessionView
+      },
+      {
+        path: "/booking",
+        Component: BookingView
       },
       {
         path: "/register",
@@ -42,11 +52,11 @@ const router = createBrowserRouter([
         Component: DeletePost
       },
       {
-        path: "/update", 
+        path: "/update",
         Component: UserInformation
       },
       {
-        path: "/sessionTrainer", 
+        path: "/sessionTrainer",
         Component: TrainerSession
       },
     ]

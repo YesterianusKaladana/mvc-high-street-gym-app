@@ -146,7 +146,11 @@ export class ApiAuthenticationController {
       if (!req.authenticatedUser) {
         return res.status(401).json({
           message: "Not authenticated",
-          errors: ["Please authenticate to access the requested resource"],
+          errors: [
+            {
+              message: "Please authenticate to access the requested resource",
+            },
+          ],
         });
       }
 
@@ -156,7 +160,11 @@ export class ApiAuthenticationController {
       ) {
         return res.status(403).json({
           message: "Access forbidden",
-          errors: ["Role does not have access to the requested resource"],
+          errors: [
+            {
+              message: "Role does not have access to the requested resource",
+            },
+          ],
         });
       }
 

@@ -33,7 +33,6 @@ components:
         - role
         - email
         - authenticationKey
-        - deleted
       properties:
         id:
           type: number
@@ -61,7 +60,6 @@ components:
           example: "550e8400-e29b-41d4-a716-446655440000"
         deleted:
           type: boolean
-          example: false
 
     Session:
       type: object

@@ -6,46 +6,47 @@ import { CgGym } from "react-icons/cg";
 import { FaBlog } from "react-icons/fa";
 import { MdOutlinePreview } from "react-icons/md";
 import { FaRegCalendarAlt } from "react-icons/fa";
-import {useAuthenticate} from "../authentication/UseAuthenticate";
+import { FaListAlt } from "react-icons/fa";
+import { useAuthenticate } from "../authentication/UseAuthenticate";
 
 function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuthenticate();
 
-  const isAuthView = 
-  location.pathname === "/" ||
-  location.pathname === "/register" ||
-  location.pathname === "/login" ;
+  const isAuthView =
+    location.pathname === "/" ||
+    location.pathname === "/register" ||
+    location.pathname === "/login";
 
   const navItems = [
     {
-      path: "/MakeBooking",
+      path: "/Booking",
       icon: <FaRegCalendarAlt />,
-      label: "Bookings",
+      label: "Booking",
       visible: user && user.role === "member",
     },
     {
-      path: "/EditeBooking",
-      icon: <MdEditCalendar />,
-      label: "Edit",
+      path: "/Timetable",
+      icon: <FaListAlt />,
+      label: "Timetable",
       visible: user && user.role === "member",
     },
     {
-      path: "/blog",
+      path: "/Blog",
       icon: <FaBlog />,
       label: "Blog",
       visible: true, // Visible to guests, members, and trainers
     },
     {
-      
-      path: "/sessionTrainer", 
+
+      path: "/sessionTrainer",
       icon: <MdOutlinePreview />,
       label: "Sessions",
       visible: user && user.role === "trainer",
     },
     {
-      
+
       path: "/update",
       icon: <CiUser />,
       label: "Profile",
@@ -56,7 +57,7 @@ function Layout() {
   return (
     <div className="bg-base-200 min-h-screen py-4 px-2 flex flex-col justify-between">
       <main className="max-w-[430px] w-full min-h-[92vh] mx-auto shadow-2xl bg-base-100 rounded-2xl overflow-hidden flex flex-col justify-between border border-base-300">
-        
+
         {/* Header Branding Area */}
         <div>
           <header className="flex items-center justify-center bg-base-100 border-b border-base-200 py-4 px-6">
@@ -88,11 +89,10 @@ function Layout() {
                 <button
                   key={path}
                   onClick={() => navigate(path)}
-                  className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all ${
-                    isActive
-                      ? "text-success font-bold scale-105"
-                      : "text-base-content/70 hover:text-base-content"
-                  }`}
+                  className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all ${isActive
+                    ? "text-success font-bold scale-105"
+                    : "text-base-content/70 hover:text-base-content"
+                    }`}
                 >
                   <span className="text-xl">{icon}</span>
                   <span className="text-[11px] tracking-wide">{label}</span>

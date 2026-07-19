@@ -1,4 +1,5 @@
 import express from "express";
+import { ApiAuthenticationController } from "./ApiAuthenticationController.mjs";
 import { BookingModel } from "../../models/BookingModel.mjs";
 import { DatabaseModel } from "../../models/DatabaseModel.mjs";
 
@@ -6,6 +7,7 @@ export class ApiBookingsController {
   static routes = express.Router();
 
   static {
+    this.routes.use(ApiAuthenticationController.middleware);
     this.routes.post("/", this.createBooking);
     this.routes.get("/", this.getUserBookings);
     this.routes.get("/xml", this.getMemberBookingXML);

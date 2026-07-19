@@ -13,19 +13,19 @@ export class ApiUserController {
 
     this.routes.get(
       "/self",
-      ApiAuthenticationController.restrict(["any"]),
+      ApiAuthenticationController.restrict("any"),
       this.getAuthenticatedUser,
     );
 
     this.routes.patch(
       "/:id",
-      ApiAuthenticationController.restrict(["any"]),
+      ApiAuthenticationController.restrict("any"),
       this.UserPersonalInformation,
     );
 
     this.routes.get(
       "/:id",
-      ApiAuthenticationController.restrict(["any"]),
+      ApiAuthenticationController.restrict("any"),
       this.getUserById,
     );
   }
