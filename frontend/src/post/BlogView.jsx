@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router";
-import { IoMdCreate, IoMdTrash } from "react-icons/io";
+import { IoMdEye } from "react-icons/io";
 import { fetchAPI } from "../api.mjs";
 
 function BlogView() {
@@ -35,14 +35,6 @@ function BlogView() {
         <section className="flex flex-col items-center p-6 min-h-screen bg-b-200">
             <div className="w-full max-w-4xl flex justify-between mb-6">
                 <h2 className="text-3xl font-bold">Blog Posts</h2>
-
-                <button
-                    onClick={() => navigate("/create")}
-                    className="btn btn-success text-white flex items-center gap-2"
-                >
-                    <IoMdCreate />
-                    Create
-                </button>
             </div>
 
             {isLoading ? (
@@ -52,17 +44,16 @@ function BlogView() {
             ) : (
                 <ul className="w-full max-w-4xl space-y-4">
                     {blogs.map((post) => (
-                        <li key={post.id} className="p-4 bg-blue rounded-xl shadow">
+                        <li key={post.id} className="p-4 bg-gray-100 rounded-xl shadow">
                             <h3 className="text-xl font-bold">{post.title}</h3>
                             <p className="text-sm text-gray-500">{post.date}</p>
                             <p className="mt-2">{post.content}</p>
                             <button
                                 type="button"
                                 className="btn btn-primary"
-                                onClick={() => navigate(`/delete/${post.id}`)}
                             >
-                                <IoMdTrash />
-                                Delete
+                                <IoMdEye />
+                                View Post
                             </button>
                         </li>
                     ))}

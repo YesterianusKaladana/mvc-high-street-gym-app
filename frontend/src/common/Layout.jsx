@@ -39,6 +39,12 @@ function Layout() {
       visible: true, // Visible to guests, members, and trainers
     },
     {
+      path: "/session",
+      icon: <FaListAlt />,
+      label: "Sessions",
+      visible: true, // Everyone can see it
+    },
+    {
 
       path: "/sessionTrainer",
       icon: <MdOutlinePreview />,
@@ -81,7 +87,11 @@ function Layout() {
           <nav className="grid grid-flow-col auto-cols-max justify-around items-center py-2 bg-base-100 border-t border-base-200 px-2">
             {navItems.map(({ path, icon, label, visible }) => {
               if (!visible) return null;
-              if (isAuthView && path !== "/blog") return null;
+              if (
+                isAuthView &&
+                path !== "/blog" &&
+                path !== "/session"
+              ) return null;
 
               const isActive = location.pathname === path;
 
@@ -117,7 +127,7 @@ function Layout() {
 
           {/* Footer Branding Footnotes */}
           <footer className="text-center text-[10px] text-base-content/40 py-4 border-t border-base-200/50 bg-base-50">
-            <p className="text-black">© {new Date().getFullYear()} HSG — Yesterianus Kaladana.</p>
+            {/* <p className="text-black">© {new Date().getFullYear()} HSG — Yesterianus Kaladana.</p> */}
             <p className=" text-black mt-0.5">
               <button
                 onClick={() => navigate("/privacy-policy")}

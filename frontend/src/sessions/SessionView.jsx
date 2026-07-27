@@ -134,6 +134,8 @@ function SessionView() {
       )}
     </section>
   );
+
+
 }
 
 export default SessionView;

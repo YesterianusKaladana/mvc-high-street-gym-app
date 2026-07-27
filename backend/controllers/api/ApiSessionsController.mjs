@@ -51,9 +51,8 @@ export class ApiSessionsController {
    */
   static async getSessions(req, res) {
     try {
-
       const { filter } = req.query;
-      
+
       const sessions = await SessionActivityModel.getAllWithDetails(filter);
 
       console.log("DATABASE SESSIONS:", JSON.stringify(sessions, null, 2));

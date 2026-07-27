@@ -24,6 +24,10 @@ const router = createBrowserRouter([
         Component: SessionView,
       },
       {
+        path: "/session",
+        Component: SessionView,
+      },
+      {
         path: "/login",
         Component: LoginView
       },
