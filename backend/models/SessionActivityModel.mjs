@@ -116,39 +116,59 @@ export class SessionActivityModel extends DatabaseModel {
    *
    * @returns {Promise<Array>}
    */
-  static async getAllWithDetails() {
-    const rows = await this.query(`
-        SELECT
-          session.id AS session_id,
-          session.date,
-          session.start_time,
-          session.end_time,
-          session.capacity,
+    static async getAllWithDetails(filter = "") {
+    let query = `
+      SELECT
+        session.id AS session_id,
+        session.date,
+        session.start_time,
+        session.end_time,
+        session.capacity,
 
-          user.first_name,
-          user.last_name,
+        user.first_name,
+        user.last_name,
 
-          location.name AS location_name,
+        location.name AS location_name,
 
-          activity.name AS activity_name
+        activity.name AS activity_name
 
-        FROM session
+      FROM session
 
-        INNER JOIN user
-          ON session.user_id = user.id
+      INNER JOIN user
+        ON session.user_id = user.id
 
-        INNER JOIN location
-          ON session.location_id = location.id
+      INNER JOIN location
+        ON session.location_id = location.id
 
-        INNER JOIN activity
-          ON session.activity_id = activity.id
+      INNER JOIN activity
+        ON session.activity_id = activity.id
 
-        WHERE session.deleted = 0
+      WHERE session.deleted = 0
+    `;
 
-        ORDER BY session.date DESC
-    `);
+    const params = [];
 
-    console.log("RAW ROWS:", rows);
+    if (filter.trim()) {
+      query += `
+        AND (
+          activity.name LIKE ?
+          OR location.name LIKE ?
+          OR CONCAT(user.first_name, ' ', user.last_name) LIKE ?
+        )
+      `;
+
+      const search = `%${filter}%`;
+
+      params.push(search, search, search);
+    }
+
+    query += `
+      ORDER BY session.date DESC
+    `;
+
+    const rows = await this.query(query, params);
+
+    console.log("RAW ROWS:", JSON.stringify(rows));
 
     return rows.map((row) => ({
       session_id: row.session.session_id,
@@ -168,4 +188,5 @@ export class SessionActivityModel extends DatabaseModel {
       capacity: row.session.capacity,
     }));
   }
+
 }

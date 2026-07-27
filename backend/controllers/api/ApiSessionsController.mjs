@@ -24,6 +24,12 @@ export class ApiSessionsController {
    *     description: Returns all gym sessions with activity, location, trainer and capacity information.
    *     tags:
    *       - Session
+   *     parameters:
+   *       - in: query
+   *         name: filter
+   *         schema:
+   *           type: string
+   *         description: Optional filter to search sessions by activity name, location name, or trainer name.
    *     responses:
    *       '200':
    *         description: Successfully retrieved sessions
@@ -45,9 +51,12 @@ export class ApiSessionsController {
    */
   static async getSessions(req, res) {
     try {
-      const sessions = await SessionActivityModel.getAllWithDetails();
 
-      console.log("DATABASE SESSIONS:", sessions);
+      const { filter } = req.query;
+      
+      const sessions = await SessionActivityModel.getAllWithDetails(filter);
+
+      console.log("DATABASE SESSIONS:", JSON.stringify(sessions, null, 2));
 
       const now = new Date();
 
