@@ -6,14 +6,14 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Layout from './common/Layout'
 import LoginView from './authentication/LoginView'
 import Register from './authentication/Register'
-import BlogView from './post/BlogView'
 import UserInformation from './user/UserInformation';
 import TrainerSession from './sessions/TrainerSession';
 import CreatePost from './post/CreatePost';
 import DeletePost from './post/DeletePost';
-import SessionView from './sessions/SessionView';
 import BrowseSessionView from './sessions/BrowseSessionView';
 import BookingView from './booking/BookingView';
+import PublicBlogView from './post/PublicBlogView';
+import PublicSessionView from './sessions/PublicSessionView';
 
 const router = createBrowserRouter([
   {
@@ -21,11 +21,11 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        Component: SessionView,
+        Component: PublicSessionView,
       },
       {
         path: "/session",
-        Component: SessionView,
+        Component: PublicSessionView,
       },
       {
         path: "/login",
@@ -45,7 +45,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/blog",
-        Component: BlogView
+        Component: PublicBlogView
       },
       {
         path: "/create",

@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router";
 import { IoMdEye } from "react-icons/io";
 import { fetchAPI } from "../api.mjs";
 
-function BlogView() {
+function PublicBlogView() {
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -63,4 +63,4 @@ function BlogView() {
     );
 }
 
-export default BlogView;
+export default PublicBlogView;

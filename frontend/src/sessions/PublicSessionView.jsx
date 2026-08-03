@@ -4,7 +4,7 @@ import { useNavigate } from "react-router";
 import { useCallback, useEffect, useState } from "react";
 import { fetchAPI } from "../api.mjs";
 
-function SessionView() {
+function PublicSessionView() {
   const navigate = useNavigate();
 
   const [sessions, setSessions] = useState([]);
@@ -138,4 +138,4 @@ function SessionView() {
 
 }
 
-export default SessionView;
+export default PublicSessionView;
