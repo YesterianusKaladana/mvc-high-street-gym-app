@@ -126,7 +126,7 @@ function SessionView() {
                 className="text-sm btn btn-primary btn-outline"
                 onClick={() => navigate("/login")}
               >
-                Book
+                Login to Book
               </button>
             </li>
           ))}
