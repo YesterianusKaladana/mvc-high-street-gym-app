@@ -43,7 +43,7 @@ function Layout() {
       visible: user && user.role === "trainer",
     },
     {
-      path: "/update",
+      path: "/user/self",
       icon: CiUser,
       label: "My Profile",
       visible: user && (user.role === "member" || user.role === "trainer"),

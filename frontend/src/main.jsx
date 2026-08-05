@@ -56,7 +56,7 @@ const router = createBrowserRouter([
         Component: DeletePost
       },
       {
-        path: "/update",
+        path: "/user/self",
         Component: UserInformation
       },
       {
