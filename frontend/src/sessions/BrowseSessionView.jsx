@@ -19,10 +19,9 @@ function BrowseSessionView() {
 
             const authKey = localStorage.getItem("authKey");
 
-            const url =
-                search.trim()
-                    ? `/session?filter=${encodeURIComponent(search)}`
-                    : "/session";
+            const url = search.trim()
+                ? `/session?filter=${encodeURIComponent(search)}`
+                : "/session";
 
             const response = await fetchAPI("GET", url, null, authKey);
 
@@ -53,9 +52,25 @@ function BrowseSessionView() {
         getSessions(filter);
     };
 
+    // Handle booking a session and storing it in localStorage
+    const handleBookNow = (session) => {
+        const existingBookings = JSON.parse(localStorage.getItem("bookings")) || [];
+
+        const alreadyBooked = existingBookings.some(
+            (booking) => booking.session_id === session.session_id,
+        );
+
+        if (!alreadyBooked) {
+            const updatedBookings = [...existingBookings, session];
+
+            localStorage.setItem("bookings", JSON.stringify(updatedBookings));
+        }
+
+        navigate("/booking");
+    };
+
     return (
         <section className="flex flex-col items-center">
-
             {/* SEARCH BAR */}
             <div className="join p-4 self-stretch">
                 <input
@@ -72,11 +87,7 @@ function BrowseSessionView() {
             </div>
 
             {/* ERROR */}
-            {error && (
-                <span className="p-4 text-red-500 font-semibold">
-                    {error}
-                </span>
-            )}
+            {error && <span className="p-4 text-red-500 font-semibold">{error}</span>}
 
             {/* LOADING */}
             {isLoading ? (
@@ -87,11 +98,8 @@ function BrowseSessionView() {
                 <ul className="list self-stretch">
                     {sessions.map((session) => (
                         <li key={session.session_id} className="list-row">
-
                             <div>
-                                <div className="font-bold">
-                                    {session.activity_name}
-                                </div>
+                                <div className="font-bold">{session.activity_name}</div>
 
                                 <div className="text-xs uppercase opacity-60 font-semibold">
                                     {session.location_name}
@@ -112,14 +120,13 @@ function BrowseSessionView() {
                                 <div className="text-xs opacity-70">
                                     Capacity: {session.capacity} people
                                 </div>
-
                             </div>
 
                             <button
                                 className="text-sm btn btn-primary btn-outline"
-                                onClick={() => navigate("/login")}
+                                onClick={() => handleBookNow(session)}
                             >
-                                Book
+                                Book Now
                             </button>
                         </li>
                     ))}

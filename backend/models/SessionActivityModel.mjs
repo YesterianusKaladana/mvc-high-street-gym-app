@@ -116,7 +116,7 @@ export class SessionActivityModel extends DatabaseModel {
    *
    * @returns {Promise<Array>}
    */
-    static async getAllWithDetails(filter = "") {
+  static async getAllWithDetails(filter = "") {
     let query = `
       SELECT
         session.id AS session_id,
@@ -188,5 +188,4 @@ export class SessionActivityModel extends DatabaseModel {
       capacity: row.session.capacity,
     }));
   }
-
 }

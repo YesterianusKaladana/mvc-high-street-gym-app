@@ -126,7 +126,7 @@ function PublicSessionView() {
                 className="text-sm btn btn-primary btn-outline"
                 onClick={() => navigate("/login")}
               >
-                Login to Book
+                Book
               </button>
             </li>
           ))}
