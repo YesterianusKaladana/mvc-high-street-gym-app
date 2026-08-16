@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-function TrainerSession() {
+function MySessionsView() {
   const authKey = localStorage.getItem("authKey");
 
   const [sessions, setSessions] = useState([]);
@@ -284,4 +284,4 @@ function TrainerSession() {
 
 }
 
-export default TrainerSession;
+export default MySessionsView;

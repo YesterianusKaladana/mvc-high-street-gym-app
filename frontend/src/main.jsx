@@ -2,18 +2,15 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import { AuthenticationProvider } from './authentication/UseAuthenticate';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router';
 import Layout from './common/Layout'
 import LoginView from './authentication/LoginView'
 import Register from './authentication/Register'
-import TrainerSession from './sessions/TrainerSession';
-import CreatePost from './post/CreatePost';
-import DeletePost from './post/DeletePost';
-import BrowseSessionView from './sessions/BrowseSessionView';
+import MySessionsView from './sessions/MySessionsView';
 import BookingView from './booking/BookingView';
-import PublicBlogView from './post/PublicBlogView';
-import PublicSessionView from './sessions/PublicSessionView';
+import BlogView from './post/BlogView';
 import ProfileView from './profile/ProfileView';
+import TimetableView from './timetable/TimetableView';
 
 const router = createBrowserRouter([
   {
@@ -21,11 +18,11 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        Component: PublicSessionView,
+        Component: TimetableView,
       },
       {
         path: "/session",
-        Component: PublicSessionView,
+        Component: TimetableView,
       },
       {
         path: "/login",
@@ -33,7 +30,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/timetable",
-        Component: BrowseSessionView
+        Component: TimetableView
       },
       {
         path: "/booking",
@@ -45,15 +42,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/blog",
-        Component: PublicBlogView
-      },
-      {
-        path: "/create",
-        Component: CreatePost
-      },
-      {
-        path: "/delete/:id",
-        Component: DeletePost
+        Component: BlogView
       },
       {
         path: "/user/self",
@@ -61,7 +50,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/sessionTrainer",
-        Component: TrainerSession
+        Component: MySessionsView
       },
     ]
   }
