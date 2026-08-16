@@ -5,80 +5,39 @@ import {
   useEffect,
   useState,
 } from "react";
-
 import { fetchAPI } from "../api.mjs";
 import { useNavigate } from "react-router";
 
-
 export const AuthenticationContext = createContext(null);
 
-
-
 export function AuthenticationProvider({ children }) {
-
   const [user, setUser] = useState(null);
-
   const [status, setStatus] = useState("resuming");
 
-
-
-  // Resume login session when page reloads
   useEffect(() => {
-
-    const authenticationKey =
-      localStorage.getItem("auth-key");
-
+    const authenticationKey = localStorage.getItem("auth-key");
 
     if (authenticationKey) {
-
-      fetchAPI(
-        "GET",
-        "/user/self",
-        null,
-        authenticationKey
-      )
+      fetchAPI("GET", "/user/self", null, authenticationKey)
         .then((response) => {
-
-
           if (response.status === 200) {
-
-            setUser({
-              ...response.body,
-              authenticationKey,
-            });
-
+            setUser(response.body);
             setStatus("loaded");
-
           } else {
-
             localStorage.removeItem("auth-key");
-
-            setUser(null);
-
             setStatus("logged out");
-
           }
-
         })
         .catch((error) => {
-
-          setStatus(
-            "Error resuming session: " + error.message
-          );
-
+          localStorage.removeItem("auth-key");
+          setStatus(String(error));
         });
-
     } else {
-
       setStatus("logged out");
-
     }
-
   }, []);
 
-
   return (
-
     <AuthenticationContext.Provider
       value={{
         user,
@@ -87,383 +46,111 @@ export function AuthenticationProvider({ children }) {
         setStatus,
       }}
     >
-
       {children}
-
     </AuthenticationContext.Provider>
-
   );
-
 }
 
-
-
-
-
 export function useAuthenticate(restrictToRoles = null) {
-
-
-  const context =
-    useContext(AuthenticationContext);
-
-
-  const navigate =
-    useNavigate();
-
-
+  const context = useContext(AuthenticationContext);
+  const navigate = useNavigate();
 
   if (!context) {
-
     throw new Error(
-      "useAuthenticate must be used within AuthenticationProvider"
+      "useAuthenticate must be used within AuthenticationProvider",
     );
-
   }
 
+  const { user, setUser, status, setStatus } = context;
 
-
-  const {
-    user,
-    setUser,
-    status,
-    setStatus,
-
-  } = context;
-
-
-
-
-
-  // Get current logged-in user
   const getUser = useCallback(
-
     (authenticationKey) => {
+      if (authenticationKey) {
+        setStatus("loading");
 
-
-      if (!authenticationKey) {
-
-        return null;
-
+        fetchAPI("GET", "/user/self", null, authenticationKey)
+          .then((response) => {
+            if (response.status === 200) {
+              setUser(response.body);
+              setStatus("loaded");
+            } else {
+              localStorage.removeItem("auth-key");
+              setUser(null);
+              setStatus(response.body?.message || "Failed to load user");
+            }
+          })
+          .catch((error) => {
+            setStatus(String(error));
+          });
       }
-
-
-
-      setStatus("loading");
-
-
-
-      return fetchAPI(
-        "GET",
-        "/user/self",
-        null,
-        authenticationKey
-      )
-
-        .then((response) => {
-
-
-          if (response.status === 200) {
-
-
-            setUser({
-
-              ...response.body,
-
-              authenticationKey,
-
-            });
-
-
-
-            setStatus("loaded");
-
-
-            return response.body;
-
-
-
-          } else {
-
-
-            setStatus(
-              response.body?.message ||
-              "Failed to load user information"
-            );
-
-
-            localStorage.removeItem("auth-key");
-
-            setUser(null);
-
-
-            return null;
-
-          }
-
-
-        })
-
-
-        .catch((error) => {
-
-
-          setStatus(error.message);
-
-          return null;
-
-
-        });
-
-
     },
-
-    [setUser, setStatus]
-
+    [setUser, setStatus],
   );
 
-
-
-
-
-  // Login user
   const login = useCallback(
-
     (email, password) => {
-
-
-      const body = {
-
-        email,
-
-        password,
-
-      };
-
-
-
       setStatus("authenticating");
 
-
-
-      fetchAPI(
-        "POST",
-        "/authenticate",
-        body
-      )
-
+      fetchAPI("POST", "/authenticate", {
+        email,
+        password,
+      })
         .then((response) => {
-
-
           if (response.status === 200) {
-
-
-
-            const tokenKey =
-              response.body.authenticationKey;
-
-
-
-            if (!tokenKey) {
-
-
-              setStatus(
-                "Authentication key missing from server"
-              );
-
-
-              return;
-
-            }
-
-
-
             localStorage.setItem(
               "auth-key",
-              tokenKey
+              response.body.authenticationKey,
             );
 
-
-
-            getUser(tokenKey);
-
-
-
+            getUser(response.body.authenticationKey);
           } else {
-
-
-
-            setStatus(
-
-              response.body?.message ||
-
-              "Authentication failed"
-
-            );
-
-
+            setStatus(response.body?.message || "Authentication failed");
           }
-
-
         })
-
-
         .catch((error) => {
-
-
-          setStatus(error.message);
-
-
+          setStatus(String(error));
         });
-
-
     },
-
-    [
-      setStatus,
-      getUser
-    ]
-
+    [setStatus, getUser],
   );
 
-
-
-  // Logout user
+  // Logout — clears server key, clears local state, redirects to /
   const logout = useCallback(() => {
+    const authenticationKey = localStorage.getItem("auth-key");
 
-
-    const token =
-      user?.authenticationKey ||
-
-      localStorage.getItem("auth-key");
-
-
-
-    fetchAPI(
-      "DELETE",
-      "/authenticate",
-      null,
-      token
-    )
-
+    fetchAPI("DELETE", "/authenticate", null, authenticationKey)
       .finally(() => {
-
-
         setUser(null);
-
-
-        localStorage.removeItem(
-          "auth-key"
-        );
-
-
+        localStorage.removeItem("auth-key");
         setStatus("logged out");
-
-
         navigate("/");
-
-
       });
+  }, [setUser, setStatus, navigate]);
 
-
-  },
-
-    [
-      user,
-      setUser,
-      setStatus,
-      navigate
-    ]
-
-  );
-
-
-
-
-  // Refresh user information
   const refresh = useCallback(() => {
+    const authenticationKey = localStorage.getItem("auth-key");
 
-
-    if (user?.authenticationKey) {
-
-
-      getUser(
-        user.authenticationKey
-      );
-
-
+    if (authenticationKey) {
+      getUser(authenticationKey);
     }
+  }, [getUser]);
 
-
-  },
-
-    [
-      user,
-      getUser
-    ]
-
-  );
-
-
-
-  // Route protection
+  // Role restriction — redirect to / if not authorised
   useEffect(() => {
-
-
     if (
-
       restrictToRoles &&
-
       status !== "resuming" &&
-
-      status !== "loading" &&
-
-      (
-
-        !user ||
-
-        !restrictToRoles.includes(user.role)
-
-      )
-
+      (!user || !restrictToRoles.includes(user.role))
     ) {
-
       navigate("/");
-
-
     }
-
-
-
-  },
-
-    [
-      user,
-      status,
-      restrictToRoles,
-      navigate
-    ]
-
-  );
-
-
-
-
-
-
+  }, [user, status, restrictToRoles, navigate]);
 
   return {
-
     user,
-
     login,
-
     logout,
-
     refresh,
-
     status,
-
   };
-
-
 }
