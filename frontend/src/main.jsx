@@ -6,7 +6,6 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Layout from './common/Layout'
 import LoginView from './authentication/LoginView'
 import Register from './authentication/Register'
-import UserInformation from './user/UserInformation';
 import TrainerSession from './sessions/TrainerSession';
 import CreatePost from './post/CreatePost';
 import DeletePost from './post/DeletePost';
@@ -14,6 +13,7 @@ import BrowseSessionView from './sessions/BrowseSessionView';
 import BookingView from './booking/BookingView';
 import PublicBlogView from './post/PublicBlogView';
 import PublicSessionView from './sessions/PublicSessionView';
+import ProfileView from './profile/ProfileView';
 
 const router = createBrowserRouter([
   {
@@ -57,7 +57,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/user/self",
-        Component: UserInformation
+        Component: ProfileView
       },
       {
         path: "/sessionTrainer",
