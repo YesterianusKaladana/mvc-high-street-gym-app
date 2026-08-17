@@ -57,7 +57,7 @@ export class ApiBookingsController {
         null,
         req.body.sessionId,
         new Date(),
-        req.user.id,
+        req.authenticatedUser.id,
       );
 
       const result = await BookingModel.create(booking);
@@ -99,7 +99,7 @@ export class ApiBookingsController {
    */
   static async getUserBookings(req, res) {
     try {
-      const bookings = await BookingModel.getByUserId(req.user.id);
+      const bookings = await BookingModel.getByUserId(req.authenticatedUser.id);
 
       return res.status(200).json(bookings);
     } catch (error) {
@@ -189,7 +189,7 @@ export class ApiBookingsController {
     try {
       const date = DatabaseModel.toMySqlDate(new Date());
 
-      const bookings = await BookingModel.getByUserId(req.user.id);
+      const bookings = await BookingModel.getByUserId(req.authenticatedUser.id);
 
       return res
         .status(200)

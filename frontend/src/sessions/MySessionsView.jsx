@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 function MySessionsView() {
-  const authKey = localStorage.getItem("authKey");
+  const authKey = localStorage.getItem("auth-key");
 
   const [sessions, setSessions] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -20,30 +20,57 @@ function MySessionsView() {
 
   const fetchSessions = async () => {
     try {
-      const res = await fetch("http://localhost:3000/session/trainer/view", {
-        headers: {
-          "auth-key": authKey
+      const res = await fetch(
+        "http://localhost:3000/api/session/trainer/view",
+        {
+          headers: {
+            "x-auth-key": authKey
+          }
         }
-      });
+      );
+
       const data = await res.json();
+
+      console.log("Sessions:", data);
+
+      if (!res.ok) {
+        console.error("Session error:", data);
+        return;
+      }
+
       setSessions(data);
     } catch (error) {
-      console.log(error);
+      console.log("Error loading sessions:", error);
     }
   };
 
   const fetchMeta = async () => {
     try {
       const [locRes, actRes] = await Promise.all([
-        fetch("http://localhost:3000/location", { headers: { "auth-key": authKey } }),
-        fetch("http://localhost:3000/activity", { headers: { "auth-key": authKey } })
+        fetch("http://localhost:3000/api/location", {
+          headers: {
+            "x-auth-key": authKey
+          }
+        }),
+
+        fetch("http://localhost:3000/api/activity", {
+          headers: {
+            "x-auth-key": authKey
+          }
+        })
       ]);
 
-      setLocations(await locRes.json());
-      setActivities(await actRes.json());
+      const locationsData = await locRes.json();
+      const activitiesData = await actRes.json();
+
+      console.log("Locations:", locationsData);
+      console.log("Activities:", activitiesData);
+
+      setLocations(locationsData);
+      setActivities(activitiesData);
 
     } catch (error) {
-      console.log(error);
+      console.log("Error loading locations/activities:", error);
     }
   };
 
@@ -62,27 +89,46 @@ function MySessionsView() {
   const submitForm = async (e) => {
     e.preventDefault();
 
-    await fetch("http://localhost:3000/session/trainer", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "auth-key": authKey
-      },
-      body: JSON.stringify(form)
-    });
+    try {
+      const res = await fetch(
+        "http://localhost:3000/api/session/trainer",
+        {
+          method: "POST",
 
-    setForm({
-      action: "create",
-      session_id: "",
-      activity_id: "",
-      location_id: "",
-      date: "",
-      start_time: "",
-      end_time: "",
-      capacity: ""
-    });
+          headers: {
+            "Content-Type": "application/json",
+            "x-auth-key": authKey
+          },
 
-    fetchSessions();
+          body: JSON.stringify(form)
+        }
+      );
+
+      const data = await res.json();
+
+      console.log("Save session:", data);
+
+      if (!res.ok) {
+        alert(data.message || "Failed to save session");
+        return;
+      }
+
+      setForm({
+        action: "create",
+        session_id: "",
+        activity_id: "",
+        location_id: "",
+        date: "",
+        start_time: "",
+        end_time: "",
+        capacity: ""
+      });
+
+      fetchSessions();
+
+    } catch (error) {
+      console.log("Error saving session:", error);
+    }
   };
 
   const editSession = (item) => {
@@ -99,45 +145,63 @@ function MySessionsView() {
   };
 
   const deleteSession = async (id) => {
-    await fetch("http://localhost:3000/session/trainer", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "auth-key": authKey
-      },
-      body: JSON.stringify({
-        action: "delete",
-        session_id: id
-      })
-    });
+    try {
+      const res = await fetch(
+        "http://localhost:3000/api/session/trainer",
+        {
+          method: "POST",
 
-    fetchSessions();
+          headers: {
+            "Content-Type": "application/json",
+            "x-auth-key": authKey
+          },
+
+          body: JSON.stringify({
+            action: "delete",
+            session_id: id
+          })
+        }
+      );
+
+      const data = await res.json();
+
+      console.log("Delete session:", data);
+
+      if (!res.ok) {
+        alert(data.message || "Failed to delete session");
+        return;
+      }
+
+      fetchSessions();
+
+    } catch (error) {
+      console.log("Error deleting session:", error);
+    }
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4">
+    <main className="max-w-[430px] min-h-screen mx-auto shadow p-4">
 
       <h1 className="text-2xl font-bold mb-2">
         📅 My Sessions
       </h1>
 
-      <p className="text-gray-600 mb-5">
-        Create and manage your training sessions
-      </p>
+      <div className="navbar justify-between bg-base-100 shadow-sm">
 
-      <div className="bg-white rounded shadow p-4 mb-6">
-
-        {sessions.length === 0 ?
+        {sessions.length === 0 ? (
 
           <p className="text-center p-5">
             No sessions found
           </p>
 
-          :
+        ) : (
 
-          sessions.map(item => (
+          sessions.map((item) => (
 
-            <div key={item.session.id} className="border rounded-lg p-4 mb-4">
+            <div
+              key={item.session.id}
+              className="border rounded-lg p-4 mb-4"
+            >
 
               <p>
                 <b>Activity:</b> {item.activity.name}
@@ -148,7 +212,8 @@ function MySessionsView() {
               </p>
 
               <p>
-                <b>Time:</b> {item.session.start_time}-{item.session.end_time}
+                <b>Time:</b>{" "}
+                {item.session.start_time} - {item.session.end_time}
               </p>
 
               <p>
@@ -181,14 +246,16 @@ function MySessionsView() {
 
           ))
 
-        }
+        )}
 
       </div>
 
       <div className="bg-white rounded shadow p-4">
 
         <h2 className="text-xl font-bold mb-4">
-          {form.action === "update" ? "Edit Session" : "Create Session"}
+          {form.action === "update"
+            ? "Edit Session"
+            : "Create Session"}
         </h2>
 
         <form
@@ -207,12 +274,10 @@ function MySessionsView() {
               Select Activity
             </option>
 
-            {activities.map(a => (
-
+            {activities.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
               </option>
-
             ))}
 
           </select>
@@ -228,12 +293,10 @@ function MySessionsView() {
               Select Location
             </option>
 
-            {locations.map(l => (
-
+            {locations.map((l) => (
               <option key={l.id} value={l.id}>
                 {l.name}
               </option>
-
             ))}
 
           </select>
@@ -272,7 +335,9 @@ function MySessionsView() {
           />
 
           <button className="bg-green-600 text-white rounded p-3 w-full">
-            {form.action === "update" ? "Update" : "Create"}
+            {form.action === "update"
+              ? "Update"
+              : "Create"}
           </button>
 
         </form>
@@ -281,7 +346,6 @@ function MySessionsView() {
 
     </main>
   );
-
 }
 
 export default MySessionsView;

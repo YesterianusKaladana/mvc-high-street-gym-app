@@ -99,8 +99,8 @@ function TimetableView() {
             // Close confirmation box
             setSelectedSession(null);
 
-            // Optional success message
-            alert("Session booked successfully!");
+            // after successfully confirmed, go to booking page
+            navigate("/booking")
 
         } catch (err) {
             setError(err.message || String(err));
@@ -185,7 +185,7 @@ function TimetableView() {
             {/* BOOKING CONFIRMATION */}
             {selectedSession && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                    <div className="w-full max-w-[400px] max-h-[90vh] overflow-y-auto rounded-2xl bg-base-100 p-5 shadow-xl">
+                    <div className="w-full max-w-[350px] max-h-[90vh] overflow-y-auto rounded-2xl bg-base-100 p-5 shadow-xl">
 
                         <h3 className="font-bold text-lg">
                             Confirm Booking
