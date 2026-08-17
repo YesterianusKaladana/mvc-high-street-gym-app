@@ -5,18 +5,21 @@ import { fetchAPI } from "../api.mjs";
 
 function TimetableView() {
     const navigate = useNavigate();
-
     const [sessions, setSessions] = useState([]);
     const [error, setError] = useState(null);
     const [filter, setFilter] = useState("");
     const [isLoading, setIsLoading] = useState(true);
+
+    // Session selected for booking
+    const [selectedSession, setSelectedSession] = useState(null);
+    const [isBooking, setIsBooking] = useState(false);
 
     const getSessions = useCallback(async (search = "") => {
         try {
             setIsLoading(true);
             setError(null);
 
-            const authKey = localStorage.getItem("authKey");
+            const authKey = localStorage.getItem("auth-key");
 
             const url =
                 search.trim()
@@ -26,7 +29,9 @@ function TimetableView() {
             const response = await fetchAPI("GET", url, null, authKey);
 
             if (response.status !== 200) {
-                throw new Error(response.body?.message || "Error loading sessions");
+                throw new Error(
+                    response.body?.message || "Error loading sessions"
+                );
             }
 
             const data = response.body;
@@ -52,6 +57,58 @@ function TimetableView() {
         getSessions(filter);
     };
 
+    // Open the confirmation box
+    const handleConfirm = (session) => {
+        setSelectedSession(session);
+        setError(null);
+    };
+
+    // Cancel the booking
+    const handleCancel = () => {
+        setSelectedSession(null);
+        setError(null);
+    };
+
+    // Confirm and create the booking
+    const handleBookSession = async () => {
+        if (!selectedSession) {
+            return;
+        }
+
+        try {
+            setIsBooking(true);
+            setError(null);
+
+            const authKey = localStorage.getItem("auth-key");
+
+            const response = await fetchAPI(
+                "POST",
+                "/booking",
+                {
+                    sessionId: selectedSession.session_id
+                },
+                authKey
+            );
+
+            if (response.status !== 200 && response.status !== 201) {
+                throw new Error(
+                    response.body?.message || "Unable to book session"
+                );
+            }
+
+            // Close confirmation box
+            setSelectedSession(null);
+
+            // Optional success message
+            alert("Session booked successfully!");
+
+        } catch (err) {
+            setError(err.message || String(err));
+        } finally {
+            setIsBooking(false);
+        }
+    };
+
     return (
         <section className="flex flex-col items-center">
 
@@ -68,7 +125,6 @@ function TimetableView() {
                 <button onClick={handleSearch} className="btn join-item">
                     <FaSearch />
                 </button>
-
             </div>
 
             {/* ERROR */}
@@ -112,23 +168,89 @@ function TimetableView() {
                                 <div className="text-xs opacity-70">
                                     Capacity: {session.capacity} people
                                 </div>
-
                             </div>
 
                             <button
                                 className="text-sm btn btn-primary btn-outline"
-                                onClick={() => navigate("/login")}
+                                onClick={() => handleConfirm(session)}
                             >
-                                Login to Book
+                                Book Session
                             </button>
+
                         </li>
                     ))}
                 </ul>
             )}
+
+            {/* BOOKING CONFIRMATION */}
+            {selectedSession && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="w-full max-w-[400px] max-h-[90vh] overflow-y-auto rounded-2xl bg-base-100 p-5 shadow-xl">
+
+                        <h3 className="font-bold text-lg">
+                            Confirm Booking
+                        </h3>
+
+                        <p className="py-4">
+                            Are you sure you want to book this session?
+                        </p>
+
+                        <div className="py-2">
+                            <p className="font-bold">
+                                {selectedSession.activity_name}
+                            </p>
+
+                            <p className="text-sm opacity-70">
+                                {selectedSession.date} (
+                                {selectedSession.weekday})
+                            </p>
+
+                            <p className="text-sm opacity-70">
+                                {selectedSession.start_time} -{" "}
+                                {selectedSession.end_time}
+                            </p>
+
+                            <p className="text-sm opacity-70">
+                                Location: {selectedSession.location_name}
+                            </p>
+
+                            <p className="text-sm opacity-70">
+                                Trainer: {selectedSession.trainer_name}
+                            </p>
+                        </div>
+
+                        <div className="modal-action">
+
+                            {/* CANCEL */}
+                            <button
+                                className="btn btn-outline"
+                                onClick={handleCancel}
+                                disabled={isBooking}
+                            >
+                                Cancel
+                            </button>
+
+                            {/* CONFIRM */}
+                            <button
+                                className="btn btn-primary"
+                                onClick={handleBookSession}
+                                disabled={isBooking}
+                            >
+                                {isBooking ? (
+                                    <span className="loading loading-spinner"></span>
+                                ) : (
+                                    "Confirm Booking"
+                                )}
+                            </button>
+
+                        </div>
+
+                    </div>
+                </div>
+            )}
+
         </section>
     );
-
-
 }
 
 export default TimetableView;

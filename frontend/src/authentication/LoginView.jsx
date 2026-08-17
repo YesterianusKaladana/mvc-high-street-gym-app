@@ -6,10 +6,8 @@ import { useNavigate } from "react-router";
 
 function LoginView() {
   const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const { login, status, user } = useAuthenticate();
 
   const onLoginSubmit = useCallback(
@@ -25,7 +23,7 @@ function LoginView() {
       if (user.role === "member") {
         navigate("/timetable");
       } else if (user.role === "trainer") {
-        navigate("/sessionTrainer");
+        navigate("/session");
       }
     }
   }, [user, navigate]);

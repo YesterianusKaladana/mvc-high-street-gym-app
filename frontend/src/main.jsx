@@ -21,16 +21,12 @@ const router = createBrowserRouter([
         Component: TimetableView,
       },
       {
-        path: "/session",
+        path: "/timetable",
         Component: TimetableView,
       },
       {
         path: "/login",
         Component: LoginView
-      },
-      {
-        path: "/timetable",
-        Component: TimetableView
       },
       {
         path: "/booking",
@@ -49,7 +45,7 @@ const router = createBrowserRouter([
         Component: ProfileView
       },
       {
-        path: "/sessionTrainer",
+        path: "/session",
         Component: MySessionsView
       },
     ]
