@@ -14,13 +14,14 @@ export class PostModel extends DatabaseModel {
    * @param {string} title - The post title.
    * @param {string} content - The post content.
    */
-  constructor(id, user_id, title, content) {
+  constructor(id, user_id, title, content,  created_at) {
     super();
 
     this.id = id;
     this.user_id = user_id;
     this.title = title;
     this.content = content;
+    this.created_at = created_at;
   }
 
   /**
@@ -38,6 +39,7 @@ export class PostModel extends DatabaseModel {
       postRow.user_id,
       postRow.title,
       postRow.content,
+      postRow.created_at,
     );
   }
 

@@ -90,6 +90,7 @@ export class ApiSessionsController {
     }
   }
 
+  
   static async getSessionsXML(req, res) {
     try {
       const sessions = await SessionActivityModel.getAllWithDetails();
@@ -122,6 +123,7 @@ export class ApiSessionsController {
     }
   }
 
+
   static async getTrainerSessionsById(req, res) {
     try {
       const { id } = req.params;
@@ -136,6 +138,7 @@ export class ApiSessionsController {
       });
     }
   }
+
 
   static async deleteTrainerSessions(req, res) {
     try {

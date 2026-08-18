@@ -12,19 +12,19 @@ export class ApiPostController {
 
     this.routes.post(
       "/",
-      ApiAuthenticationController.restrict(["member", "trainer"]),
+      ApiAuthenticationController.restrict(["member", "trainer", "admin"]),
       this.createPost,
     );
 
     this.routes.get(
       "/:id",
-      ApiAuthenticationController.restrict(["member", "trainer"]),
+      ApiAuthenticationController.restrict(["member", "trainer", "admin"]),
       this.getPostById,
     );
 
     this.routes.delete(
       "/:id",
-      ApiAuthenticationController.restrict(["member", "trainer"]),
+      ApiAuthenticationController.restrict(["member", "trainer", "admin"]),
       this.deletePost,
     );
   }
