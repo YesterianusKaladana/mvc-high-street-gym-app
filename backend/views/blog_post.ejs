@@ -32,7 +32,15 @@
                 <%= post.title %>
               </h4>
 
-              <p class="text-gray-700 whitespace-pre-line break-words mt-3">
+             <h4 class="text-gray-400 md:text-sm font-light break-words">
+                <%= new Date(post.created_at).toLocaleDateString("en-AU", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric"
+                }) %>
+              </h4>
+
+              <p class="text-gray-900 whitespace-pre-line break-words mt-3">
                 <%= post.content %>
               </p>
 

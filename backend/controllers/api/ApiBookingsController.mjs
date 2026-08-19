@@ -2,6 +2,7 @@ import express from "express";
 import { ApiAuthenticationController } from "./ApiAuthenticationController.mjs";
 import { BookingModel } from "../../models/BookingModel.mjs";
 import { DatabaseModel } from "../../models/DatabaseModel.mjs";
+import { BookingActivityModel } from "../../models/BookingActivityModel.mjs";
 
 export class ApiBookingsController {
   static routes = express.Router();
@@ -57,7 +58,7 @@ export class ApiBookingsController {
         null,
         req.body.sessionId,
         new Date(),
-        req.authenticatedUser.id,
+        req.user.id,
       );
 
       const result = await BookingModel.create(booking);
@@ -99,11 +100,14 @@ export class ApiBookingsController {
    */
   static async getUserBookings(req, res) {
     try {
-      const bookings = await BookingModel.getByUserId(req.authenticatedUser.id);
+      const bookings = await BookingActivityModel.getByMember(req.user.id);
+
+      console.log("BOOKINGS:", bookings);
 
       return res.status(200).json(bookings);
     } catch (error) {
       console.error(error);
+
       return res.status(500).json({
         message: "Failed to load bookings",
       });
@@ -189,7 +193,7 @@ export class ApiBookingsController {
     try {
       const date = DatabaseModel.toMySqlDate(new Date());
 
-      const bookings = await BookingModel.getByUserId(req.authenticatedUser.id);
+      const bookings = await BookingModel.getByUserId(req.user.id);
 
       return res
         .status(200)
