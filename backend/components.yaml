@@ -103,8 +103,8 @@ components:
       required:
         - id
         - session_id
-        - created
         - user_id
+        - created
         - activity_name
         - location_name
         - date
@@ -112,13 +112,13 @@ components:
         - end_time
       properties:
         id:
-          type: number
-          example: 1
+          type: integer
+          example: 30
         session_id:
-          type: number
-          example: 12
+          type: integer
+          example: 63
         user_id:
-          type: number
+          type: integer
           example: 5
         created:
           type: string
