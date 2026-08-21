@@ -8,6 +8,12 @@ function BlogView() {
     const [confirmDelete, setConfirmDelete] = useState(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+    // Create post state
+    const [showCreate, setShowCreate] = useState(false);
+    const [title, setTitle] = useState("");
+    const [content, setContent] = useState("");
+    const [isCreating, setIsCreating] = useState(false);
+
     const getAuthKey = () => {
         return localStorage.getItem("auth-key");
     };
@@ -43,7 +49,6 @@ function BlogView() {
 
         checkLogin();
 
-        // Re-check when user comes back to this page/window
         window.addEventListener("focus", checkLogin);
 
         return () => {
@@ -55,7 +60,7 @@ function BlogView() {
         getPosts();
     }, [getPosts]);
 
-    // Ask for confirmation
+    // Ask for delete confirmation
     const askDeletePost = (postId) => {
         const authKey = getAuthKey();
 
@@ -104,21 +109,101 @@ function BlogView() {
             });
     }, [confirmDelete, getPosts]);
 
+    // Open create form
+    const openCreatePost = () => {
+        const authKey = getAuthKey();
+
+        if (!authKey) {
+            setStatus("Please login to create posts.");
+            return;
+        }
+
+        setStatus(null);
+        setTitle("");
+        setContent("");
+        setShowCreate(true);
+    };
+
+    // Create post
+    const createPost = async () => {
+        const authKey = getAuthKey();
+
+        if (!authKey) {
+            setStatus("Please login to create posts.");
+            setShowCreate(false);
+            return;
+        }
+
+        if (!title.trim()) {
+            setStatus("Please enter a title.");
+            return;
+        }
+
+        if (!content.trim()) {
+            setStatus("Please enter some content.");
+            return;
+        }
+
+        try {
+            setIsCreating(true);
+            setStatus(null);
+
+            const response = await fetchAPI(
+                "POST",
+                "/post/",
+                {
+                    post: {
+                        title: title.trim(),
+                        content: content.trim()
+                    }
+                },
+                authKey
+            );
+
+            if (response.status === 201) {
+                setShowCreate(false);
+                setTitle("");
+                setContent("");
+                getPosts();
+            } else {
+                setStatus(
+                    response.body?.message ||
+                    "Failed to create post."
+                );
+            }
+        } catch (error) {
+            setStatus(String(error));
+        } finally {
+            setIsCreating(false);
+        }
+    };
+
     return (
         <section className="flex flex-col items-center p-4 gap-4">
 
-            <h1 className="text-3xl font-bold self-start">
-                Blog Posts
-            </h1>
+            {/* Navigation */}
+            <div className="navbar justify-between bg-base-100 shadow-sm">
+                <h1 className=" font-bold text-l"> My Blog Posts</h1>
+                <button
+                    type="button"
+                    className="btn btn-ghost text-xl"
+                    onClick={openCreatePost}
+                    disabled={!isLoggedIn}
+                >
+                    Create
+                </button>
+            </div>
 
+            {/* Status */}
             {status && (
                 <span className="text-error self-start">
                     {status}
                 </span>
             )}
 
+            {/* Loading */}
             {posts.length === 0 && !status && (
-                <span className="loading loading-spinner loading-xl mt-8"></span>
+                <span className="loading loading-spinner loading-xl mt-8" />
             )}
 
             {/* Blog post list */}
@@ -129,12 +214,10 @@ function BlogView() {
                         className="flex flex-col gap-2 p-4 border-b border-base-200"
                     >
                         <div className="flex justify-between w-full items-start gap-4">
-
                             <span className="font-semibold text-base">
                                 {post.title}
                             </span>
 
-                            {/* SHOW DELETE IF LOGGED IN */}
                             {isLoggedIn && (
                                 <button
                                     type="button"
@@ -145,7 +228,6 @@ function BlogView() {
                                     Delete
                                 </button>
                             )}
-
                         </div>
 
                         <p className="text-sm text-base-content leading-relaxed break-words overflow-hidden w-full">
@@ -165,10 +247,92 @@ function BlogView() {
                 ))}
             </ul>
 
-            {/* Confirmation Modal */}
+            {/* Create Post Modal */}
+            {showCreate && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="w-full max-w-[350px] rounded-2xl bg-base-100 p-5 shadow-xl">
+
+                        <h3 className="font-bold text-lg">
+                            Create Blog Post
+                        </h3>
+
+                        {/* Title */}
+                        <div className="form-control mt-4">
+                            <label className="label">
+                                <span className="label-text">
+                                    Title
+                                </span>
+                            </label>
+
+                            <input
+                                type="text"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                placeholder="Enter post title"
+                                className="input input-bordered w-full"
+                                disabled={isCreating}
+                            />
+                        </div>
+
+                        {/* Content */}
+                        <div className="form-control mt-4">
+                            <label className="label">
+                                <span className="label-text">
+                                    Content
+                                </span>
+                            </label>
+
+                            <textarea
+                                value={content}
+                                onChange={(e) => setContent(e.target.value)}
+                                placeholder="Write your post..."
+                                className="textarea textarea-bordered w-full h-40"
+                                disabled={isCreating}
+                            />
+                        </div>
+
+                        {/* Buttons */}
+                        <div className="modal-action mt-5 flex justify-end gap-2">
+
+                            <button
+                                type="button"
+                                onClick={() => setShowCreate(false)}
+                                className="btn btn-ghost"
+                                disabled={isCreating}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={createPost}
+                                className="btn btn-primary"
+                                disabled={isCreating}
+                            >
+                                {isCreating ? (
+                                    <span className="loading loading-spinner" />
+                                ) : (
+                                    "Create Post"
+                                )}
+                            </button>
+
+                        </div>
+                    </div>
+
+                    <div
+                        className="modal-backdrop"
+                        onClick={() => {
+                            if (!isCreating) {
+                                setShowCreate(false);
+                            }
+                        }}
+                    />
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
             {confirmDelete && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-
                     <div className="w-full max-w-[350px] rounded-2xl bg-base-100 p-5 shadow-xl">
 
                         <h3 className="font-bold text-lg">
@@ -207,6 +371,7 @@ function BlogView() {
                     />
                 </div>
             )}
+
         </section>
     );
 }

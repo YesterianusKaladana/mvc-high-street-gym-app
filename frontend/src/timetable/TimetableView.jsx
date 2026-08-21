@@ -1,138 +1,100 @@
-import { FaSearch } from "react-icons/fa";
-import { useNavigate } from "react-router";
-import { useCallback, useEffect, useState } from "react";
-import { fetchAPI } from "../api.mjs";
+import { useCallback, useEffect, useState } from "react"
+import { FaSearch } from "react-icons/fa"
+import { fetchAPI } from "../api.mjs"
+import { useNavigate } from "react-router"
 
 function TimetableView() {
-    const navigate = useNavigate();
+    const [filter, setFilter] = useState("")
+    const [sessions, setSessions] = useState([])
+    const [error, setError] = useState(null)
 
-    const [sessions, setSessions] = useState([]);
-    const [error, setError] = useState(null);
-    const [filter, setFilter] = useState("");
-    const [isLoading, setIsLoading] = useState(true);
+    const navigate = useNavigate()
 
-    // Booking state
-    const [selectedSession, setSelectedSession] = useState(null);
-    const [isBooking, setIsBooking] = useState(false);
+    const isLoggedIn = Boolean(localStorage.getItem("auth-key"))
 
-    // Check whether the user is logged in
-    const isLoggedIn = Boolean(localStorage.getItem("auth-key"));
+    const getSessions = useCallback(() => {
+        const request = filter.length > 0
+            ? fetchAPI("GET", "/session?filter=" + filter)
+            : fetchAPI("GET", "/session")
 
-    const getSessions = useCallback(async (search = "") => {
-        try {
-            setIsLoading(true);
-            setError(null);
-
-            const authKey = localStorage.getItem("auth-key");
-
-            const url = search.trim()
-                ? `/session?filter=${encodeURIComponent(search)}`
-                : "/session";
-
-            const response = await fetchAPI(
-                "GET",
-                url,
-                null,
-                authKey
-            );
-
-            if (response.status !== 200) {
-                throw new Error(
-                    response.body?.message || "Error loading sessions"
-                );
-            }
-
-            const data = response.body;
-
-            if (!Array.isArray(data)) {
-                throw new Error("Invalid response format");
-            }
-
-            setSessions(data);
-        } catch (err) {
-            setError(err.message || String(err));
-            setSessions([]);
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
+        request
+            .then(response => {
+                if (response.status == 200) {
+                    if (response.body.length > 0) {
+                        setSessions(response.body)
+                        setError(null)
+                    } else {
+                        setSessions([])
+                        setError("No results")
+                    }
+                } else {
+                    setError(response.body.message)
+                }
+            })
+            .catch(error => {
+                setError(error.message || String(error))
+            })
+    }, [filter])
 
     useEffect(() => {
-        getSessions();
-    }, [getSessions]);
+        getSessions()
+    }, [getSessions])
 
-    // Search sessions
-    const handleSearch = () => {
-        getSessions(filter);
-    };
+    const handleConfirm = session => {
+        const authKey = localStorage.getItem("auth-key")
 
-    // Book button
-    const handleConfirm = (session) => {
-        const authKey = localStorage.getItem("auth-key");
-
-        // User is not logged in
         if (!authKey) {
-            navigate("/login");
-            return;
+            navigate("/login")
+            return
         }
 
-        // User is logged in
-        setSelectedSession(session);
-        setError(null);
-    };
+        setSelectedSession(session)
+    }
 
-    // Cancel booking
+    const [selectedSession, setSelectedSession] = useState(null)
+    const [isBooking, setIsBooking] = useState(false)
+
     const handleCancel = () => {
-        setSelectedSession(null);
-        setError(null);
-    };
+        setSelectedSession(null)
+    }
 
-    // Confirm and create booking
-    const handleBookSession = async () => {
+    const handleBookSession = () => {
         if (!selectedSession) {
-            return;
+            return
         }
 
-        try {
-            setIsBooking(true);
-            setError(null);
+        const authKey = localStorage.getItem("auth-key")
 
-            const authKey = localStorage.getItem("auth-key");
-
-            // Extra protection in case the auth key disappeared
-            if (!authKey) {
-                setSelectedSession(null);
-                navigate("/login");
-                return;
-            }
-
-            const response = await fetchAPI(
-                "POST",
-                "/booking",
-                {
-                    sessionId: selectedSession.session_id
-                },
-                authKey
-            );
-
-            if (response.status !== 200 && response.status !== 201) {
-                throw new Error(
-                    response.body?.message || "Unable to book session"
-                );
-            }
-
-            // Close confirmation modal
-            setSelectedSession(null);
-
-            // Go to booking page
-            navigate("/booking");
-
-        } catch (err) {
-            setError(err.message || String(err));
-        } finally {
-            setIsBooking(false);
+        if (!authKey) {
+            navigate("/login")
+            return
         }
-    };
+
+        setIsBooking(true)
+
+        fetchAPI(
+            "POST",
+            "/booking",
+            {
+                sessionId: selectedSession.session_id
+            },
+            authKey
+        )
+            .then(response => {
+                if (response.status == 200 || response.status == 201) {
+                    setSelectedSession(null)
+                    navigate("/booking")
+                } else {
+                    setError(response.body.message)
+                }
+            })
+            .catch(error => {
+                setError(error.message || String(error))
+            })
+            .finally(() => {
+                setIsBooking(false)
+            })
+    }
 
     return (
         <section className="flex flex-col items-center">
@@ -140,15 +102,15 @@ function TimetableView() {
             {/* SEARCH BAR */}
             <div className="join p-4 self-stretch">
                 <input
-                    onChange={(e) => setFilter(e.target.value)}
                     value={filter}
-                    className="input join-item grow"
-                    placeholder="Search sessions..."
+                    onChange={e => setFilter(e.target.value)}
                     type="text"
+                    className="input join-item grow"
+                    placeholder="search sessions"
                 />
 
                 <button
-                    onClick={handleSearch}
+                    onClick={() => getSessions()}
                     className="btn join-item"
                 >
                     <FaSearch />
@@ -157,74 +119,67 @@ function TimetableView() {
 
             {/* ERROR */}
             {error && (
-                <span className="p-4 text-red-500 font-semibold">
+                <span className="p-4 self-center text-red-500">
                     {error}
                 </span>
             )}
 
-            {/* LOADING */}
-            {isLoading ? (
-                <span className="loading loading-spinner loading-xl"></span>
-            ) : sessions.length === 0 ? (
-                <p className="p-4 opacity-60">
-                    No sessions available
-                </p>
-            ) : (
-                <ul className="list self-stretch">
-                    {sessions.map((session) => (
-                        <li
-                            key={session.session_id}
-                            className="list-row"
-                        >
-
-                            {/* SESSION DETAILS */}
-                            <div>
-                                <div className="font-bold">
-                                    {session.activity_name}
-                                </div>
-
-                                <div className="text-xs uppercase opacity-60 font-semibold">
-                                    {session.location_name}
-                                </div>
-
-                                <div className="text-xs opacity-70">
-                                    {session.date} ({session.weekday})
-                                </div>
-
-                                <div className="text-xs opacity-70">
-                                    {session.start_time} -{" "}
-                                    {session.end_time}
-                                </div>
-
-                                <div className="text-xs opacity-70">
-                                    Trainer: {session.trainer_name}
-                                </div>
-
-                                <div className="text-xs opacity-70">
-                                    Capacity: {session.capacity} people
-                                </div>
-                            </div>
-
-                            {/* BOOK / LOGIN BUTTON */}
-                            <button
-                                className="text-sm btn btn-primary btn-outline"
-                                onClick={() => handleConfirm(session)}
+            {/* SESSIONS */}
+            {!error && sessions.length == 0
+                ? (
+                    <span className="loading loading-spinner loading-xl"></span>
+                )
+                : (
+                    <ul className="list bg-base-100 self-stretch">
+                        {sessions.map(session =>
+                            <li
+                                key={session.session_id}
+                                className="list-row"
                             >
-                                {isLoggedIn
-                                    ? "Book Session"
-                                    : "Login to Book"}
-                            </button>
+                                <div>
+                                    <div className="font-bold">
+                                        {session.activity_name}
+                                    </div>
 
-                        </li>
-                    ))}
-                </ul>
-            )}
+                                    <div className="text-xs uppercase font-semibold opacity-60">
+                                        {session.location_name}
+                                    </div>
 
-            {/* BOOKING CONFIRMATION MODAL */}
+                                    <div className="text-xs opacity-70">
+                                        {session.date} ({session.weekday})
+                                    </div>
+
+                                    <div className="text-xs opacity-70">
+                                        {session.start_time} - {session.end_time}
+                                    </div>
+
+                                    <div className="text-xs opacity-70">
+                                        Trainer: {session.trainer_name}
+                                    </div>
+
+                                    <div className="text-xs opacity-70">
+                                        Capacity: {session.capacity} people
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => handleConfirm(session)}
+                                    className="btn btn-primary btn-outline"
+                                >
+                                    {isLoggedIn
+                                        ? "Book Session"
+                                        : "Login to Book"}
+                                </button>
+                            </li>
+                        )}
+                    </ul>
+                )
+            }
+
+            {/* BOOKING MODAL */}
             {selectedSession && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-
-                    <div className="w-full max-w-[350px] max-h-[90vh] overflow-y-auto rounded-2xl bg-base-100 p-5 shadow-xl">
+                    <div className="w-full max-w-[350px] rounded-2xl bg-base-100 p-5 shadow-xl">
 
                         <h3 className="font-bold text-lg">
                             Confirm Booking
@@ -234,42 +189,34 @@ function TimetableView() {
                             Are you sure you want to book this session?
                         </p>
 
-                        {/* SELECTED SESSION */}
                         <div className="py-2">
                             <p className="font-bold">
                                 {selectedSession.activity_name}
                             </p>
 
                             <p className="text-sm opacity-70">
-                                {selectedSession.date} (
-                                {selectedSession.weekday})
+                                {selectedSession.date} ({selectedSession.weekday})
                             </p>
 
                             <p className="text-sm opacity-70">
-                                {selectedSession.start_time} -{" "}
-                                {selectedSession.end_time}
+                                {selectedSession.start_time} - {selectedSession.end_time}
                             </p>
 
                             <p className="text-sm opacity-70">
-                                Location:{" "}
-                                {selectedSession.location_name}
+                                Location: {selectedSession.location_name}
                             </p>
 
                             <p className="text-sm opacity-70">
-                                Trainer:{" "}
-                                {selectedSession.trainer_name}
+                                Trainer: {selectedSession.trainer_name}
                             </p>
 
                             <p className="text-sm opacity-70">
-                                Capacity:{" "}
-                                {selectedSession.capacity} people
+                                Capacity: {selectedSession.capacity} people
                             </p>
                         </div>
 
-                        {/* MODAL BUTTONS */}
                         <div className="modal-action">
 
-                            {/* CANCEL */}
                             <button
                                 className="btn btn-outline"
                                 onClick={handleCancel}
@@ -278,27 +225,23 @@ function TimetableView() {
                                 Cancel
                             </button>
 
-                            {/* CONFIRM BOOKING */}
                             <button
                                 className="btn btn-primary"
                                 onClick={handleBookSession}
                                 disabled={isBooking}
                             >
-                                {isBooking ? (
-                                    <span className="loading loading-spinner"></span>
-                                ) : (
-                                    "Confirm Booking"
-                                )}
+                                {isBooking
+                                    ? <span className="loading loading-spinner"></span>
+                                    : "Confirm Booking"
+                                }
                             </button>
 
                         </div>
-
                     </div>
                 </div>
             )}
-
         </section>
-    );
+    )
 }
 
-export default TimetableView;
+export default TimetableView

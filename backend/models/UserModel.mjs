@@ -16,7 +16,15 @@ export class UserModel extends DatabaseModel {
    * @param {string} email - The user's email.
    * @param {string} password - The user's password.
    */
-  constructor(id, firstName, lastName, role, email, password, authenticationKey = null) {
+  constructor(
+    id,
+    firstName,
+    lastName,
+    role,
+    email,
+    password,
+    authenticationKey = null,
+  ) {
     super();
     this.id = id;
     this.firstName = firstName;
@@ -45,7 +53,7 @@ export class UserModel extends DatabaseModel {
       userRow.role,
       userRow.email,
       userRow.password,
-      userRow.authentication_key
+      userRow.authentication_key,
     );
   }
 
@@ -55,11 +63,11 @@ export class UserModel extends DatabaseModel {
    * @returns {Promise<UserModel[]>}
    */
   static async getAll() {
-    return this.query(
-      "SELECT * FROM user WHERE deleted = 0"
-    ).then((results) => {
-      return results.map((row) => this.tableToModel(row));
-    });
+    return this.query("SELECT * FROM user WHERE deleted = 0").then(
+      (results) => {
+        return results.map((row) => this.tableToModel(row));
+      },
+    );
   }
 
   /**
@@ -69,16 +77,14 @@ export class UserModel extends DatabaseModel {
    * @returns {Promise<UserModel|null>}
    */
   static async getById(id) {
-    return this.query(
-      "SELECT * FROM user WHERE id = ?",
-      [id]
-    ).then((result) => {
-
-      if (result.length > 0) {
-        return this.tableToModel(result[0]);
-      }
-      return null;
-    });
+    return this.query("SELECT * FROM user WHERE id = ?", [id]).then(
+      (result) => {
+        if (result.length > 0) {
+          return this.tableToModel(result[0]);
+        }
+        return null;
+      },
+    );
   }
 
   /**
@@ -95,9 +101,8 @@ export class UserModel extends DatabaseModel {
       WHERE email = ?
       AND deleted = 0
       `,
-      [email]
+      [email],
     ).then((result) => {
-
       if (result.length > 0) {
         return this.tableToModel(result[0]);
       }
@@ -106,34 +111,31 @@ export class UserModel extends DatabaseModel {
   }
 
   /**
-   * 
-   * @param {*} role 
-   * @returns 
+   *
+   * @param {*} role
+   * @returns
    */
   static getByRole(role) {
-    return this.query(
-      `SELECT * FROM user WHERE role = ? AND deleted = 0`,
-      [role]
-    ).then(results =>
-      results.map(row => this.tableToModel(row))
-    );
+    return this.query(`SELECT * FROM user WHERE role = ? AND deleted = 0`, [
+      role,
+    ]).then((results) => results.map((row) => this.tableToModel(row)));
   }
 
   /**
-   * 
-   * @param {*} authenticationKey 
-   * @returns 
+   *
+   * @param {*} authenticationKey
+   * @returns
    */
-   static async getByAuthenticationKey(authenticationKey) {
-      return this.query(
-        "SELECT * FROM user WHERE authentication_key = ? AND deleted = 0",
-        [authenticationKey],
-      ).then((result) =>
-        result.length > 0
-          ? this.tableToModel(result[0])
-          : Promise.reject("not found"),
-      );
-    }
+  static async getByAuthenticationKey(authenticationKey) {
+    return this.query(
+      "SELECT * FROM user WHERE authentication_key = ? AND deleted = 0",
+      [authenticationKey],
+    ).then((result) =>
+      result.length > 0
+        ? this.tableToModel(result[0])
+        : Promise.reject("not found"),
+    );
+  }
 
   /**
    * Creates a new user.
@@ -161,8 +163,8 @@ export class UserModel extends DatabaseModel {
         user.role,
         user.email,
         user.password,
-        user.authentication_key,
-      ]
+        user.authenticationKey,
+      ],
     );
   }
 
@@ -193,7 +195,7 @@ export class UserModel extends DatabaseModel {
         user.password,
         user.authenticationKey,
         user.id,
-      ]
+      ],
     );
   }
 
@@ -209,7 +211,7 @@ export class UserModel extends DatabaseModel {
       UPDATE user SET deleted = 1
       WHERE id = ?
       `,
-      [id]
+      [id],
     );
   }
 }

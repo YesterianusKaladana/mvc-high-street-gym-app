@@ -19,6 +19,8 @@ export class ApiAuthenticationController {
   static async #APIAuthenticationProvider(req, res, next) {
     const authenticationKey = req.headers["x-auth-key"];
 
+    console.log("AUTH HEADER:", authenticationKey);
+
     if (authenticationKey) {
       try {
         req.authenticatedUser =

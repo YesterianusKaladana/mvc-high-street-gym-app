@@ -1,4 +1,5 @@
 import express from "express";
+
 import { ApiAuthenticationController } from "./ApiAuthenticationController.mjs";
 import { PostModel } from "../../models/PostModel.mjs";
 
@@ -31,11 +32,13 @@ export class ApiPostController {
 
   /**
    * Get all posts
+   *
    * @openapi
    * /api/post:
    *   get:
-   *     summary: "Get all posts"
-   *     tags: [Posts]
+   *     summary: Get all posts
+   *     tags:
+   *       - Posts
    *     responses:
    *       200:
    *         description: List of posts
@@ -45,15 +48,20 @@ export class ApiPostController {
    *               type: array
    *               items:
    *                 $ref: "#/components/schemas/Post"
+   *
+   *       500:
+   *         $ref: "#/components/responses/Error"
    */
   static async getPosts(req, res) {
     try {
       const posts = await PostModel.getAll();
 
       console.log("Posts from DB:", posts);
+
       return res.status(200).json(posts);
     } catch (error) {
       console.error(error);
+
       return res.status(500).json({
         message: "Failed to load posts from database",
       });
@@ -61,11 +69,14 @@ export class ApiPostController {
   }
 
   /**
+   * Create a new post
+   *
    * @openapi
    * /api/post:
    *   post:
-   *     summary: "Create a new post"
-   *     tags: [Posts]
+   *     summary: Create a new post
+   *     tags:
+   *       - Posts
    *     security:
    *       - ApiKey: []
    *     requestBody:
@@ -85,30 +96,35 @@ export class ApiPostController {
    *                 properties:
    *                   title:
    *                     type: string
+   *                     example: My first post
    *                   content:
    *                     type: string
+   *                     example: This is my first post.
+   *
    *     responses:
    *       201:
-   *         description: Post created
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 id:
-   *                   type: integer
-   *                 message:
-   *                   type: string
+   *         $ref: "#/components/responses/Created"
+   *
+   *       401:
+   *         $ref: "#/components/responses/Unauthorized"
+   *
+   *       403:
+   *         $ref: "#/components/responses/Forbidden"
+   *
+   *       500:
+   *         $ref: "#/components/responses/Error"
    */
   static async createPost(req, res) {
     try {
-      if (!req.user) {
-        return res.status(401).json({ message: "Unauthorized" });
+      if (!req.authenticatedUser) {
+        return res.status(401).json({
+          message: "Unauthorized",
+        });
       }
 
       const post = new PostModel(
         null,
-        req.user.id,
+        req.authenticatedUser.id,
         req.body.post.title,
         req.body.post.content,
       );
@@ -121,6 +137,7 @@ export class ApiPostController {
       });
     } catch (error) {
       console.error(error);
+
       return res.status(500).json({
         message: "Failed to create post",
       });
@@ -130,16 +147,12 @@ export class ApiPostController {
   /**
    * Get post by ID
    *
-   * This endpoint retrieves a single post based on its ID.
-   * It validates the ID, checks if the post exists,
-   * and returns proper error responses if needed.
-   *
-   * @type {express.RequestHandler}
    * @openapi
    * /api/post/{id}:
    *   get:
-   *     summary: "Get post by ID"
-   *     tags: [Posts]
+   *     summary: Get post by ID
+   *     tags:
+   *       - Posts
    *     security:
    *       - ApiKey: []
    *     parameters:
@@ -150,6 +163,7 @@ export class ApiPostController {
    *         schema:
    *           type: integer
    *           example: 1
+   *
    *     responses:
    *       200:
    *         description: Post found successfully
@@ -157,55 +171,52 @@ export class ApiPostController {
    *           application/json:
    *             schema:
    *               $ref: "#/components/schemas/Post"
+   *
    *       400:
    *         description: Invalid post ID
    *         content:
    *           application/json:
    *             schema:
-   *               type: object
-   *               properties:
-   *                 message:
-   *                   type: string
-   *                   example: Invalid post ID
+   *               $ref: "#/components/schemas/ErrorResponse"
+   *
+   *       401:
+   *         $ref: "#/components/responses/Unauthorized"
+   *
+   *       403:
+   *         $ref: "#/components/responses/Forbidden"
+   *
    *       404:
-   *         description: Post not found
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 message:
-   *                   type: string
-   *                   example: Post not found
+   *         $ref: "#/components/responses/NotFound"
+   *
    *       500:
    *         $ref: "#/components/responses/Error"
    */
   static async getPostById(req, res) {
     try {
-      // Convert route param to number
       const id = Number(req.params.id);
 
-      // Validate ID
       if (Number.isNaN(id)) {
         return res.status(400).json({
           message: "Invalid post ID",
         });
       }
 
-      // Fetch post from database
+      if (!req.authenticatedUser) {
+        return res.status(401).json({
+          message: "Unauthorized",
+        });
+      }
+
       const post = await PostModel.getById(id);
 
-      // Handle not found case
       if (!post) {
         return res.status(404).json({
           message: "Post not found",
         });
       }
 
-      // Return post data
       return res.status(200).json(post);
     } catch (error) {
-      // Log server error for debugging
       console.error(error);
 
       return res.status(500).json({
@@ -217,15 +228,12 @@ export class ApiPostController {
   /**
    * Delete Post
    *
-   * Deletes a post by ID.
-   * Only the owner of the post is allowed to delete it.
-   *
-   * @type {express.RequestHandler}
    * @openapi
    * /api/post/{id}:
    *   delete:
-   *     summary: "Delete post"
-   *     tags: [Posts]
+   *     summary: Delete post
+   *     tags:
+   *       - Posts
    *     security:
    *       - ApiKey: []
    *     parameters:
@@ -236,6 +244,7 @@ export class ApiPostController {
    *         schema:
    *           type: integer
    *           example: 1
+   *
    *     responses:
    *       200:
    *         description: Post deleted successfully
@@ -243,40 +252,29 @@ export class ApiPostController {
    *           application/json:
    *             schema:
    *               type: object
+   *               required:
+   *                 - message
    *               properties:
    *                 message:
    *                   type: string
    *                   example: Post deleted successfully
+   *
    *       400:
    *         description: Invalid post ID
    *         content:
    *           application/json:
    *             schema:
-   *               type: object
-   *               properties:
-   *                 message:
-   *                   type: string
-   *                   example: Invalid post ID
+   *               $ref: "#/components/schemas/ErrorResponse"
+   *
+   *       401:
+   *         $ref: "#/components/responses/Unauthorized"
+   *
    *       403:
-   *         description: Forbidden (not owner of post)
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 message:
-   *                   type: string
-   *                   example: Forbidden
+   *         $ref: "#/components/responses/Forbidden"
+   *
    *       404:
-   *         description: Post not found
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 message:
-   *                   type: string
-   *                   example: Post not found
+   *         $ref: "#/components/responses/NotFound"
+   *
    *       500:
    *         $ref: "#/components/responses/Error"
    */
@@ -290,6 +288,12 @@ export class ApiPostController {
         });
       }
 
+      if (!req.authenticatedUser) {
+        return res.status(401).json({
+          message: "Unauthorized",
+        });
+      }
+
       const post = await PostModel.getById(id);
 
       if (!post) {
@@ -298,8 +302,8 @@ export class ApiPostController {
         });
       }
 
-      // ownership check
-      if (post.user_id !== req.user.id) {
+      // Only the owner can delete the post
+      if (Number(post.user_id) !== Number(req.authenticatedUser.id)) {
         return res.status(403).json({
           message: "Forbidden",
         });
@@ -312,6 +316,7 @@ export class ApiPostController {
       });
     } catch (error) {
       console.error(error);
+
       return res.status(500).json({
         message: "Failed to delete post",
       });
