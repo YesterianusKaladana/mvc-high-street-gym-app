@@ -1,11 +1,7 @@
 import express from "express";
-
 import { ApiAuthenticationController } from "./ApiAuthenticationController.mjs";
-
 import { BookingModel } from "../../models/BookingModel.mjs";
-
 import { DatabaseModel } from "../../models/DatabaseModel.mjs";
-
 import { BookingActivityModel } from "../../models/BookingActivityModel.mjs";
 
 export class ApiBookingsController {
@@ -151,9 +147,11 @@ export class ApiBookingsController {
       const bookings = await BookingActivityModel.getByMember(
         req.authenticatedUser.id,
       );
-
-      console.log("BOOKINGS:", bookings);
-
+      console.log("Bookings:", bookings);
+      console.log("BOOKINGS:", JSON.stringify(bookings, null, 2));
+      console.log("FIRST BOOKING:", bookings?.[0]);
+      console.log("FIRST BOOKING ID:", bookings?.[0]?.id);
+      console.log("IS ARRAY:", Array.isArray(bookings));
       return res.status(200).json(bookings);
     } catch (error) {
       console.error(error);

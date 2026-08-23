@@ -122,6 +122,7 @@ components:
         - created
         - activity_name
         - location_name
+        - trainer_name
         - date
         - start_time
         - end_time
@@ -150,6 +151,10 @@ components:
         location_name:
           type: string
           example: "Westlake"
+
+        trainer_name:
+          type: string
+          example: "Jhon Wick"
 
         date:
           type: string
