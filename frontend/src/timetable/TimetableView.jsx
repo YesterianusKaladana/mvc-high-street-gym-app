@@ -2,15 +2,26 @@ import { useCallback, useEffect, useState } from "react"
 import { FaSearch } from "react-icons/fa"
 import { fetchAPI } from "../api.mjs"
 import { useNavigate } from "react-router"
+import { useAuthenticate } from "../authentication/UseAuthenticate"
 
 function TimetableView() {
     const [filter, setFilter] = useState("")
     const [sessions, setSessions] = useState([])
     const [error, setError] = useState(null)
-
     const navigate = useNavigate()
+    const { user } = useAuthenticate()
 
     const isLoggedIn = Boolean(localStorage.getItem("auth-key"))
+
+    //Redirect trainer away from member timetable
+    useEffect(() => {
+        if (user?.role === "trainer") {
+            navigate("/session", {
+                replace: true
+            })
+
+        }
+    }, [user, navigate])
 
     const getSessions = useCallback(() => {
         const request = filter.length > 0
@@ -162,14 +173,17 @@ function TimetableView() {
                                     </div>
                                 </div>
 
-                                <button
-                                    onClick={() => handleConfirm(session)}
-                                    className="btn btn-primary btn-outline"
-                                >
-                                    {isLoggedIn
-                                        ? "Book Session"
-                                        : "Login to Book"}
-                                </button>
+                                {user?.role !== "trainer" && (
+                                    <button
+                                        onClick={() => handleConfirm(session)}
+                                        className="btn btn-primary btn-outline"
+                                    >
+                                        {isLoggedIn
+                                            ? "Book Session"
+                                            : "Login to Book"}
+                                    </button>
+                                )}
+
                             </li>
                         )}
                     </ul>

@@ -183,7 +183,7 @@ function BlogView() {
 
             {/* Navigation */}
             <div className="navbar justify-between bg-base-100 shadow-sm">
-                <h1 className=" font-bold text-l"> My Blog Posts</h1>
+                <h1 className=" font-bold text-l"> Posts</h1>
                 <button
                     type="button"
                     className="btn btn-ghost text-xl"
