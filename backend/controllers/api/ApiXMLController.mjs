@@ -18,5 +18,6 @@ export class ApiXMLController {
 
   static handleExportSessions(req, res) {
     // Implementation for handling GET /sessions request
+    res.status(501).json({ message: "Not implemented" });
   }
 }
