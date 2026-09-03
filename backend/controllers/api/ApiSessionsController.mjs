@@ -10,7 +10,7 @@ export class ApiSessionsController {
     this.routes.use(ApiAuthenticationController.middleware);
     this.routes.get("/", this.getSessions);
     this.routes.get("/xml", this.getSessionsXML);
-    this.routes.get("/trainer/:id", this.getTrainerSessionsById);
+    this.routes.get("/:id", this.getTrainerSessionsById);
     this.routes.delete("/:id", this.deleteTrainerSessions);
   }
 
@@ -90,7 +90,6 @@ export class ApiSessionsController {
     }
   }
 
-  
   static async getSessionsXML(req, res) {
     try {
       const sessions = await SessionActivityModel.getAllWithDetails();
@@ -123,7 +122,6 @@ export class ApiSessionsController {
     }
   }
 
-
   static async getTrainerSessionsById(req, res) {
     try {
       const { id } = req.params;
@@ -138,7 +136,6 @@ export class ApiSessionsController {
       });
     }
   }
-
 
   static async deleteTrainerSessions(req, res) {
     try {
