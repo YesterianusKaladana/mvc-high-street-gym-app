@@ -69,10 +69,10 @@ export class ApiUserController {
 
    *     responses:
    *       201:
-   *         description: User created successfully
+   *         $ref: "#/components/responses/Created"
    *
    *       400:
-   *         description: Missing required fields
+   *         $ref: "#/components/responses/BadRequest"
    *
    *       500:
    *         $ref: "#/components/responses/Error"
@@ -99,7 +99,6 @@ export class ApiUserController {
       });
     } catch (error) {
       console.error("CREATE USER ERROR:", error);
-
       return res.status(500).json({
         message: "Failed to create user",
         errors: [

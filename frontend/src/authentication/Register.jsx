@@ -40,8 +40,8 @@ function Register() {
     }
 
     fetchAPI("POST", "/user", {
-      first_name: first_name,
-      last_name: lastName,
+      firstName: first_name,
+      lastName: lastName,
       email: email,
       password: password,
       role: "member",
