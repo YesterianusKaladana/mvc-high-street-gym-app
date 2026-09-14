@@ -36,7 +36,7 @@ function TimetableView() {
                         setError(null)
                     } else {
                         setSessions([])
-                        setError("No results")
+                        setError("No sessions found")
                     }
                 } else {
                     setError(response.body.message)
