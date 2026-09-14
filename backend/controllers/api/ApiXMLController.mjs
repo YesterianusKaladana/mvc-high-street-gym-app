@@ -54,8 +54,10 @@ export class ApiXMLController {
   static async handleExportSessions(req, res) {
     try {
       const sessions = await SessionActivityModel.getAllWithDetails();
+      const exportdate = new Date().toISOString().split("T")[0];
+      const year = new Date().getFullYear();
 
-      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+      let xml = `<?xml version="1.0" encoding="UTF-8"?>
       <sessions>
       ${sessions
         .map(

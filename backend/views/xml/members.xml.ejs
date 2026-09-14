@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE bookings [
+    <!ELEMENT bookings (booking*)>
+    <!ATTLIST bookings export-date CDATA "0000-00-00">
+    <!ELEMENT booking (id, activity, location, date, weekday, start_time, end_time, trainer)>
+    <!ELEMENT id (#PCDATA)>
+    <!ELEMENT activity (#PCDATA)>
+    <!ELEMENT location (#PCDATA)>
+    <!ELEMENT date (#PCDATA)>
+    <!ELEMENT weekday (#PCDATA)>
+    <!ELEMENT start_time (#PCDATA)>
+    <!ELEMENT end_time (#PCDATA)>
+    <!ELEMENT trainer (#PCDATA)>
+]>
+<bookings export-date="<%= exportDate %>">
+    <% for (const booking of bookings) { %>
+    <booking>
+        <id><%= booking.id %></id>
+        <activity><%= booking.activity_name %></activity>
+        <location><%= booking.location_name %></location>
+        <date><%= booking.date %></date>
+        <weekday><%= booking.weekday %></weekday>
+        <start_time><%= booking.start_time %></start_time>
+        <end_time><%= booking.end_time %></end_time>
+        <trainer><%= booking.trainer_name %></trainer>
+    </booking>
+    <% } %>
+</bookings>
