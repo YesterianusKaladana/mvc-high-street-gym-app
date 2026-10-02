@@ -218,11 +218,11 @@ function ProfileView() {
             {/* TRAINER XML */}
             {user.role === "trainer" && (
                 <XMLDownloadButton
-                    route="/xml/sessions"
+                    route="/xml/session"
                     authenticationKey={
                         localStorage.getItem("auth-key") || ""
                     }
-                    filename="my-sessions.xml"
+                    filename="sessions.xml"
                     className="btn btn-outline self-stretch"
                 >
                     Export My Sessions (XML)
@@ -232,11 +232,11 @@ function ProfileView() {
             {/* MEMBER XML */}
             {user.role === "member" && (
                 <XMLDownloadButton
-                    route="/bookings/xml"
+                    route="/booking/xml"
                     authenticationKey={
                         localStorage.getItem("auth-key") || ""
                     }
-                    filename="my-bookings.xml"
+                    filename="members.xml"
                     className="btn btn-outline self-stretch"
                 >
                     Export My Bookings (XML)

@@ -12,9 +12,9 @@ export class ApiBookingsController {
 
     this.routes.post("/", this.createBooking);
 
-    this.routes.get("/", this.getUserBookings);
+    this.routes.get("/", this.getBookings);
 
-    this.routes.get("/xml", this.getMemberBookingXML);
+    this.routes.get("/xml", this.handleExportBookingsXML);
 
     this.routes.delete("/:id", this.deleteBooking);
   }
@@ -130,7 +130,7 @@ export class ApiBookingsController {
    *       500:
    *         $ref: "#/components/responses/Error"
    */
-  static async getUserBookings(req, res) {
+  static async getBookings(req, res) {
     try {
       if (!req.authenticatedUser) {
         return res.status(401).json({
@@ -223,28 +223,55 @@ export class ApiBookingsController {
   }
 
   /**
-   * Export bookings as XML
-   *
    * @openapi
    * /api/booking/xml:
    *   get:
-   *     summary: Export bookings to XML
-   *     tags: [Bookings]
+   *     summary: Export member bookings in XML format
+   *     description: Exports the authenticated member's bookings in XML 1.0 format.
+   *     tags:
+   *       - XML
    *     security:
    *       - ApiKey: []
    *     responses:
-   *       200:
-   *         description: XML export of bookings
+   *       '200':
+   *         description: Successfully exported member bookings in XML format
    *         content:
-   *           text/xml:
+   *           application/xml:
    *             schema:
    *               type: string
-   *       401:
+   *             example: |
+   *               <?xml version="1.0" encoding="UTF-8"?>
+   *               <!DOCTYPE bookings [
+   *                 <!ELEMENT bookings (booking*)>
+   *                 <!ATTLIST bookings export-date CDATA "0000-00-00">
+   *                 <!ELEMENT booking (id, activity, location, date, start_time, end_time, trainer)>
+   *                 <!ELEMENT id (#PCDATA)>
+   *                 <!ELEMENT activity (#PCDATA)>
+   *                 <!ELEMENT location (#PCDATA)>
+   *                 <!ELEMENT date (#PCDATA)>
+   *                 <!ELEMENT start_time (#PCDATA)>
+   *                 <!ELEMENT end_time (#PCDATA)>
+   *                 <!ELEMENT trainer (#PCDATA)>
+   *               ]>
+   *               <bookings export-date="2026-10-02">
+   *                 <booking>
+   *                   <id>52</id>
+   *                   <activity>Yoga</activity>
+   *                   <location>Westlake</location>
+   *                   <date>2026-06-06</date>
+   *                   <start_time>09:58</start_time>
+   *                   <end_time>11:58</end_time>
+   *                   <trainer>Yesterianus Kaladana</trainer>
+   *                 </booking>
+   *               </bookings>
+   *       '401':
    *         $ref: "#/components/responses/Unauthorized"
-   *       500:
+   *       '403':
+   *         $ref: "#/components/responses/Forbidden"
+   *       '500':
    *         $ref: "#/components/responses/Error"
    */
-  static async getMemberBookingXML(req, res) {
+  static async handleExportBookingsXML(req, res) {
     try {
       if (!req.authenticatedUser) {
         return res.status(401).json({

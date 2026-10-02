@@ -7,7 +7,6 @@ import { ApiSessionsController } from "./ApiSessionsController.mjs";
 import { ApiUserController } from "./ApiUserController.mjs";
 import { ApiPostController } from "./ApiPostController.mjs";
 import { ApiBookingsController } from "./ApiBookingsController.mjs";
-import { ApiXMLController } from "./ApiXMLController.mjs";
 
 // Swagger/OpenAPI specification options
 const options = {
@@ -79,6 +78,5 @@ export class ApiController {
     this.routes.use("/post", ApiPostController.routes);
     this.routes.use("/user", ApiUserController.routes);
     this.routes.use("/booking", ApiBookingsController.routes);
-    this.routes.use("/xml", ApiXMLController.routes);
   }
 }
