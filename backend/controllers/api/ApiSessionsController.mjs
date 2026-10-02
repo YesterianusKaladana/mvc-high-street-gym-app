@@ -18,7 +18,7 @@ export class ApiSessionsController {
    * Get all sessions with full details
    *
    * @openapi
-   * /api/session/xml:
+   * /api/session:
    *   get:
    *     summary: Get all sessions
    *     description: Returns all gym sessions with activity, location, trainer and capacity information.

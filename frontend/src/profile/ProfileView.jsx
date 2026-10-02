@@ -218,7 +218,7 @@ function ProfileView() {
             {/* TRAINER XML */}
             {user.role === "trainer" && (
                 <XMLDownloadButton
-                    route="/xml/session"
+                    route="/session/xml"
                     authenticationKey={
                         localStorage.getItem("auth-key") || ""
                     }
