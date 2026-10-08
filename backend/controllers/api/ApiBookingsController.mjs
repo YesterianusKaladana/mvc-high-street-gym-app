@@ -83,12 +83,20 @@ export class ApiBookingsController {
         });
       }
 
-      const booking = new BookingModel(
-        null,
-        req.body.sessionId,
-        new Date(),
-        req.authenticatedUser.id,
-      );
+      const sessionId = Number(req.body.sessionId);
+      const userId = req.authenticatedUser.id;
+
+      // Check if the user has already booked this session
+      const existingBooking = await BookingModel.find(userId, sessionId);
+
+      if (existingBooking) {
+        return res.status(400).json({
+          message:
+            "You have already booked this session. No duplicate bookings are allowed.",
+        });
+      }
+
+      const booking = new BookingModel(null, sessionId, new Date(), userId);
 
       const result = await BookingModel.create(booking);
 

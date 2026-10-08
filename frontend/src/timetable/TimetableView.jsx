@@ -13,7 +13,7 @@ function TimetableView() {
 
     const isLoggedIn = Boolean(localStorage.getItem("auth-key"));
 
-    //Redirect trainer away from member timetable
+    // Redirect trainer away from member timetable
     useEffect(() => {
         if (user?.role === "trainer") {
             navigate("/session", {
@@ -51,6 +51,10 @@ function TimetableView() {
         getSessions();
     }, [getSessions]);
 
+    const [selectedSession, setSelectedSession] = useState(null);
+    const [isBooking, setIsBooking] = useState(false);
+    const [bookingError, setBookingError] = useState(null);
+
     const handleConfirm = (session) => {
         const authKey = localStorage.getItem("auth-key");
 
@@ -59,14 +63,13 @@ function TimetableView() {
             return;
         }
 
+        setBookingError(null);
         setSelectedSession(session);
     };
 
-    const [selectedSession, setSelectedSession] = useState(null);
-    const [isBooking, setIsBooking] = useState(false);
-
     const handleCancel = () => {
         setSelectedSession(null);
+        setBookingError(null);
     };
 
     const handleBookSession = () => {
@@ -82,6 +85,7 @@ function TimetableView() {
         }
 
         setIsBooking(true);
+        setBookingError(null);
 
         fetchAPI(
             "POST",
@@ -96,11 +100,14 @@ function TimetableView() {
                     setSelectedSession(null);
                     navigate("/booking");
                 } else {
-                    setError(response.body.message);
+                    setBookingError(
+                        response.body?.message ||
+                        "Failed to book session"
+                    );
                 }
             })
             .catch((error) => {
-                setError(error.message || String(error));
+                setBookingError(error.message || String(error));
             })
             .finally(() => {
                 setIsBooking(false);
@@ -119,13 +126,20 @@ function TimetableView() {
                     placeholder="search sessions"
                 />
 
-                <button onClick={() => getSessions()} className="btn join-item">
+                <button
+                    onClick={() => getSessions()}
+                    className="btn join-item"
+                >
                     <FaSearch />
                 </button>
             </div>
 
             {/* ERROR */}
-            {error && <span className="p-4 self-center text-red-500">{error}</span>}
+            {error && (
+                <span className="p-4 self-center text-red-500">
+                    {error}
+                </span>
+            )}
 
             {/* SESSIONS */}
             {!error && sessions.length == 0 ? (
@@ -133,9 +147,14 @@ function TimetableView() {
             ) : (
                 <ul className="list bg-base-100 self-stretch">
                     {sessions.map((session) => (
-                        <li key={session.session_id} className="list-row">
+                        <li
+                            key={session.session_id}
+                            className="list-row"
+                        >
                             <div>
-                                <div className="font-bold">{session.activity_name}</div>
+                                <div className="font-bold">
+                                    {session.activity_name}
+                                </div>
 
                                 <div className="text-xs uppercase font-semibold opacity-60">
                                     {session.location_name}
@@ -163,7 +182,9 @@ function TimetableView() {
                                     onClick={() => handleConfirm(session)}
                                     className="btn btn-primary btn-outline"
                                 >
-                                    {isLoggedIn ? "Book Session" : "Login to Book"}
+                                    {isLoggedIn
+                                        ? "Book Session"
+                                        : "Login to Book"}
                                 </button>
                             )}
                         </li>
@@ -175,19 +196,27 @@ function TimetableView() {
             {selectedSession && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
                     <div className="w-full max-w-[350px] rounded-2xl bg-base-100 p-5 shadow-xl">
-                        <h3 className="font-bold text-lg">Confirm Booking</h3>
+                        <h3 className="font-bold text-lg">
+                            Confirm Booking
+                        </h3>
 
-                        <p className="py-4">Are you sure you want to book this session?</p>
+                        <p className="py-4">
+                            Are you sure you want to book this session?
+                        </p>
 
                         <div className="py-2">
-                            <p className="font-bold">{selectedSession.activity_name}</p>
-
-                            <p className="text-sm opacity-70">
-                                {selectedSession.date} ({selectedSession.weekday})
+                            <p className="font-bold">
+                                {selectedSession.activity_name}
                             </p>
 
                             <p className="text-sm opacity-70">
-                                {selectedSession.start_time} - {selectedSession.end_time}
+                                {selectedSession.date} (
+                                {selectedSession.weekday})
+                            </p>
+
+                            <p className="text-sm opacity-70">
+                                {selectedSession.start_time} -{" "}
+                                {selectedSession.end_time}
                             </p>
 
                             <p className="text-sm opacity-70">
@@ -202,6 +231,13 @@ function TimetableView() {
                                 Capacity: {selectedSession.capacity} people
                             </p>
                         </div>
+
+                        {/* BOOKING ERROR */}
+                        {bookingError && (
+                            <p className="text-error font-semibold text-sm py-2">
+                                {bookingError}
+                            </p>
+                        )}
 
                         <div className="modal-action">
                             <button
