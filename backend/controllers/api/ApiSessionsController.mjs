@@ -11,6 +11,7 @@ export class ApiSessionsController {
     this.routes.get("/", this.getSessions);
     this.routes.get("/xml", this.handleExportSessionsXML);
     this.routes.get("/:id", this.getTrainerSessionsById);
+    this.routes.put("/:id", this.updateTrainerSessions);
     this.routes.delete("/:id", this.deleteTrainerSessions);
   }
 
@@ -171,6 +172,36 @@ export class ApiSessionsController {
       console.error(error);
       return res.status(500).json({
         message: "Failed to load trainer sessions",
+      });
+    }
+  }
+
+  static async updateTrainerSessions(req, res) {
+    try {
+      const { id } = req.params;
+      const {
+        activity_name,
+        location_name,
+        date,
+        start_time,
+        end_time,
+        capacity,
+      } = req.body;
+      await SessionModel.update(id, {
+        activity_name,
+        location_name,
+        date,
+        start_time,
+        end_time,
+        capacity,
+      });
+      return res.status(200).json({
+        message: "Session updated successfully",
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        message: "Failed to update session",
       });
     }
   }
