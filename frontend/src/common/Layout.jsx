@@ -1,9 +1,7 @@
-import { useEffect } from "react";
 import { FaDumbbell, FaCalendarAlt, FaBlog, FaUser } from "react-icons/fa";
 import { TbLogout, TbLogin } from "react-icons/tb";
 import { Outlet, useNavigate, useLocation } from "react-router";
 import { useAuthenticate } from "../authentication/UseAuthenticate";
-
 
 function Layout() {
     const navigate = useNavigate();
@@ -24,12 +22,14 @@ function Layout() {
 
     return (
         <main className="max-w-[430px] min-h-screen mx-auto shadow">
+
             <header>
                 <div className="navbar justify-between bg-base-100 shadow-sm">
                     <button className="btn btn-ghost text-lg">
                         <FaDumbbell />
                         HSG
                     </button>
+
                     {user ? (
                         <button
                             onClick={handleLogout}
@@ -49,20 +49,40 @@ function Layout() {
             </header>
 
             {/* Page content */}
-            <Outlet />
+            <div className="pb-24">
+                <Outlet />
+            </div>
 
             {/* Bottom dock nav */}
-            <nav className="dock max-w-[430px] mx-auto gap-2.5">
-                <button onClick={() => navigate("/timetable")}
-                    className={location.pathname === "/timetable" || location.pathname === "/" ? "dock-active" : ""}>
+            <nav className="dock fixed bottom-0 left-1/2 -translate-x-1/2 max-w-[430px] w-full gap-2.5">
+
+                <button
+                    onClick={() => navigate("/timetable")}
+                    className={
+                        location.pathname === "/timetable" ||
+                            location.pathname === "/"
+                            ? "dock-active"
+                            : ""
+                    }
+                >
                     <FaCalendarAlt className="text-2xl" />
-                    <span className="dock-label">{timetableLabel}</span>
+                    <span className="dock-label">
+                        {timetableLabel}
+                    </span>
                 </button>
 
-                <button onClick={() => navigate("/blog")}
-                    className={location.pathname.startsWith("/blog") ? "dock-active" : ""}>
+                <button
+                    onClick={() => navigate("/blog")}
+                    className={
+                        location.pathname.startsWith("/blog")
+                            ? "dock-active"
+                            : ""
+                    }
+                >
                     <FaBlog className="text-2xl" />
-                    <span className="dock-label">Blog</span>
+                    <span className="dock-label">
+                        Blog
+                    </span>
                 </button>
 
                 {/* Bookings — hidden for trainers entirely */}
@@ -70,21 +90,37 @@ function Layout() {
                     <button
                         disabled={!isMember}
                         onClick={() => navigate("/booking")}
-                        className={location.pathname.startsWith("/booking") ? "dock-active" : ""}>
+                        className={
+                            location.pathname.startsWith("/booking")
+                                ? "dock-active"
+                                : ""
+                        }
+                    >
                         <FaDumbbell className="text-2xl" />
-                        <span className="dock-label">Bookings</span>
+                        <span className="dock-label">
+                            Bookings
+                        </span>
                     </button>
                 )}
 
-                <button disabled={!user} onClick={() => navigate("/user/self")}
-                    className={location.pathname.startsWith("/user/self") ? "dock-active" : ""}>
+                <button
+                    disabled={!user}
+                    onClick={() => navigate("/user/self")}
+                    className={
+                        location.pathname.startsWith("/user/self")
+                            ? "dock-active"
+                            : ""
+                    }
+                >
                     <FaUser className="text-2xl" />
-                    <span className="dock-label">Profile</span>
+                    <span className="dock-label">
+                        Profile
+                    </span>
                 </button>
+
             </nav>
 
         </main>
-
     );
 }
 

@@ -206,7 +206,7 @@ function ProfileView() {
             <button
                 disabled={loading}
                 onClick={submitUpdate}
-                className="btn btn-primary btn-xl self-stretch"
+                className="btn btn-primary self-stretch"
             >
                 Update Profile
 
@@ -225,7 +225,7 @@ function ProfileView() {
                     filename="sessions.xml"
                     className="btn btn-outline self-stretch"
                 >
-                    Export My Sessions (XML)
+                    Export Sessions (XML)
                 </XMLDownloadButton>
             )}
 
@@ -239,7 +239,7 @@ function ProfileView() {
                     filename="members.xml"
                     className="btn btn-outline self-stretch"
                 >
-                    Export My Bookings (XML)
+                    Export Bookings (XML)
                 </XMLDownloadButton>
             )}
 

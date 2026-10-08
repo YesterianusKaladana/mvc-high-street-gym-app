@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useCallback } from "react";
 import { fetchAPI } from "../api.mjs";
 import { MdDelete } from "react-icons/md";
@@ -179,24 +180,29 @@ function BlogView() {
     };
 
     return (
-        <section className="flex flex-col items-center p-4 gap-4">
+        <section className="flex flex-col items-center gap-4 p-4">
 
             {/* Navigation */}
-            <div className="navbar justify-between bg-base-100 shadow-sm">
-                <h1 className=" font-bold text-l"> Posts</h1>
-                <button
-                    type="button"
-                    className="btn btn-ghost text-xl"
-                    onClick={openCreatePost}
-                    disabled={!isLoggedIn}
-                >
-                    Create
-                </button>
+            <div className="navbar w-full max-w-4xl rounded-xl bg-base-100 px-5 shadow-sm">
+                <h1 className="text-lg font-bold">
+                    Posts
+                </h1>
+
+                <div className="ml-auto">
+                    <button
+                        type="button"
+                        className="btn btn-primary btn-sm"
+                        onClick={openCreatePost}
+                        disabled={!isLoggedIn}
+                    >
+                        New Post
+                    </button>
+                </div>
             </div>
 
             {/* Status */}
             {status && (
-                <span className="text-error self-start">
+                <span className="w-full max-w-4xl text-error">
                     {status}
                 </span>
             )}
@@ -207,42 +213,53 @@ function BlogView() {
             )}
 
             {/* Blog post list */}
-            <ul className="list self-stretch">
+            <ul className="w-full max-w-4xl space-y-4">
                 {posts.map((post) => (
                     <li
                         key={post.id}
-                        className="flex flex-col gap-2 p-4 border-b border-base-200"
+                        className="rounded-xl border border-base-200 bg-base-100 p-5 shadow-sm"
                     >
-                        <div className="flex justify-between w-full items-start gap-4">
-                            <span className="font-semibold text-base">
-                                {post.title}
-                            </span>
+                        {/* Post header */}
+                        <div className="flex items-start justify-between gap-4 border-b border-base-200 pb-3">
+                            <div className="min-w-0">
+                                <h2 className="break-words text-lg font-bold">
+                                    {post.title}
+                                </h2>
+
+                                <span className="mt-1 block text-xs opacity-50">
+                                    {new Date(
+                                        post.created_at
+                                    ).toLocaleDateString("en-AU", {
+                                        day: "2-digit",
+                                        month: "short",
+                                        year: "numeric",
+                                    })}
+                                </span>
+                            </div>
 
                             {isLoggedIn && (
                                 <button
                                     type="button"
-                                    onClick={() => askDeletePost(post.id)}
-                                    className="btn btn-ghost"
+                                    onClick={() =>
+                                        askDeletePost(post.id)
+                                    }
+                                    className="btn btn-ghost btn-sm shrink-0 text-error"
                                 >
                                     <MdDelete />
-                                    Delete
+
+                                    <span className="hidden sm:inline">
+                                        Delete
+                                    </span>
                                 </button>
                             )}
                         </div>
 
-                        <p className="text-sm text-base-content leading-relaxed break-words overflow-hidden w-full">
-                            {post.content}
-                        </p>
-
-                        <span className="text-xs opacity-50">
-                            {new Date(
-                                post.created_at
-                            ).toLocaleDateString("en-AU", {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                            })}
-                        </span>
+                        {/* Post content */}
+                        <div className="pt-4">
+                            <p className="whitespace-pre-line break-words text-sm leading-7">
+                                {post.content}
+                            </p>
+                        </div>
                     </li>
                 ))}
             </ul>
@@ -252,7 +269,7 @@ function BlogView() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
                     <div className="w-full max-w-[350px] rounded-2xl bg-base-100 p-5 shadow-xl">
 
-                        <h3 className="font-bold text-lg">
+                        <h3 className="text-lg font-bold">
                             Create Blog Post
                         </h3>
 
@@ -267,7 +284,9 @@ function BlogView() {
                             <input
                                 type="text"
                                 value={title}
-                                onChange={(e) => setTitle(e.target.value)}
+                                onChange={(e) =>
+                                    setTitle(e.target.value)
+                                }
                                 placeholder="Enter post title"
                                 className="input input-bordered w-full"
                                 disabled={isCreating}
@@ -284,9 +303,11 @@ function BlogView() {
 
                             <textarea
                                 value={content}
-                                onChange={(e) => setContent(e.target.value)}
+                                onChange={(e) =>
+                                    setContent(e.target.value)
+                                }
                                 placeholder="Write your post..."
-                                className="textarea textarea-bordered w-full h-40"
+                                className="textarea textarea-bordered h-40 w-full"
                                 disabled={isCreating}
                             />
                         </div>
@@ -296,7 +317,9 @@ function BlogView() {
 
                             <button
                                 type="button"
-                                onClick={() => setShowCreate(false)}
+                                onClick={() =>
+                                    setShowCreate(false)
+                                }
                                 className="btn btn-ghost"
                                 disabled={isCreating}
                             >
@@ -335,7 +358,7 @@ function BlogView() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
                     <div className="w-full max-w-[350px] rounded-2xl bg-base-100 p-5 shadow-xl">
 
-                        <h3 className="font-bold text-lg">
+                        <h3 className="text-lg font-bold">
                             Delete Blog Post
                         </h3>
 
@@ -344,11 +367,13 @@ function BlogView() {
                             This cannot be undone.
                         </p>
 
-                        <div className="modal-action">
+                        <div className="modal-action flex justify-end gap-2">
 
                             <button
                                 type="button"
-                                onClick={() => setConfirmDelete(null)}
+                                onClick={() =>
+                                    setConfirmDelete(null)
+                                }
                                 className="btn btn-ghost"
                             >
                                 Cancel
@@ -359,6 +384,7 @@ function BlogView() {
                                 onClick={confirmDeletePost}
                                 className="btn btn-error"
                             >
+                                <MdDelete />
                                 Delete
                             </button>
 
@@ -367,7 +393,9 @@ function BlogView() {
 
                     <div
                         className="modal-backdrop"
-                        onClick={() => setConfirmDelete(null)}
+                        onClick={() =>
+                            setConfirmDelete(null)
+                        }
                     />
                 </div>
             )}
