@@ -82,6 +82,5 @@ export class ApiController {
     this.routes.use("/booking", ApiBookingsController.routes);
     this.routes.use("/activity", ApiActivityController.routes);
     this.routes.use("/location", ApiLocationController.routes);
-
   }
 }
