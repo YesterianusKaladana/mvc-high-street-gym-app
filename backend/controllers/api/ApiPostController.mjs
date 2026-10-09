@@ -1,5 +1,4 @@
 import express from "express";
-
 import { ApiAuthenticationController } from "./ApiAuthenticationController.mjs";
 import { PostModel } from "../../models/PostModel.mjs";
 
