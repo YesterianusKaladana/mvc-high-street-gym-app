@@ -1,3 +1,4 @@
+
 import { FaDumbbell, FaCalendarAlt, FaBlog, FaUser } from "react-icons/fa";
 import { TbLogout, TbLogin } from "react-icons/tb";
 import { Outlet, useNavigate, useLocation } from "react-router";
@@ -14,33 +15,46 @@ function Layout() {
         navigate("/login");
     };
 
-    const isTrainer = user && user.role === "trainer";
-    const isMember = user && user.role === "member";
+    const isTrainer = user?.role === "trainer";
+    const isMember = user?.role === "member";
 
-    // Timetable label changes to "My Sessions" for trainers
+    // Change the timetable label for trainers
     const timetableLabel = isTrainer ? "My Sessions" : "Timetable";
+
+    // Check whether the timetable dock item is active
+    const isTimetableActive = isTrainer
+        ? location.pathname === "/session"
+        : location.pathname === "/timetable" ||
+        location.pathname === "/";
 
     return (
         <main className="max-w-[430px] min-h-screen mx-auto shadow">
-
             <header>
                 <div className="navbar justify-between bg-base-100 shadow-sm">
-                    <button className="btn btn-ghost text-lg">
+                    <button
+                        type="button"
+                        onClick={() => navigate("/")}
+                        className="btn btn-ghost text-lg"
+                    >
                         <FaDumbbell />
                         HSG
                     </button>
 
                     {user ? (
                         <button
+                            type="button"
                             onClick={handleLogout}
                             className="btn btn-ghost text-lg text-error"
+                            aria-label="Logout"
                         >
                             <TbLogout />
                         </button>
                     ) : (
                         <button
+                            type="button"
                             onClick={() => navigate("/login")}
                             className="btn btn-ghost text-lg text-success"
+                            aria-label="Login"
                         >
                             <TbLogin />
                         </button>
@@ -53,17 +67,15 @@ function Layout() {
                 <Outlet />
             </div>
 
-            {/* Bottom dock nav */}
-            <nav className="dock fixed bottom-0 left-1/2 -translate-x-1/2 max-w-[430px] w-full gap-2.5">
-
+            {/* Bottom dock navigation */}
+            <nav className="dock fixed bottom-0 left-1/2 z-50 w-full max-w-[430px] -translate-x-1/2 gap-2.5">
                 <button
-                    onClick={() => navigate("/timetable")}
-                    className={
-                        location.pathname === "/timetable" ||
-                            location.pathname === "/"
-                            ? "dock-active"
-                            : ""
+                    type="button"
+                    onClick={() =>
+                        navigate(isTrainer ? "/session" : "/timetable")
                     }
+                    className={isTimetableActive ? "dock-active" : ""}
+                    aria-current={isTimetableActive ? "page" : undefined}
                 >
                     <FaCalendarAlt className="text-2xl" />
                     <span className="dock-label">
@@ -72,22 +84,27 @@ function Layout() {
                 </button>
 
                 <button
+                    type="button"
                     onClick={() => navigate("/blog")}
                     className={
                         location.pathname.startsWith("/blog")
                             ? "dock-active"
                             : ""
                     }
+                    aria-current={
+                        location.pathname.startsWith("/blog")
+                            ? "page"
+                            : undefined
+                    }
                 >
                     <FaBlog className="text-2xl" />
-                    <span className="dock-label">
-                        Blog
-                    </span>
+                    <span className="dock-label">Blog</span>
                 </button>
 
-                {/* Bookings — hidden for trainers entirely */}
+                {/* Bookings are hidden for trainers */}
                 {!isTrainer && (
                     <button
+                        type="button"
                         disabled={!isMember}
                         onClick={() => navigate("/booking")}
                         className={
@@ -95,15 +112,19 @@ function Layout() {
                                 ? "dock-active"
                                 : ""
                         }
+                        aria-current={
+                            location.pathname.startsWith("/booking")
+                                ? "page"
+                                : undefined
+                        }
                     >
                         <FaDumbbell className="text-2xl" />
-                        <span className="dock-label">
-                            Bookings
-                        </span>
+                        <span className="dock-label">Bookings</span>
                     </button>
                 )}
 
                 <button
+                    type="button"
                     disabled={!user}
                     onClick={() => navigate("/user/self")}
                     className={
@@ -111,15 +132,16 @@ function Layout() {
                             ? "dock-active"
                             : ""
                     }
+                    aria-current={
+                        location.pathname.startsWith("/user/self")
+                            ? "page"
+                            : undefined
+                    }
                 >
                     <FaUser className="text-2xl" />
-                    <span className="dock-label">
-                        Profile
-                    </span>
+                    <span className="dock-label">Profile</span>
                 </button>
-
             </nav>
-
         </main>
     );
 }
