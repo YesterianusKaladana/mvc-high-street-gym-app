@@ -90,6 +90,8 @@ function MySessionsView() {
 
   // Close edit form
   const handleCancelEdit = () => {
+    if (isSaving) return;
+
     setEditingSession(null);
     setError(null);
   };
@@ -251,7 +253,7 @@ function MySessionsView() {
         </button>
       </form>
 
-      {/* Mobile Session Cards */}
+      {/* Session Cards */}
       <div className="flex w-full min-w-0 flex-col gap-4">
         {isLoading && (
           <div className="flex justify-center rounded-xl bg-base-100 p-8 shadow-sm">
@@ -271,18 +273,22 @@ function MySessionsView() {
               key={session.session_id}
               className="w-full min-w-0 rounded-xl border border-base-200 bg-base-100 p-4 shadow-sm"
             >
-              {/* Activity */}
-              <div className="mb-4 border-b border-base-200 pb-3">
-                <h2 className="break-words text-lg font-bold">
-                  {session.activity_name || "Not set"}
-                </h2>
-                <p className="mt-1 break-words text-sm text-base-content/60">
-                  {session.location_name || "Not set"}
-                </p>
-              </div>
-
-              {/* Details */}
+              {/* Session Details */}
               <div className="grid grid-cols-2 gap-x-3 gap-y-4 text-sm">
+                <div className="min-w-0">
+                  <p className="text-xs text-base-content/60">Activity Name</p>
+                  <p className="mt-1 break-words font-medium">
+                    {session.activity_name || "N/A"}
+                  </p>
+                </div>
+
+                <div className="min-w-0">
+                  <p className="text-xs text-base-content/60">Location Name</p>
+                  <p className="mt-1 break-words font-medium">
+                    {session.location_name || "N/A"}
+                  </p>
+                </div>
+
                 <div className="min-w-0">
                   <p className="text-xs text-base-content/60">Date</p>
                   <p className="mt-1 break-words font-medium">
@@ -292,7 +298,7 @@ function MySessionsView() {
 
                 <div className="min-w-0">
                   <p className="text-xs text-base-content/60">Capacity</p>
-                  <p className="mt-1 font-medium">
+                  <p className="mt-1 break-words font-medium">
                     {session.capacity ?? "Not set"}
                   </p>
                 </div>
@@ -342,13 +348,14 @@ function MySessionsView() {
             aria-modal="true"
             aria-labelledby="edit-session-title"
           >
+            {/* Modal Header */}
             <div className="mb-5 flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h2 id="edit-session-title" className="text-xl font-bold">
                   Edit Session
                 </h2>
-                <p className="mt-1 break-words text-sm text-base-content/60">
-                  {editingSession.activity_name || "Session"}
+                <p className="mt-1 text-sm text-base-content/60">
+                  Update your training session details.
                 </p>
               </div>
 
@@ -363,6 +370,24 @@ function MySessionsView() {
               </button>
             </div>
 
+            {/* Session Information */}
+            <div className="mb-5 grid grid-cols-2 gap-x-3 gap-y-4 border-b border-base-200 pb-4 text-sm">
+              <div className="min-w-0">
+                <p className="text-xs text-base-content/60">Activity Name</p>
+                <p className="mt-1 break-words font-medium">
+                  {editingSession.activity_name || "N/A"}
+                </p>
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-xs text-base-content/60">Location Name</p>
+                <p className="mt-1 break-words font-medium">
+                  {editingSession.location_name || "N/A"}
+                </p>
+              </div>
+            </div>
+
+            {/* Edit Form */}
             <form onSubmit={handleSaveEdit} className="flex flex-col gap-4">
               <div>
                 <label
@@ -451,7 +476,7 @@ function MySessionsView() {
                       Saving...
                     </>
                   ) : (
-                    <>Save</>
+                    "Save"
                   )}
                 </button>
 
