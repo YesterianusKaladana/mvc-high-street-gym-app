@@ -183,19 +183,15 @@ function BlogView() {
         <section className="flex flex-col items-center gap-4 p-4">
 
             {/* Navigation */}
-            <div className="navbar w-full max-w-4xl rounded-xl bg-base-100 px-5 shadow-sm">
-                <h1 className="text-lg font-bold">
-                    Posts
-                </h1>
-
-                <div className="ml-auto">
+            <div className="flex w-full max-w-4xl justify-start">
+                <div>
                     <button
                         type="button"
                         className="btn btn-primary btn-sm"
                         onClick={openCreatePost}
                         disabled={!isLoggedIn}
                     >
-                        New Post
+                        Create New Post
                     </button>
                 </div>
             </div>
@@ -335,10 +331,9 @@ function BlogView() {
                                 {isCreating ? (
                                     <span className="loading loading-spinner" />
                                 ) : (
-                                    "Create Post"
+                                    "Create"
                                 )}
                             </button>
-
                         </div>
                     </div>
 

@@ -190,12 +190,16 @@ function MySessionsView() {
   return (
     <section className="mx-auto flex w-full min-w-0 flex-col gap-4 p-3">
       {/* Header */}
-      <header className="w-full rounded-xl bg-base-100 p-4 shadow-sm">
-        <h1 className="text-xl font-bold">My Sessions</h1>
-        <p className="mt-1 text-sm text-base-content/60">
-          View and manage your training schedule.
-        </p>
-      </header>
+      <div className="flex w-full max-w-4xl justify-start">
+        <div >
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+          >
+            Create New Session
+          </button>
+        </div>
+      </div>
 
       {/* Error Message */}
       {error && (
