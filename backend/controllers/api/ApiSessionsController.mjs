@@ -9,6 +9,7 @@ export class ApiSessionsController {
   static {
     this.routes.use(ApiAuthenticationController.middleware);
     this.routes.get("/", this.getSessions);
+    this.routes.post("/", this.createTrainerSession);
     this.routes.get("/xml", this.handleExportSessionsXML);
     this.routes.get("/:id", this.getTrainerSessionsById);
     this.routes.put("/:id", this.updateTrainerSessions);
@@ -87,6 +88,41 @@ export class ApiSessionsController {
       return res.status(500).json({
         message: "Failed to load sessions from database",
         error: err.message,
+      });
+    }
+  }
+
+  /**
+   *
+   * Creates a new session in the database from trainer session management page.
+   */
+  static async createTrainerSession(req, res) {
+    try {
+      const {
+        user_id,
+        activity_id,
+        location_id,
+        date,
+        start_time,
+        end_time,
+        capacity,
+      } = req.body;
+
+      const newSession = await SessionModel.create({
+        user_id,
+        activity_id,
+        location_id,
+        date,
+        start_time,
+        end_time,
+        capacity,
+      });
+      return res.status(201).json(newSession);
+    } catch (error) {
+      console.error("SESSION ERROR:", error);
+      return res.status(500).json({
+        message: "Failed to create session",
+        error: error.message,
       });
     }
   }

@@ -180,11 +180,11 @@ export class SessionModel extends DatabaseModel {
   }
 
   /**
- * Soft deletes a session (marks as deleted)
- *
- * @param {number} id
- * @returns {Promise<any>}
- */
+   * Soft deletes a session (marks as deleted)
+   *
+   * @param {number} id
+   * @returns {Promise<any>}
+   */
   static async delete(id) {
     return this.query(
       `

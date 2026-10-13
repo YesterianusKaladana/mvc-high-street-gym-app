@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { FaSearch, FaTimes } from "react-icons/fa";
+import { FaSearch, FaTimes, FaPlus } from "react-icons/fa";
 import { fetchAPI } from "../api.mjs";
 
 function MySessionsView() {
@@ -196,6 +196,7 @@ function MySessionsView() {
             type="button"
             className="btn btn-primary btn-sm"
           >
+            <FaPlus />
             Create New Session
           </button>
         </div>
