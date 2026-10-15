@@ -289,7 +289,9 @@ export class ApiBookingsController {
 
       const exportDate = DatabaseModel.toMySqlDate(new Date());
 
-      const bookings = await BookingModel.getByUserId(req.authenticatedUser.id);
+      const bookings = await BookingActivityModel.getByMember(
+        req.authenticatedUser.id,
+      );
 
       return res
         .status(200)
