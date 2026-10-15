@@ -61,7 +61,10 @@ export class BookingActivityModel extends DatabaseModel {
 
       trainer_name: `${row.user.first_name} ${row.user.last_name}`.trim(),
 
-      date: row.session.date,
+      date:
+        row.session.date instanceof Date
+          ? row.session.date.toISOString().slice("0", "10")
+          : String(row.session.date).slice(0, 10),
       start_time: row.session.start_time?.substring(0, 5),
       end_time: row.session.end_time?.substring(0, 5),
     }));
