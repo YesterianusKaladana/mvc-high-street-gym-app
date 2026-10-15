@@ -287,7 +287,7 @@ export class ApiBookingsController {
         });
       }
 
-      const date = DatabaseModel.toMySqlDate(new Date());
+      const exportDate = DatabaseModel.toMySqlDate(new Date());
 
       const bookings = await BookingModel.getByUserId(req.authenticatedUser.id);
 
@@ -296,13 +296,13 @@ export class ApiBookingsController {
         .contentType("text/xml")
         .render("xml/members.xml.ejs", {
           bookings,
-          date,
+          exportDate,
         });
     } catch (error) {
       console.error(error);
 
       return res.status(500).json({
-        message: "Failed to export bookings",
+        message: "Failed to export XML bookings",
       });
     }
   }

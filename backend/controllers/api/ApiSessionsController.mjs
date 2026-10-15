@@ -192,7 +192,7 @@ export class ApiSessionsController {
     } catch (error) {
       console.error(error);
       return res.status(500).json({
-        message: "Failed to generate XML",
+        message: "Failed to generate XML sessions",
       });
     }
   }
