@@ -71,6 +71,8 @@ export class ApiSessionsController {
 
         return {
           session_id: item.session_id,
+          activity_id: item.activity_id,
+          location_id: item.location_id,
           activity_name: item.activity_name,
           location_name: item.location_name,
           trainer_name: item.trainer_name,

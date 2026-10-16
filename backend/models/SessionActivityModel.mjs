@@ -113,36 +113,31 @@ export class SessionActivityModel extends DatabaseModel {
   /**
    * Retrieves all sessions with extended formatted details
    *
-   *
+   * @param {string} filter - Optional filter for searching sessions
    * @returns {Promise<Array>}
    */
+
   static async getAllWithDetails(filter = "") {
     let query = `
       SELECT
-        session.id AS session_id,
+        session.id,
+        session.activity_id,
+        session.location_id,
         session.date,
         session.start_time,
         session.end_time,
         session.capacity,
-
         user.first_name,
         user.last_name,
-
-        location.name AS location_name,
-
-        activity.name AS activity_name
-
+        location.name,
+        activity.name
       FROM session
-
       INNER JOIN user
         ON session.user_id = user.id
-
       INNER JOIN location
         ON session.location_id = location.id
-
       INNER JOIN activity
         ON session.activity_id = activity.id
-
       WHERE session.deleted = 0
     `;
 
@@ -157,34 +152,24 @@ export class SessionActivityModel extends DatabaseModel {
         )
       `;
 
-      const search = `%${filter}%`;
-
+      const search = `%${filter.trim()}%`;
       params.push(search, search, search);
     }
 
-    query += `
-      ORDER BY session.date DESC
-    `;
+    query += ` ORDER BY session.date DESC`;
 
     const rows = await this.query(query, params);
 
-    console.log("RAW ROWS:", JSON.stringify(rows));
-
     return rows.map((row) => ({
-      session_id: row.session.session_id,
-
-      activity_name: row.activity.activity_name,
-
-      location_name: row.location.location_name,
-
+      session_id: row.session.id,
+      activity_id: row.session.activity_id,
+      location_id: row.session.location_id,
+      activity_name: row.activity.name,
+      location_name: row.location.name,
       trainer_name: `${row.user.first_name} ${row.user.last_name}`,
-
       date: row.session.date,
-
       start_time: row.session.start_time?.substring(0, 5),
-
       end_time: row.session.end_time?.substring(0, 5),
-
       capacity: row.session.capacity,
     }));
   }
