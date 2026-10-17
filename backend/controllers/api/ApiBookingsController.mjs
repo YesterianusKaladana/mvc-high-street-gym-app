@@ -293,15 +293,54 @@ export class ApiBookingsController {
         req.authenticatedUser.id,
       );
 
-      return res
-        .status(200)
-        .contentType("text/xml")
-        .render("xml/members.xml.ejs", {
-          bookings,
-          exportDate,
-        });
+      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+      xml += `<!DOCTYPE bookings [
+      <!ELEMENT bookings (booking*)>
+      <!ATTLIST bookings export-date CDATA #IMPLIED>
+      <!ELEMENT booking (id, activity, location, date, start_time, end_time, trainer)>
+      <!ELEMENT id (#PCDATA)>
+      <!ELEMENT activity (#PCDATA)>
+      <!ELEMENT location (#PCDATA)>
+      <!ELEMENT date (#PCDATA)>
+      <!ELEMENT start_time (#PCDATA)>
+      <!ELEMENT end_time (#PCDATA)>
+      <!ELEMENT trainer (#PCDATA)>
+  ]>\n`;
+
+      xml += `<bookings export-date="${exportDate}">\n`;
+
+      const escapeXML = (value) =>
+        String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&apos;");
+
+      bookings.forEach((booking) => {
+        xml += `    <booking>
+          <id>${escapeXML(booking.id)}</id>
+          <activity>${escapeXML(booking.activity_name)}</activity>
+          <location>${escapeXML(booking.location_name)}</location>
+          <date>${escapeXML(booking.date)}</date>
+          <start_time>${escapeXML(booking.start_time)}</start_time>
+          <end_time>${escapeXML(booking.end_time)}</end_time>
+          <trainer>${escapeXML(booking.trainer_name)}</trainer>
+      </booking>
+  `;
+      });
+
+      xml += `</bookings>`;
+
+      res.setHeader("Content-Type", "application/xml; charset=UTF-8");
+      res.setHeader(
+        "Content-Disposition",
+        'attachment; filename="members.xml"',
+      );
+
+      return res.status(200).send(xml);
     } catch (error) {
-      console.error(error);
+      console.error("BOOKING XML ERROR:", error);
 
       return res.status(500).json({
         message: "Failed to export XML bookings",

@@ -1,26 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE bookings [
-    <!ELEMENT bookings (booking*)>
-    <!ATTLIST bookings export-date CDATA "0000-00-00">
-    <!ELEMENT booking (id, activity, location, date, start_time, end_time, trainer)>
-    <!ELEMENT id (#PCDATA)>
-    <!ELEMENT activity (#PCDATA)>
-    <!ELEMENT location (#PCDATA)>
-    <!ELEMENT date (#PCDATA)>
-    <!ELEMENT start_time (#PCDATA)>
-    <!ELEMENT end_time (#PCDATA)>
-    <!ELEMENT trainer (#PCDATA)>
+<!DOCTYPE bookings [ <!ELEMENT bookings (booking*)>
+<!ATTLIST bookings export-date CDATA #IMPLIED>
+<!ELEMENT booking (id, activity, location, date, start_time, end_time, trainer)>
+<!ELEMENT id (#PCDATA)>
+<!ELEMENT activity (#PCDATA)>
+<!ELEMENT location (#PCDATA)>
+<!ELEMENT date (#PCDATA)>
+<!ELEMENT start_time (#PCDATA)>
+<!ELEMENT end_time (#PCDATA)>
+<!ELEMENT trainer (#PCDATA)>
 ]>
-<bookings export-date="<%= exportDate %>">
-    <% for (const booking of bookings) { %>
-    <booking>
-        <id><%= booking.id %></id>
-        <activity><%= booking.activity_name %></activity>
-        <location><%= booking.location_name %></location>
-        <date><%= booking.date %></date>
-        <start_time><%= booking.start_time %></start_time>
-        <end_time><%= booking.end_time %></end_time>
-        <trainer><%= booking.trainer_name %></trainer>
-    </booking>
-    <% } %>
+<bookings export-date="2026-10-17">
+  <booking>
+    <id>52</id>
+    <activity>Yoga</activity>
+    <location>Westlake</location>
+    <date>2026-06-06</date>
+    <start_time>09:58</start_time>
+    <end_time>11:58</end_time>
+    <trainer>Yesterianus Kaladana</trainer>
+  </booking>
 </bookings>

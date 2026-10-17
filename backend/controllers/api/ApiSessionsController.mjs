@@ -169,9 +169,11 @@ export class ApiSessionsController {
    */
   static async handleExportSessionsXML(req, res) {
     try {
+      const exportDate = new Date().toISOString().slice(0, 10);
+
       const sessions = await SessionActivityModel.getAllWithDetails();
 
-      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<sessions>\n`;
+      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<sessions export-date="${exportDate}">\n`;
 
       sessions.forEach((s) => {
         xml += `
@@ -180,7 +182,7 @@ export class ApiSessionsController {
             <activity_name>${s.activity_name}</activity_name>
             <location_name>${s.location_name}</location_name>
             <trainer_name>${s.trainer_name}</trainer_name>
-            <date>${s.date}</date>
+            <date>${String(s.date).slice(0, 10)}</date>
             <start_time>${s.start_time}</start_time>
             <end_time>${s.end_time}</end_time>
             <capacity>${s.capacity}</capacity>
