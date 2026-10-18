@@ -1,9 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
-import { FaSearch, FaTimes, FaPlus } from "react-icons/fa";
+
+import { useState, useEffect, useCallback } from "react";
+import { FaSearch, FaDumbbell, FaPlus, FaEdit, FaTrash, FaTimes } from "react-icons/fa";
 import { fetchAPI } from "../api.mjs";
 
 function MySessionsView() {
   const [sessions, setSessions] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [locations, setLocations] = useState([]);
   const [filter, setFilter] = useState("");
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -13,13 +16,15 @@ function MySessionsView() {
   const [isCreating, setIsCreating] = useState(false);
 
   const [editForm, setEditForm] = useState({
+    activity_id: "",
+    location_id: "",
     date: "",
     start_time: "",
     end_time: "",
     capacity: "",
   });
 
-  const getSessions = useCallback(async () => {
+  const getSessions = useCallback(async (searchFilter = "") => {
     const authKey = localStorage.getItem("auth-key");
 
     if (!authKey) {
@@ -33,32 +38,84 @@ function MySessionsView() {
     setError(null);
 
     try {
-      const query = filter.trim()
-        ? `?filter=${encodeURIComponent(filter.trim())}`
-        : "";
-
-      const response = await fetchAPI("GET", `/session${query}`, null, authKey);
+      const response = await fetchAPI("GET", "/session", null, authKey);
 
       if (response.status === 200) {
-        setSessions(Array.isArray(response.body) ? response.body : []);
+        const allSessions = Array.isArray(response.body) ? response.body : [];
+        const searchTerm = searchFilter.trim().toLowerCase();
+
+        const filteredSessions = searchTerm
+          ? allSessions.filter((session) =>
+            [
+              session.activity_name,
+              session.location_name,
+              session.trainer_name,
+              session.date,
+              session.start_time,
+              session.end_time,
+              session.capacity,
+            ].some((value) =>
+              String(value ?? "").toLowerCase().includes(searchTerm)
+            )
+          )
+          : allSessions;
+
+        setSessions(filteredSessions);
+
+        if (filteredSessions.length === 0) {
+          setError("No results found");
+        }
       } else {
         setSessions([]);
         setError(response.body?.message || "Failed to load sessions.");
       }
     } catch (err) {
+      setSessions([]);
       setError(
         typeof err === "string"
           ? err
-          : err.message || "Failed to load sessions.",
+          : err.message || "Failed to load sessions."
       );
     } finally {
       setIsLoading(false);
     }
-  }, [filter]);
+  }, []);
+
+  const getSessionOptions = useCallback(async () => {
+    const authKey = localStorage.getItem("auth-key");
+    if (!authKey) return;
+
+    try {
+      const [activityResponse, locationResponse] = await Promise.all([
+        fetchAPI("GET", "/activity", null, authKey),
+        fetchAPI("GET", "/location", null, authKey),
+      ]);
+
+      if (activityResponse.status === 200) {
+        setActivities(
+          Array.isArray(activityResponse.body) ? activityResponse.body : []
+        );
+      } else {
+        setError(activityResponse.body?.message || "Failed to load activities.");
+      }
+
+      if (locationResponse.status === 200) {
+        setLocations(
+          Array.isArray(locationResponse.body) ? locationResponse.body : []
+        );
+      } else {
+        setError(locationResponse.body?.message || "Failed to load locations.");
+      }
+    } catch (err) {
+      console.error("Failed to load session options:", err);
+      setError("Failed to load activities and locations.");
+    }
+  }, []);
 
   useEffect(() => {
     getSessions();
-  }, [getSessions]);
+    getSessionOptions();
+  }, [getSessions, getSessionOptions]);
 
   const handleEdit = (session) => {
     setError(null);
@@ -67,6 +124,8 @@ function MySessionsView() {
     setIsCreating(false);
 
     setEditForm({
+      activity_id: String(session.activity_id ?? ""),
+      location_id: String(session.location_id ?? ""),
       date: session.date ? String(session.date).substring(0, 10) : "",
       start_time: session.start_time
         ? String(session.start_time).substring(0, 5)
@@ -85,6 +144,8 @@ function MySessionsView() {
     setIsCreating(true);
 
     setEditForm({
+      activity_id: "",
+      location_id: "",
       date: "",
       start_time: "",
       end_time: "",
@@ -113,12 +174,12 @@ function MySessionsView() {
         "DELETE",
         `/session/${session.session_id}`,
         null,
-        authKey,
+        authKey
       );
 
       if (response.status === 200) {
         setSuccess("Session deleted successfully.");
-        await getSessions();
+        await getSessions(filter);
       } else {
         setError(response.body?.message || "Failed to delete the session.");
       }
@@ -126,7 +187,7 @@ function MySessionsView() {
       setError(
         typeof err === "string"
           ? err
-          : err.message || "Failed to delete the session.",
+          : err.message || "Failed to delete the session."
       );
     } finally {
       setIsSaving(false);
@@ -135,16 +196,11 @@ function MySessionsView() {
 
   const handleFormChange = (event) => {
     const { name, value } = event.target;
-
-    setEditForm((previousForm) => ({
-      ...previousForm,
-      [name]: value,
-    }));
+    setEditForm((previous) => ({ ...previous, [name]: value }));
   };
 
   const handleCancel = () => {
     if (isSaving) return;
-
     setEditingSession(null);
     setIsCreating(false);
     setError(null);
@@ -161,17 +217,14 @@ function MySessionsView() {
     }
 
     if (
+      !editForm.activity_id ||
+      !editForm.location_id ||
       !editForm.date ||
       !editForm.start_time ||
       !editForm.end_time ||
       editForm.capacity === ""
     ) {
       setError("Please complete all session fields.");
-      return;
-    }
-
-    if (editForm.date < new Date().toLocaleDateString("en-CA")) {
-      setError("The session date cannot be in the past.");
       return;
     }
 
@@ -188,11 +241,25 @@ function MySessionsView() {
       return;
     }
 
+    const sessionDateTime = new Date(
+      `${editForm.date}T${editForm.start_time}`
+    );
+
+    if (
+      Number.isNaN(sessionDateTime.getTime()) ||
+      sessionDateTime <= new Date()
+    ) {
+      setError("The session must start in the future.");
+      return;
+    }
+
     setIsSaving(true);
     setError(null);
     setSuccess(null);
 
     const sessionData = {
+      activity_id: Number(editForm.activity_id),
+      location_id: Number(editForm.location_id),
       date: editForm.date,
       start_time: editForm.start_time,
       end_time: editForm.end_time,
@@ -206,20 +273,19 @@ function MySessionsView() {
           "PUT",
           `/session/${editingSession.session_id}`,
           sessionData,
-          authKey,
+          authKey
         );
 
       if (response.status === 200 || response.status === 201) {
         setSuccess(
           isCreating
             ? "Session created successfully."
-            : "Session updated successfully.",
+            : "Session updated successfully."
         );
 
         setEditingSession(null);
         setIsCreating(false);
-
-        await getSessions();
+        await getSessions(filter);
       } else {
         setError(response.body?.message || "Failed to save the session.");
       }
@@ -227,7 +293,7 @@ function MySessionsView() {
       setError(
         typeof err === "string"
           ? err
-          : err.message || "Failed to save the session.",
+          : err.message || "Failed to save the session."
       );
     } finally {
       setIsSaving(false);
@@ -241,37 +307,40 @@ function MySessionsView() {
     time ? String(time).substring(0, 5) : "Not set";
 
   return (
-    <section className="mx-auto flex w-full min-w-0 flex-col gap-4 p-3">
-      {/* Header */}
-      <div className="flex w-full justify-start">
+    <section className="flex min-w-0 flex-col items-center">
+      <div className="flex w-full justify-start p-4">
         <button
           type="button"
           onClick={handleCreate}
-          className="btn btn-primary btn-sm"
+          className="btn btn-primary"
         >
           <FaPlus />
           Create New Session
         </button>
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="alert alert-error text-sm" role="alert">
-          <span>{error}</span>
-          <button
-            type="button"
-            className="btn btn-ghost btn-xs"
-            onClick={() => setError(null)}
-            aria-label="Dismiss error"
-          >
-            <FaTimes />
-          </button>
-        </div>
-      )}
+      <form
+        className="join self-stretch p-4 pt-0"
+        onSubmit={(event) => {
+          event.preventDefault();
+          getSessions(filter);
+        }}
+      >
+        <input
+          type="search"
+          value={filter}
+          onChange={(event) => setFilter(event.target.value)}
+          className="input input-bordered join-item grow"
+          placeholder="Search your sessions"
+          aria-label="Search your sessions"
+        />
+        <button type="submit" className="btn join-item" aria-label="Search">
+          <FaSearch />
+        </button>
+      </form>
 
-      {/* Success Message */}
       {success && (
-        <div className="alert alert-success text-sm" role="status">
+        <div className="alert alert-success mx-4 mb-3 w-auto self-stretch text-sm">
           <span>{success}</span>
           <button
             type="button"
@@ -284,122 +353,77 @@ function MySessionsView() {
         </div>
       )}
 
-      {/* Search */}
-      <form
-        className="flex w-full min-w-0 gap-2"
-        onSubmit={(event) => {
-          event.preventDefault();
-          getSessions();
-        }}
-      >
-        <input
-          type="search"
-          value={filter}
-          onChange={(event) => setFilter(event.target.value)}
-          placeholder="Search sessions..."
-          className="input input-bordered min-w-0 flex-1"
-          aria-label="Search sessions"
-        />
-
-        <button
-          type="submit"
-          className="btn btn-primary shrink-0"
-          aria-label="Search"
-        >
-          <FaSearch />
-        </button>
-      </form>
-
-      {/* Session Cards */}
-      {isLoading ? (
-        <div className="flex justify-center rounded-xl bg-base-100 p-8 shadow-sm">
-          <span className="loading loading-spinner loading-lg"></span>
-        </div>
-      ) : sessions.length === 0 ? (
-        <div className="rounded-xl bg-base-100 p-6 text-center text-sm text-base-content/60 shadow-sm">
-          {filter.trim() ? "No sessions found." : "You have no sessions yet."}
-        </div>
-      ) : (
-        <div className="flex w-full min-w-0 flex-col gap-4">
-          {sessions.map((session) => (
-            <article
-              key={session.session_id}
-              className="w-full min-w-0 rounded-xl border border-base-200 bg-base-100 p-4 shadow-sm"
-            >
-              <h2 className="mb-4 break-words text-lg font-bold">
-                {session.activity_name || "N/A"}
-              </h2>
-
-              {/* Session Details */}
-              <div className="grid grid-cols-2 gap-x-3 gap-y-4 text-sm">
-                <div className="min-w-0">
-                  <p className="text-xs text-base-content/60">Location</p>
-                  <p className="mt-1 break-words font-medium">
-                    {session.location_name || "N/A"}
-                  </p>
-                </div>
-
-                <div className="min-w-0">
-                  <p className="text-xs text-base-content/60">Date</p>
-                  <p className="mt-1 break-words font-medium">
-                    {formatDate(session.date)}
-                  </p>
-                </div>
-
-                <div className="min-w-0">
-                  <p className="text-xs text-base-content/60">Start Time</p>
-                  <p className="mt-1 font-medium">
-                    {formatTime(session.start_time)}
-                  </p>
-                </div>
-
-                <div className="min-w-0">
-                  <p className="text-xs text-base-content/60">End Time</p>
-                  <p className="mt-1 font-medium">
-                    {formatTime(session.end_time)}
-                  </p>
-                </div>
-
-                <div className="min-w-0">
-                  <p className="text-xs text-base-content/60">Capacity</p>
-                  <p className="mt-1 font-medium">
-                    {session.capacity ?? "Not set"}
-                  </p>
-                </div>
-
-                <div className="min-w-0">
-                  <p className="text-xs text-base-content/60">Trainer</p>
-                  <p className="mt-1 break-words font-medium">
-                    {session.trainer_name || "You"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Edit and Delete Buttons */}
-              <div className="mt-4 flex gap-2 border-t border-base-200 pt-3">
-                <button
-                  type="button"
-                  onClick={() => handleEdit(session)}
-                  className="btn btn-primary btn-sm flex-1"
-                >
-                  Edit Session
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleDelete(session)}
-                  className="btn btn-error btn-sm flex-1"
-                  disabled={isSaving}
-                >
-                  Delete Session
-                </button>
-              </div>
-            </article>
-          ))}
+      {error && (
+        <div className="alert alert-error mx-4 mb-3 w-auto self-stretch text-sm">
+          <span>{error}</span>
+          <button
+            type="button"
+            className="btn btn-ghost btn-xs"
+            onClick={() => setError(null)}
+            aria-label="Dismiss error message"
+          >
+            <FaTimes />
+          </button>
         </div>
       )}
 
-      {/* Create or Edit Session Modal */}
+      {isLoading ? (
+        <span className="loading loading-spinner loading-xl m-8" />
+      ) : sessions.length === 0 ? (
+        <span className="p-4 text-sm opacity-60">
+          {filter.trim() ? "No matching sessions found." : "You have no sessions yet."}
+        </span>
+      ) : (
+        <ul className="list w-full self-stretch">
+          {sessions.map((session) => (
+            <li key={session.session_id} className="list-row items-center">
+              <div className="flex size-12 items-center justify-center">
+                <FaDumbbell className="size-8" />
+              </div>
+
+              <div className="min-w-0">
+                <div className="break-words font-semibold">
+                  {session.activity_name || "N/A"}
+                </div>
+                <div className="text-xs font-semibold uppercase opacity-60">
+                  {session.location_name || "N/A"} · {formatDate(session.date)}
+                </div>
+                <div className="mt-1 text-sm">
+                  {formatTime(session.start_time)} – {formatTime(session.end_time)}
+                </div>
+                <div className="text-xs opacity-60">
+                  Capacity: {session.capacity ?? "Not set"}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleEdit(session)}
+                  className="btn btn-ghost btn-sm"
+                  aria-label="Edit session"
+                  title="Edit session"
+                >
+                  <FaEdit />
+                  <span className="hidden sm:inline">Edit</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(session)}
+                  className="btn btn-ghost btn-sm text-error"
+                  disabled={isSaving}
+                  aria-label="Delete session"
+                  title="Delete session"
+                >
+                  <FaTrash />
+                  <span className="hidden sm:inline">Delete</span>
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
       {(isCreating || editingSession) && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-3">
           <div
@@ -408,23 +432,21 @@ function MySessionsView() {
             aria-modal="true"
             aria-labelledby="session-form-title"
           >
-            {/* Modal Header */}
             <div className="flex shrink-0 items-start justify-between gap-3 border-b border-base-200 p-4">
-              <div className="min-w-0">
+              <div>
                 <h2 id="session-form-title" className="text-xl font-bold">
                   {isCreating ? "Create New Session" : "Edit Session"}
                 </h2>
-                <p className="mt-1 text-sm text-base-content/60">
+                <p className="mt-1 text-sm opacity-60">
                   {isCreating
                     ? "Enter your new session details."
                     : "Update your training session details."}
                 </p>
               </div>
-
               <button
                 type="button"
                 onClick={handleCancel}
-                className="btn btn-ghost btn-sm btn-square shrink-0"
+                className="btn btn-ghost btn-sm btn-square"
                 aria-label="Close form"
                 disabled={isSaving}
               >
@@ -432,37 +454,52 @@ function MySessionsView() {
               </button>
             </div>
 
-            {/* Existing Session Information */}
-            {editingSession && (
-              <div className="grid shrink-0 grid-cols-2 gap-3 border-b border-base-200 p-4 text-sm">
-                <div className="min-w-0">
-                  <p className="text-xs text-base-content/60">Activity Name</p>
-                  <p className="mt-1 break-words font-medium">
-                    {editingSession.activity_name || "N/A"}
-                  </p>
-                </div>
-
-                <div className="min-w-0">
-                  <p className="text-xs text-base-content/60">Location</p>
-                  <p className="mt-1 break-words font-medium">
-                    {editingSession.location_name || "N/A"}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Session Form */}
-            <form
-              onSubmit={handleSave}
-              className="flex min-h-0 flex-1 flex-col"
-            >
-              {/* Only the fields scroll */}
+            <form onSubmit={handleSave} className="flex min-h-0 flex-1 flex-col">
               <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4">
                 <div>
-                  <label
-                    htmlFor="session-date"
-                    className="mb-1 block text-sm font-medium"
+                  <label htmlFor="session-activity" className="mb-1 block text-sm font-medium">
+                    Activity
+                  </label>
+                  <select
+                    id="session-activity"
+                    name="activity_id"
+                    value={editForm.activity_id}
+                    onChange={handleFormChange}
+                    className="select select-bordered w-full"
+                    required
                   >
+                    <option value="">Select an activity</option>
+                    {activities.map((activity) => (
+                      <option key={activity.id} value={activity.id}>
+                        {activity.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="session-location" className="mb-1 block text-sm font-medium">
+                    Location
+                  </label>
+                  <select
+                    id="session-location"
+                    name="location_id"
+                    value={editForm.location_id}
+                    onChange={handleFormChange}
+                    className="select select-bordered w-full"
+                    required
+                  >
+                    <option value="">Select a location</option>
+                    {locations.map((location) => (
+                      <option key={location.id} value={location.id}>
+                        {location.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="session-date" className="mb-1 block text-sm font-medium">
                     Date
                   </label>
                   <input
@@ -477,10 +514,7 @@ function MySessionsView() {
                 </div>
 
                 <div>
-                  <label
-                    htmlFor="session-start-time"
-                    className="mb-1 block text-sm font-medium"
-                  >
+                  <label htmlFor="session-start-time" className="mb-1 block text-sm font-medium">
                     Start Time
                   </label>
                   <input
@@ -495,10 +529,7 @@ function MySessionsView() {
                 </div>
 
                 <div>
-                  <label
-                    htmlFor="session-end-time"
-                    className="mb-1 block text-sm font-medium"
-                  >
+                  <label htmlFor="session-end-time" className="mb-1 block text-sm font-medium">
                     End Time
                   </label>
                   <input
@@ -513,10 +544,7 @@ function MySessionsView() {
                 </div>
 
                 <div>
-                  <label
-                    htmlFor="session-capacity"
-                    className="mb-1 block text-sm font-medium"
-                  >
+                  <label htmlFor="session-capacity" className="mb-1 block text-sm font-medium">
                     Capacity
                   </label>
                   <input
@@ -533,25 +561,19 @@ function MySessionsView() {
                 </div>
               </div>
 
-              {/* Save and Cancel remain visible */}
-              <div className="relative z-10 shrink-0 space-y-2 border-t border-base-200 bg-base-100 p-4">
-                <button
-                  type="submit"
-                  className="btn btn-primary w-full"
-                  disabled={isSaving}
-                >
+              <div className="shrink-0 space-y-2 border-t border-base-200 bg-base-100 p-4">
+                <button type="submit" className="btn btn-primary w-full" disabled={isSaving}>
                   {isSaving ? (
                     <>
-                      <span className="loading loading-spinner loading-sm"></span>
+                      <span className="loading loading-spinner loading-sm" />
                       Saving...
                     </>
                   ) : isCreating ? (
                     "Create Session"
                   ) : (
-                    "Save"
+                    "Save Changes"
                   )}
                 </button>
-
                 <button
                   type="button"
                   onClick={handleCancel}

@@ -2,18 +2,49 @@ import express from "express";
 import { ApiAuthenticationController } from "./ApiAuthenticationController.mjs";
 import { SessionModel } from "../../models/SessionModel.mjs";
 import { SessionActivityModel } from "../../models/SessionActivityModel.mjs";
+import { ActivityModel } from "../../models/ActivityModel.mjs";
+import { LocationModel } from "../../models/LocationModel.mjs";
 
 export class ApiSessionsController {
   static routes = express.Router();
 
   static {
     this.routes.use(ApiAuthenticationController.middleware);
-    this.routes.get("/", this.getSessions);
-    this.routes.post("/", this.createTrainerSession);
-    this.routes.get("/xml", this.handleExportSessionsXML);
-    this.routes.get("/:id", this.getTrainerSessionsById);
-    this.routes.put("/:id", this.updateTrainerSessions);
-    this.routes.delete("/:id", this.deleteTrainerSessions);
+    this.routes.get(
+      "/",
+      ApiAuthenticationController.restrict(["trainer"]),
+      this.getSessions,
+    );
+    this.routes.get(
+      "/my",
+      ApiAuthenticationController.restrict(["trainer"]),
+      this.getMySessions,
+    );
+    this.routes.post(
+      "/",
+      ApiAuthenticationController.restrict(["trainer"]),
+      this.createTrainerSession,
+    );
+    this.routes.get(
+      "/:id",
+      ApiAuthenticationController.restrict(["trainer"]),
+      this.getTrainerSessionsById,
+    );
+    this.routes.put(
+      "/:id",
+      ApiAuthenticationController.restrict(["trainer"]),
+      this.updateTrainerSessions,
+    );
+    this.routes.delete(
+      "/:id",
+      ApiAuthenticationController.restrict(["trainer"]),
+      this.deleteTrainerSessions,
+    );
+    this.routes.get(
+      "/xml",
+      ApiAuthenticationController.restrict(["trainer"]),
+      this.handleExportSessionsXML,
+    );
   }
 
   /**
@@ -94,36 +125,105 @@ export class ApiSessionsController {
     }
   }
 
+  static async getMySessions(req, res) {
+    try {
+      const trainerId = req.authenticatedUser.id;
+      const sessions = await SessionActivityModel.getByUserId(trainerId);
+
+      return res.status(200).json(sessions);
+    } catch (error) {
+      console.error("GET MY SESSIONS ERROR:", error);
+
+      return res.status(500).json({
+        message: "Failed to load your sessions.",
+        error: error.message,
+      });
+    }
+  }
+
   /**
    *
    * Creates a new session in the database from trainer session management page.
    */
   static async createTrainerSession(req, res) {
     try {
-      const {
-        user_id,
-        activity_id,
-        location_id,
-        date,
-        start_time,
-        end_time,
-        capacity,
-      } = req.body;
+      if (!req.authenticatedUser) {
+        return res.status(401).json({
+          message: "Please log in first.",
+        });
+      }
+
+      const { activity_id, location_id, date, start_time, end_time, capacity } =
+        req.body;
+
+      if (
+        !activity_id ||
+        !location_id ||
+        !date ||
+        !start_time ||
+        !end_time ||
+        capacity === undefined ||
+        capacity === ""
+      ) {
+        return res.status(400).json({
+          message: "Please complete all session fields.",
+        });
+      }
+
+      if (
+        !Number.isInteger(Number(activity_id)) ||
+        !Number.isInteger(Number(location_id))
+      ) {
+        return res.status(400).json({
+          message: "Please select a valid activity and location.",
+        });
+      }
+
+      if (!Number.isInteger(Number(capacity)) || Number(capacity) < 1) {
+        return res.status(400).json({
+          message: "Capacity must be a positive whole number.",
+        });
+      }
+
+      if (end_time <= start_time) {
+        return res.status(400).json({
+          message: "End time must be after start time.",
+        });
+      }
+
+      if (new Date(`${date}T${start_time}`) <= new Date()) {
+        return res.status(400).json({
+          message: "The session must start in the future.",
+        });
+      }
+
+      const activity = await ActivityModel.getById(Number(activity_id));
+      const location = await LocationModel.getById(Number(location_id));
+
+      if (!activity || !location) {
+        return res.status(400).json({
+          message: "The selected activity or location does not exist.",
+        });
+      }
 
       const newSession = await SessionModel.create({
-        user_id,
-        activity_id,
-        location_id,
+        user_id: req.authenticatedUser.id,
+        activity_id: Number(activity_id),
+        location_id: Number(location_id),
         date,
         start_time,
         end_time,
-        capacity,
+        capacity: Number(capacity),
       });
-      return res.status(201).json(newSession);
+
+      return res.status(201).json({
+        message: "Session created successfully.",
+        session: newSession,
+      });
     } catch (error) {
-      console.error("SESSION ERROR:", error);
+      console.error("SESSION CREATE ERROR:", error);
       return res.status(500).json({
-        message: "Failed to create session",
+        message: "Failed to create session.",
         error: error.message,
       });
     }
@@ -205,58 +305,168 @@ export class ApiSessionsController {
     try {
       const { id } = req.params;
 
-      const sessions = await SessionActivityModel.getByUserId(id);
+      if (!Number.isInteger(Number(id)) || Number(id) < 1) {
+        return res.status(400).json({
+          message: "Invalid trainer ID.",
+        });
+      }
+
+      if (Number(id) !== Number(req.authenticatedUser.id)) {
+        return res.status(403).json({
+          message: "You can only view your own sessions.",
+        });
+      }
+
+      const sessions = await SessionActivityModel.getByUserId(Number(id));
 
       return res.status(200).json(sessions);
     } catch (error) {
-      console.error(error);
+      console.error("GET TRAINER SESSIONS ERROR:", error);
+
       return res.status(500).json({
-        message: "Failed to load trainer sessions",
+        message: "Failed to load trainer sessions.",
+        error: error.message,
       });
     }
   }
 
   static async updateTrainerSessions(req, res) {
     try {
-      const { id } = req.params;
-      const {
-        activity_name,
-        location_name,
+      const id = Number(req.params.id);
+      const { activity_id, location_id, date, start_time, end_time, capacity } =
+        req.body;
+
+      if (!Number.isInteger(id) || id < 1) {
+        return res.status(400).json({
+          message: "Invalid session ID.",
+        });
+      }
+
+      const existingSession = await SessionModel.getById(id);
+
+      if (!existingSession) {
+        return res.status(404).json({
+          message: "Session not found.",
+        });
+      }
+
+      if (
+        Number(existingSession.user_id) !== Number(req.authenticatedUser.id)
+      ) {
+        return res.status(403).json({
+          message: "You can only edit your own sessions.",
+        });
+      }
+
+      if (
+        !activity_id ||
+        !location_id ||
+        !date ||
+        !start_time ||
+        !end_time ||
+        capacity === undefined ||
+        capacity === ""
+      ) {
+        return res.status(400).json({
+          message: "Please complete all session fields.",
+        });
+      }
+
+      if (
+        !Number.isInteger(Number(activity_id)) ||
+        !Number.isInteger(Number(location_id))
+      ) {
+        return res.status(400).json({
+          message: "Please select a valid activity and location.",
+        });
+      }
+
+      if (!Number.isInteger(Number(capacity)) || Number(capacity) < 1) {
+        return res.status(400).json({
+          message: "Capacity must be a positive whole number.",
+        });
+      }
+
+      if (end_time <= start_time) {
+        return res.status(400).json({
+          message: "End time must be after start time.",
+        });
+      }
+
+      if (new Date(`${date}T${start_time}`) <= new Date()) {
+        return res.status(400).json({
+          message: "The session must start in the future.",
+        });
+      }
+
+      const activity = await ActivityModel.getById(Number(activity_id));
+      const location = await LocationModel.getById(Number(location_id));
+
+      if (!activity || !location) {
+        return res.status(400).json({
+          message: "The selected activity or location does not exist.",
+        });
+      }
+
+      await SessionModel.update({
+        id,
+        user_id: existingSession.user_id,
+        activity_id: Number(activity_id),
+        location_id: Number(location_id),
         date,
         start_time,
         end_time,
-        capacity,
-      } = req.body;
-      await SessionModel.update(id, {
-        activity_name,
-        location_name,
-        date,
-        start_time,
-        end_time,
-        capacity,
+        capacity: Number(capacity),
       });
+
       return res.status(200).json({
-        message: "Session updated successfully",
+        message: "Session updated successfully.",
       });
     } catch (error) {
-      console.error(error);
+      console.error("SESSION UPDATE ERROR:", error);
+
       return res.status(500).json({
-        message: "Failed to update session",
+        message: "Failed to update session.",
+        error: error.message,
       });
     }
   }
 
   static async deleteTrainerSessions(req, res) {
     try {
-      const { id } = req.params;
+      const id = Number(req.params.id);
+
+      if (!Number.isInteger(id) || id < 1) {
+        return res.status(400).json({
+          message: "Invalid session ID.",
+        });
+      }
+
+      const session = await SessionModel.getById(id);
+
+      if (!session) {
+        return res.status(404).json({
+          message: "Session not found.",
+        });
+      }
+
+      if (Number(session.user_id) !== Number(req.authenticatedUser.id)) {
+        return res.status(403).json({
+          message: "You can only delete your own sessions.",
+        });
+      }
+
       await SessionModel.delete(id);
+
       return res.status(200).json({
-        message: "Session deleted successfully",
+        message: "Session deleted successfully.",
       });
     } catch (error) {
-      console.error(error);
+      console.error("SESSION DELETE ERROR:", error);
+
       return res.status(500).json({
-        message: "Failed to delete sessions",
+        message: "Failed to delete session.",
+        error: error.message,
       });
     }
   }
