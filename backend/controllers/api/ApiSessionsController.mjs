@@ -10,51 +10,57 @@ export class ApiSessionsController {
 
   static {
     this.routes.use(ApiAuthenticationController.middleware);
+
     this.routes.get(
       "/",
       ApiAuthenticationController.restrict(["trainer"]),
       this.getSessions,
     );
+
     this.routes.get(
       "/my",
       ApiAuthenticationController.restrict(["trainer"]),
       this.getMySessions,
     );
+
     this.routes.post(
       "/",
       ApiAuthenticationController.restrict(["trainer"]),
       this.createTrainerSession,
     );
-    this.routes.get(
-      "/:id",
-      ApiAuthenticationController.restrict(["trainer"]),
-      this.getTrainerSessionsById,
-    );
-    this.routes.put(
-      "/:id",
-      ApiAuthenticationController.restrict(["trainer"]),
-      this.updateTrainerSessions,
-    );
-    this.routes.delete(
-      "/:id",
-      ApiAuthenticationController.restrict(["trainer"]),
-      this.deleteTrainerSessions,
-    );
+
+    // Register specific routes before /:id.
     this.routes.get(
       "/xml",
       ApiAuthenticationController.restrict(["trainer"]),
       this.handleExportSessionsXML,
     );
+
+    this.routes.get(
+      "/:id",
+      ApiAuthenticationController.restrict(["trainer"]),
+      this.getTrainerSessionsById,
+    );
+
+    this.routes.put(
+      "/:id",
+      ApiAuthenticationController.restrict(["trainer"]),
+      this.updateTrainerSessions,
+    );
+
+    this.routes.delete(
+      "/:id",
+      ApiAuthenticationController.restrict(["trainer"]),
+      this.deleteTrainerSessions,
+    );
   }
 
   /**
-   * Get all sessions with full details
-   *
    * @openapi
    * /api/session:
    *   get:
    *     summary: Get all sessions
-   *     description: Returns all gym sessions with activity, location, trainer and capacity information.
+   *     description: Returns gym sessions with activity, location, trainer and capacity information.
    *     tags:
    *       - Session
    *     parameters:
@@ -62,7 +68,7 @@ export class ApiSessionsController {
    *         name: filter
    *         schema:
    *           type: string
-   *         description: Optional filter to search sessions by activity name, location name, or trainer name.
+   *         description: Optional session search filter.
    *     responses:
    *       '200':
    *         description: Successfully retrieved sessions
@@ -72,59 +78,66 @@ export class ApiSessionsController {
    *               type: array
    *               items:
    *                 $ref: "#/components/schemas/Session"
-   *
    *       '401':
    *         $ref: "#/components/responses/Unauthorized"
-   *
    *       '403':
    *         $ref: "#/components/responses/Forbidden"
-   *
    *       '500':
    *         $ref: "#/components/responses/Error"
    */
   static async getSessions(req, res) {
     try {
       const { filter } = req.query;
-
       const sessions = await SessionActivityModel.getAllWithDetails(filter);
 
-      console.log("DATABASE SESSIONS:", JSON.stringify(sessions, null, 2));
-
-      const now = new Date();
-
-      const formattedSessions = sessions.map((item) => {
-        const [hh, mm] = (item.end_time || "00:00").slice(0, 5).split(":");
-
-        const sessionEnd = new Date(item.date);
-        sessionEnd.setHours(Number(hh), Number(mm), 0, 0);
-
-        const isExpired = sessionEnd.getTime() < now.getTime();
-
-        return {
-          session_id: item.session_id,
-          activity_id: item.activity_id,
-          location_id: item.location_id,
-          activity_name: item.activity_name,
-          location_name: item.location_name,
-          trainer_name: item.trainer_name,
-          date: item.date,
-          start_time: item.start_time,
-          end_time: item.end_time,
-          capacity: item.capacity,
-        };
-      });
+      const formattedSessions = sessions.map((item) => ({
+        session_id: item.session_id,
+        activity_id: item.activity_id,
+        location_id: item.location_id,
+        activity_name: item.activity_name,
+        location_name: item.location_name,
+        trainer_name: item.trainer_name,
+        date: item.date,
+        start_time: item.start_time,
+        end_time: item.end_time,
+        capacity: item.capacity,
+      }));
 
       return res.status(200).json(formattedSessions);
-    } catch (err) {
-      console.error("SESSION ERROR:", err);
+    } catch (error) {
+      console.error("GET SESSIONS ERROR:", error);
 
       return res.status(500).json({
-        message: "Failed to load sessions from database",
-        error: err.message,
+        message: "Failed to load sessions from database.",
+        error: error.message,
       });
     }
   }
 
+  /**
+   * @openapi
+   * /api/session/my:
+   *   get:
+   *     summary: Get my sessions
+   *     description: Returns sessions belonging to the authenticated trainer.
+   *     tags:
+   *       - Session
+   *     responses:
+   *       '200':
+   *         description: Successfully retrieved trainer sessions
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: "#/components/schemas/Session"
+   *       '401':
+   *         $ref: "#/components/responses/Unauthorized"
+   *       '403':
+   *         $ref: "#/components/responses/Forbidden"
+   *       '500':
+   *         $ref: "#/components/responses/Error"
+   */
   static async getMySessions(req, res) {
     try {
       const trainerId = req.authenticatedUser.id;
@@ -142,8 +155,51 @@ export class ApiSessionsController {
   }
 
   /**
-   *
-   * Creates a new session in the database from trainer session management page.
+   * @openapi
+   * /api/session:
+   *   post:
+   *     summary: Create a trainer session
+   *     tags:
+   *       - Session
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - activity_id
+   *               - location_id
+   *               - date
+   *               - start_time
+   *               - end_time
+   *               - capacity
+   *             properties:
+   *               activity_id:
+   *                 type: integer
+   *               location_id:
+   *                 type: integer
+   *               date:
+   *                 type: string
+   *                 format: date
+   *               start_time:
+   *                 type: string
+   *               end_time:
+   *                 type: string
+   *               capacity:
+   *                 type: integer
+   *                 minimum: 1
+   *     responses:
+   *       '201':
+   *         description: Session created successfully
+   *       '400':
+   *         $ref: "#/components/responses/BadRequest"
+   *       '401':
+   *         $ref: "#/components/responses/Unauthorized"
+   *       '403':
+   *         $ref: "#/components/responses/Forbidden"
+   *       '500':
+   *         $ref: "#/components/responses/Error"
    */
   static async createTrainerSession(req, res) {
     try {
@@ -191,7 +247,12 @@ export class ApiSessionsController {
         });
       }
 
-      if (new Date(`${date}T${start_time}`) <= new Date()) {
+      const sessionDateTime = new Date(`${date}T${start_time}`);
+
+      if (
+        Number.isNaN(sessionDateTime.getTime()) ||
+        sessionDateTime <= new Date()
+      ) {
         return res.status(400).json({
           message: "The session must start in the future.",
         });
@@ -222,6 +283,7 @@ export class ApiSessionsController {
       });
     } catch (error) {
       console.error("SESSION CREATE ERROR:", error);
+
       return res.status(500).json({
         message: "Failed to create session.",
         error: error.message,
@@ -233,33 +295,17 @@ export class ApiSessionsController {
    * @openapi
    * /api/session/xml:
    *   get:
-   *     summary: Export session in XML format
-   *     description: Exports a specific active gym session in XML 1.0 format.
+   *     summary: Export sessions as XML
+   *     description: Exports gym sessions in XML format.
    *     tags:
    *       - XML
-   *     security:
-   *       - ApiKey: []
    *     responses:
    *       '200':
-   *         description: Successfully exported session in XML format
+   *         description: Successfully exported sessions
    *         content:
    *           application/xml:
    *             schema:
    *               type: string
-   *             example: |
-   *               <?xml version="1.0" encoding="UTF-8"?>
-   *               <sessions>
-   *                 <session>
-   *                   <session_id>1</session_id>
-   *                   <trainer_name>Yesterianus</trainer_name>
-   *                   <location_name>Westlake</location_name>
-   *                   <activity_name>Yoga</activity_name>
-   *                   <date>2026-06-06</date>
-   *                   <start_time>09:58</start_time>
-   *                   <end_time>11:58</end_time>
-   *                   <capacity>3</capacity>
-   *                 </session>
-   *               </sessions>
    *       '401':
    *         $ref: "#/components/responses/Unauthorized"
    *       '403':
@@ -270,54 +316,87 @@ export class ApiSessionsController {
   static async handleExportSessionsXML(req, res) {
     try {
       const exportDate = new Date().toISOString().slice(0, 10);
-
       const sessions = await SessionActivityModel.getAllWithDetails();
 
       let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<sessions export-date="${exportDate}">\n`;
 
-      sessions.forEach((s) => {
-        xml += `
-          <session>
-            <session_id>${s.session_id}</session_id>
-            <activity_name>${s.activity_name}</activity_name>
-            <location_name>${s.location_name}</location_name>
-            <trainer_name>${s.trainer_name}</trainer_name>
-            <date>${String(s.date).slice(0, 10)}</date>
-            <start_time>${s.start_time}</start_time>
-            <end_time>${s.end_time}</end_time>
-            <capacity>${s.capacity}</capacity>
-          </session>`;
+      sessions.forEach((session) => {
+        xml += `  <session>
+    <session_id>${session.session_id}</session_id>
+    <activity_name>${session.activity_name}</activity_name>
+    <location_name>${session.location_name}</location_name>
+    <trainer_name>${session.trainer_name}</trainer_name>
+    <date>${String(session.date).slice(0, 10)}</date>
+    <start_time>${session.start_time}</start_time>
+    <end_time>${session.end_time}</end_time>
+    <capacity>${session.capacity}</capacity>
+  </session>\n`;
       });
 
-      xml += `\n</sessions>`;
+      xml += "</sessions>";
 
-      res.setHeader("Content-Type", "application/xml");
+      res.setHeader("Content-Type", "application/xml; charset=UTF-8");
       return res.status(200).send(xml);
     } catch (error) {
-      console.error(error);
+      console.error("EXPORT SESSIONS XML ERROR:", error);
+
       return res.status(500).json({
-        message: "Failed to generate XML sessions",
+        message: "Failed to generate XML sessions.",
       });
     }
   }
 
+  /**
+   * @openapi
+   * /api/session/{id}:
+   *   get:
+   *     summary: Get sessions for a trainer
+   *     description: Returns sessions belonging to the specified authenticated trainer.
+   *     tags:
+   *       - Session
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *           minimum: 1
+   *         description: Trainer user ID
+   *     responses:
+   *       '200':
+   *         description: Successfully retrieved trainer sessions
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: "#/components/schemas/Session"
+   *       '400':
+   *         $ref: "#/components/responses/BadRequest"
+   *       '401':
+   *         $ref: "#/components/responses/Unauthorized"
+   *       '403':
+   *         $ref: "#/components/responses/Forbidden"
+   *       '500':
+   *         $ref: "#/components/responses/Error"
+   */
   static async getTrainerSessionsById(req, res) {
     try {
-      const { id } = req.params;
+      const id = Number(req.params.id);
 
-      if (!Number.isInteger(Number(id)) || Number(id) < 1) {
+      if (!Number.isInteger(id) || id < 1) {
         return res.status(400).json({
           message: "Invalid trainer ID.",
         });
       }
 
-      if (Number(id) !== Number(req.authenticatedUser.id)) {
+      if (id !== Number(req.authenticatedUser.id)) {
         return res.status(403).json({
           message: "You can only view your own sessions.",
         });
       }
 
-      const sessions = await SessionActivityModel.getByUserId(Number(id));
+      const sessions = await SessionActivityModel.getByUserId(id);
 
       return res.status(200).json(sessions);
     } catch (error) {
@@ -330,11 +409,66 @@ export class ApiSessionsController {
     }
   }
 
+  /**
+   * @openapi
+   * /api/session/{id}:
+   *   put:
+   *     summary: Update a trainer session
+   *     tags:
+   *       - Session
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *           minimum: 1
+   *         description: Session ID
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - activity_id
+   *               - location_id
+   *               - date
+   *               - start_time
+   *               - end_time
+   *               - capacity
+   *             properties:
+   *               activity_id:
+   *                 type: integer
+   *               location_id:
+   *                 type: integer
+   *               date:
+   *                 type: string
+   *                 format: date
+   *               start_time:
+   *                 type: string
+   *               end_time:
+   *                 type: string
+   *               capacity:
+   *                 type: integer
+   *                 minimum: 1
+   *     responses:
+   *       '200':
+   *         description: Session updated successfully
+   *       '400':
+   *         $ref: "#/components/responses/BadRequest"
+   *       '401':
+   *         $ref: "#/components/responses/Unauthorized"
+   *       '403':
+   *         $ref: "#/components/responses/Forbidden"
+   *       '404':
+   *         $ref: "#/components/responses/NotFound"
+   *       '500':
+   *         $ref: "#/components/responses/Error"
+   */
   static async updateTrainerSessions(req, res) {
     try {
       const id = Number(req.params.id);
-      const { activity_id, location_id, date, start_time, end_time, capacity } =
-        req.body;
 
       if (!Number.isInteger(id) || id < 1) {
         return res.status(400).json({
@@ -357,6 +491,9 @@ export class ApiSessionsController {
           message: "You can only edit your own sessions.",
         });
       }
+
+      const { activity_id, location_id, date, start_time, end_time, capacity } =
+        req.body;
 
       if (
         !activity_id ||
@@ -393,7 +530,12 @@ export class ApiSessionsController {
         });
       }
 
-      if (new Date(`${date}T${start_time}`) <= new Date()) {
+      const sessionDateTime = new Date(`${date}T${start_time}`);
+
+      if (
+        Number.isNaN(sessionDateTime.getTime()) ||
+        sessionDateTime <= new Date()
+      ) {
         return res.status(400).json({
           message: "The session must start in the future.",
         });
@@ -432,6 +574,35 @@ export class ApiSessionsController {
     }
   }
 
+  /**
+   * @openapi
+   * /api/session/{id}:
+   *   delete:
+   *     summary: Delete a trainer session
+   *     tags:
+   *       - Session
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *           minimum: 1
+   *         description: Session ID
+   *     responses:
+   *       '200':
+   *         description: Session deleted successfully
+   *       '400':
+   *         $ref: "#/components/responses/BadRequest"
+   *       '401':
+   *         $ref: "#/components/responses/Unauthorized"
+   *       '403':
+   *         $ref: "#/components/responses/Forbidden"
+   *       '404':
+   *         $ref: "#/components/responses/NotFound"
+   *       '500':
+   *         $ref: "#/components/responses/Error"
+   */
   static async deleteTrainerSessions(req, res) {
     try {
       const id = Number(req.params.id);
