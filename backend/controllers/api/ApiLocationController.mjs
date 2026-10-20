@@ -5,6 +5,35 @@ export class ApiLocationController {
   static routes = express.Router();
 
   static {
+    /**
+     * @openapi
+     * /api/location:
+     *   get:
+     *     summary: Get all gym locations
+     *     tags:
+     *       - Location
+     *     responses:
+     *       200:
+     *         description: Locations retrieved successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: array
+     *               items:
+     *                 type: object
+     *                 properties:
+     *                   id:
+     *                     type: integer
+     *                     example: "1"
+     *                   name:
+     *                     type: string
+     *                     example: "Brisbane City"
+     *                   description:
+     *                     type: string
+     *                     example: "Level A Fitness Center"
+     *       500:
+     *         description: Failed to load locations
+     */
     this.routes.get("/", this.getLocations);
   }
 

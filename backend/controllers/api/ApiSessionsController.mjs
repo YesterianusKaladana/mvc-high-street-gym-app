@@ -11,11 +11,7 @@ export class ApiSessionsController {
   static {
     this.routes.use(ApiAuthenticationController.middleware);
 
-    this.routes.get(
-      "/",
-      ApiAuthenticationController.restrict(["trainer"]),
-      this.getSessions,
-    );
+    this.routes.get("/", this.getSessions);
 
     this.routes.get(
       "/my",
@@ -159,6 +155,7 @@ export class ApiSessionsController {
    * /api/session:
    *   post:
    *     summary: Create a trainer session
+   *     description: Creates a new gym session for the authenticated trainer.
    *     tags:
    *       - Session
    *     requestBody:
@@ -192,14 +189,58 @@ export class ApiSessionsController {
    *     responses:
    *       '201':
    *         description: Session created successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               required:
+   *                 - message
+   *                 - session
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                 session:
+   *                   type: object
+   *                   description: Newly created session returned by the session model
+   *                   additionalProperties: true
    *       '400':
-   *         $ref: "#/components/responses/BadRequest"
+   *         description: Invalid session details
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               required:
+   *                 - message
+   *               properties:
+   *                 message:
+   *                   type: string
    *       '401':
-   *         $ref: "#/components/responses/Unauthorized"
+   *         description: Authentication required
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               required:
+   *                 - message
+   *               properties:
+   *                 message:
+   *                   type: string
    *       '403':
    *         $ref: "#/components/responses/Forbidden"
    *       '500':
-   *         $ref: "#/components/responses/Error"
+   *         description: Failed to create session
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               required:
+   *                 - message
+   *                 - error
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                 error:
+   *                   type: string
    */
   static async createTrainerSession(req, res) {
     try {
@@ -414,6 +455,7 @@ export class ApiSessionsController {
    * /api/session/{id}:
    *   put:
    *     summary: Update a trainer session
+   *     description: Updates a session owned by the authenticated trainer.
    *     tags:
    *       - Session
    *     parameters:
@@ -455,8 +497,27 @@ export class ApiSessionsController {
    *     responses:
    *       '200':
    *         description: Session updated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               required:
+   *                 - message
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Session updated successfully.
    *       '400':
-   *         $ref: "#/components/responses/BadRequest"
+   *         description: Invalid session details
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               required:
+   *                 - message
+   *               properties:
+   *                 message:
+   *                   type: string
    *       '401':
    *         $ref: "#/components/responses/Unauthorized"
    *       '403':
@@ -464,7 +525,19 @@ export class ApiSessionsController {
    *       '404':
    *         $ref: "#/components/responses/NotFound"
    *       '500':
-   *         $ref: "#/components/responses/Error"
+   *         description: Failed to update session
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               required:
+   *                 - message
+   *                 - error
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                 error:
+   *                   type: string
    */
   static async updateTrainerSessions(req, res) {
     try {
@@ -579,6 +652,7 @@ export class ApiSessionsController {
    * /api/session/{id}:
    *   delete:
    *     summary: Delete a trainer session
+   *     description: Deletes a session owned by the authenticated trainer.
    *     tags:
    *       - Session
    *     parameters:
@@ -592,8 +666,27 @@ export class ApiSessionsController {
    *     responses:
    *       '200':
    *         description: Session deleted successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               required:
+   *                 - message
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Session deleted successfully.
    *       '400':
-   *         $ref: "#/components/responses/BadRequest"
+   *         description: Invalid session ID
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               required:
+   *                 - message
+   *               properties:
+   *                 message:
+   *                   type: string
    *       '401':
    *         $ref: "#/components/responses/Unauthorized"
    *       '403':
@@ -601,7 +694,19 @@ export class ApiSessionsController {
    *       '404':
    *         $ref: "#/components/responses/NotFound"
    *       '500':
-   *         $ref: "#/components/responses/Error"
+   *         description: Failed to delete session
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               required:
+   *                 - message
+   *                 - error
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                 error:
+   *                   type: string
    */
   static async deleteTrainerSessions(req, res) {
     try {

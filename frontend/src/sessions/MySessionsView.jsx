@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import {
   FaPerson,
@@ -17,6 +18,7 @@ function MySessionsView() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isOptionsLoading, setIsOptionsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [editingSession, setEditingSession] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -46,45 +48,43 @@ function MySessionsView() {
     try {
       const response = await fetchAPI("GET", "/session", null, authKey);
 
-      if (response.status === 200) {
-        const allSessions = Array.isArray(response.body) ? response.body : [];
+      if (response.status !== 200) {
+        throw new Error(
+          response.body?.message || "Failed to load sessions."
+        );
+      }
 
-        const searchTerm = searchFilter.trim().toLowerCase();
+      const allSessions = Array.isArray(response.body)
+        ? response.body
+        : [];
 
-        const filteredSessions = searchTerm
-          ? allSessions.filter((session) =>
-            [
-              session.activity_name,
-              session.location_name,
-              session.trainer_name,
-              session.date,
-              session.start_time,
-              session.end_time,
-              session.capacity,
-            ].some((value) =>
-              String(value ?? "")
-                .toLowerCase()
-                .includes(searchTerm),
-            ),
+      const searchTerm = searchFilter.trim().toLowerCase();
+
+      const filteredSessions = searchTerm
+        ? allSessions.filter((session) =>
+          [
+            session.activity_name,
+            session.location_name,
+            session.trainer_name,
+            session.date,
+            session.start_time,
+            session.end_time,
+            session.capacity,
+          ].some((value) =>
+            String(value ?? "").toLowerCase().includes(searchTerm)
           )
-          : allSessions;
+        )
+        : allSessions;
 
-        setSessions(filteredSessions);
+      setSessions(filteredSessions);
 
-        if (filteredSessions.length === 0 && searchTerm) {
-          setError("No results found");
-        }
-      } else {
-        setSessions([]);
-        setError(response.body?.message || "Failed to load sessions.");
+      if (filteredSessions.length === 0 && searchTerm) {
+        setError("No results found.");
       }
     } catch (err) {
+      console.error("Failed to load sessions:", err);
       setSessions([]);
-      setError(
-        typeof err === "string"
-          ? err
-          : err.message || "Failed to load sessions.",
-      );
+      setError(err.message || String(err));
     } finally {
       setIsLoading(false);
     }
@@ -93,7 +93,14 @@ function MySessionsView() {
   const getSessionOptions = useCallback(async () => {
     const authKey = localStorage.getItem("auth-key");
 
-    if (!authKey) return;
+    if (!authKey) {
+      setActivities([]);
+      setLocations([]);
+      setIsOptionsLoading(false);
+      return;
+    }
+
+    setIsOptionsLoading(true);
 
     try {
       const [activityResponse, locationResponse] = await Promise.all([
@@ -101,26 +108,36 @@ function MySessionsView() {
         fetchAPI("GET", "/location", null, authKey),
       ]);
 
-      if (activityResponse.status === 200) {
-        setActivities(
-          Array.isArray(activityResponse.body) ? activityResponse.body : [],
-        );
-      } else {
-        setError(
-          activityResponse.body?.message || "Failed to load activities.",
+      if (activityResponse.status !== 200) {
+        throw new Error(
+          activityResponse.body?.message || "Failed to load activities."
         );
       }
 
-      if (locationResponse.status === 200) {
-        setLocations(
-          Array.isArray(locationResponse.body) ? locationResponse.body : [],
+      if (locationResponse.status !== 200) {
+        throw new Error(
+          locationResponse.body?.message || "Failed to load locations."
         );
-      } else {
-        setError(locationResponse.body?.message || "Failed to load locations.");
       }
+
+      const activityData = activityResponse.body;
+      const locationData = locationResponse.body;
+
+      if (!Array.isArray(activityData) || !Array.isArray(locationData)) {
+        throw new Error(
+          "The activity or location API did not return an array."
+        );
+      }
+
+      setActivities(activityData);
+      setLocations(locationData);
     } catch (err) {
       console.error("Failed to load session options:", err);
-      setError("Failed to load activities and locations.");
+      setActivities([]);
+      setLocations([]);
+      setError(err.message || String(err));
+    } finally {
+      setIsOptionsLoading(false);
     }
   }, []);
 
@@ -145,8 +162,12 @@ function MySessionsView() {
       end_time: session.end_time
         ? String(session.end_time).substring(0, 5)
         : "",
-      capacity: session.capacity ?? "",
+      capacity: String(session.capacity ?? ""),
     });
+
+    if (activities.length === 0 || locations.length === 0) {
+      getSessionOptions();
+    }
   };
 
   const handleCreate = () => {
@@ -163,6 +184,10 @@ function MySessionsView() {
       end_time: "",
       capacity: "",
     });
+
+    if (activities.length === 0 || locations.length === 0) {
+      getSessionOptions();
+    }
   };
 
   const handleDelete = async (session) => {
@@ -186,21 +211,19 @@ function MySessionsView() {
         "DELETE",
         `/session/${session.session_id}`,
         null,
-        authKey,
+        authKey
       );
 
       if (response.status === 200) {
         setSuccess("Session deleted successfully.");
         await getSessions(filter);
       } else {
-        setError(response.body?.message || "Failed to delete the session.");
+        setError(
+          response.body?.message || "Failed to delete the session."
+        );
       }
     } catch (err) {
-      setError(
-        typeof err === "string"
-          ? err
-          : err.message || "Failed to delete the session.",
-      );
+      setError(err.message || String(err));
     } finally {
       setIsSaving(false);
     }
@@ -245,6 +268,24 @@ function MySessionsView() {
       return;
     }
 
+    const activityExists = activities.some(
+      (activity) => String(activity.id) === editForm.activity_id
+    );
+
+    const locationExists = locations.some(
+      (location) => String(location.id) === editForm.location_id
+    );
+
+    if (!activityExists) {
+      setError("Please select a valid activity.");
+      return;
+    }
+
+    if (!locationExists) {
+      setError("Please select a valid location.");
+      return;
+    }
+
     if (editForm.start_time >= editForm.end_time) {
       setError("The end time must be later than the start time.");
       return;
@@ -258,7 +299,9 @@ function MySessionsView() {
       return;
     }
 
-    const sessionDateTime = new Date(`${editForm.date}T${editForm.start_time}`);
+    const sessionDateTime = new Date(
+      `${editForm.date}T${editForm.start_time}`
+    );
 
     if (
       Number.isNaN(sessionDateTime.getTime()) ||
@@ -288,14 +331,14 @@ function MySessionsView() {
           "PUT",
           `/session/${editingSession.session_id}`,
           sessionData,
-          authKey,
+          authKey
         );
 
       if (response.status === 200 || response.status === 201) {
         setSuccess(
           isCreating
             ? "Session created successfully."
-            : "Session updated successfully.",
+            : "Session updated successfully."
         );
 
         setEditingSession(null);
@@ -306,11 +349,7 @@ function MySessionsView() {
         setError(response.body?.message || "Failed to save the session.");
       }
     } catch (err) {
-      setError(
-        typeof err === "string"
-          ? err
-          : err.message || "Failed to save the session.",
-      );
+      setError(err.message || String(err));
     } finally {
       setIsSaving(false);
     }
@@ -397,7 +436,7 @@ function MySessionsView() {
           {sessions.map((session) => (
             <li
               key={session.session_id}
-              className="list-row items-center gap-4 border border-blue-500 rounded-xl p-4 mb-3 shadow-sm"
+              className="list-row mb-3 items-center gap-4 rounded-xl border border-blue-500 p-4 shadow-sm"
             >
               <div className="min-w-0 space-y-2">
                 <div className="flex items-center gap-2 break-words font-semibold">
@@ -418,8 +457,7 @@ function MySessionsView() {
                 <div className="flex items-center gap-2 text-sm">
                   <FaClock className="shrink-0 text-primary" />
                   <span>
-                    {formatTime(session.start_time)} –{" "}
-                    {formatTime(session.end_time)}
+                    {formatTime(session.start_time)} – {formatTime(session.end_time)}
                   </span>
                 </div>
 
@@ -471,7 +509,6 @@ function MySessionsView() {
                 <h2 id="session-form-title" className="text-xl font-bold">
                   {isCreating ? "Create New Session" : "Edit Session"}
                 </h2>
-
                 <p className="mt-1 text-sm opacity-60">
                   {isCreating
                     ? "Enter your new session details."
@@ -510,11 +547,18 @@ function MySessionsView() {
                     onChange={handleFormChange}
                     className="select select-bordered w-full"
                     required
+                    disabled={isOptionsLoading || activities.length === 0}
                   >
-                    <option value="">Select an activity</option>
+                    <option value="">
+                      {isOptionsLoading
+                        ? "Loading activities..."
+                        : activities.length === 0
+                          ? "No activities available"
+                          : "Select an activity"}
+                    </option>
 
                     {activities.map((activity) => (
-                      <option key={activity.id} value={activity.id}>
+                      <option key={activity.id} value={String(activity.id)}>
                         {activity.name}
                       </option>
                     ))}
@@ -536,11 +580,18 @@ function MySessionsView() {
                     onChange={handleFormChange}
                     className="select select-bordered w-full"
                     required
+                    disabled={isOptionsLoading || locations.length === 0}
                   >
-                    <option value="">Select a location</option>
+                    <option value="">
+                      {isOptionsLoading
+                        ? "Loading locations..."
+                        : locations.length === 0
+                          ? "No locations available"
+                          : "Select a location"}
+                    </option>
 
                     {locations.map((location) => (
-                      <option key={location.id} value={location.id}>
+                      <option key={location.id} value={String(location.id)}>
                         {location.name}
                       </option>
                     ))}
@@ -554,7 +605,6 @@ function MySessionsView() {
                   >
                     Date
                   </label>
-
                   <input
                     id="session-date"
                     type="date"
@@ -573,7 +623,6 @@ function MySessionsView() {
                   >
                     Start Time
                   </label>
-
                   <input
                     id="session-start-time"
                     type="time"
@@ -592,7 +641,6 @@ function MySessionsView() {
                   >
                     End Time
                   </label>
-
                   <input
                     id="session-end-time"
                     type="time"
@@ -611,7 +659,6 @@ function MySessionsView() {
                   >
                     Capacity
                   </label>
-
                   <input
                     id="session-capacity"
                     type="number"
@@ -630,7 +677,7 @@ function MySessionsView() {
                 <button
                   type="submit"
                   className="btn btn-primary w-full"
-                  disabled={isSaving}
+                  disabled={isSaving || isOptionsLoading}
                 >
                   {isSaving ? (
                     <>
