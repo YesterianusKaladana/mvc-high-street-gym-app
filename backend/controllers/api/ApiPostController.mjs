@@ -1,6 +1,7 @@
 import express from "express";
 import { ApiAuthenticationController } from "./ApiAuthenticationController.mjs";
 import { PostModel } from "../../models/PostModel.mjs";
+import { UserPostModel } from "../../models/UserPostModel.mjs";
 
 export class ApiPostController {
   static routes = express.Router();
@@ -51,18 +52,33 @@ export class ApiPostController {
    *       500:
    *         $ref: "#/components/responses/Error"
    */
+
   static async getPosts(req, res) {
     try {
-      const posts = await PostModel.getAll();
+      const user = req.authenticatedUser;
 
-      console.log("Posts from DB:", posts);
+      let posts;
+
+      if (user?.role === "trainer" || user?.role === "member") {
+        // Trainers and members see only posts written by their own role.
+        const userPosts = await UserPostModel.getAllByRole(user.role);
+
+        // Keep post fields at the top level for the existing frontend.
+        posts = userPosts.map(({ post, user }) => ({
+          ...post,
+          author: user,
+        }));
+      } else {
+        // Admins see all posts.
+        posts = await PostModel.getAll();
+      }
 
       return res.status(200).json(posts);
     } catch (error) {
-      console.error(error);
+      console.error("Failed to load posts:", error);
 
       return res.status(500).json({
-        message: "Failed to load posts from database",
+        message: "Failed to load posts",
       });
     }
   }
