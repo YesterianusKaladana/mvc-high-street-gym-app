@@ -215,16 +215,16 @@ function BlogView() {
                 {posts.map((post) => (
                     <li
                         key={post.id}
-                        className="rounded-xl border border-base-200 bg-base-100 p-5 shadow-sm"
+                        className="rounded-xl border border-blue-500 bg-base-100 p-5 shadow-sm"
                     >
                         {/* Post header */}
                         <div className="flex items-start justify-between gap-4 border-b border-base-200 pb-3">
                             <div className="min-w-0">
-                                <h2 className="break-words text-lg font-bold">
+                                <h2 className="break-words text-medium font-bold">
                                     {post.title}
                                 </h2>
 
-                                <span className="mt-1 block text-xs opacity-50">
+                                <span className="mt-1 font-bold text-xs opacity-50">
                                     {new Date(
                                         post.created_at
                                     ).toLocaleDateString("en-AU", {

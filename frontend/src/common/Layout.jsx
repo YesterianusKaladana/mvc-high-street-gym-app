@@ -47,6 +47,7 @@ function Layout() {
                             className="btn btn-ghost text-lg text-error"
                             aria-label="Logout"
                         >
+                            Logout
                             <TbLogout />
                         </button>
                     ) : (
@@ -56,6 +57,7 @@ function Layout() {
                             className="btn btn-ghost text-lg text-success"
                             aria-label="Login"
                         >
+                            Login
                             <TbLogin />
                         </button>
                     )}
