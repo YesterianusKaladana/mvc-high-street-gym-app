@@ -12,6 +12,12 @@ export class ApiUserController {
     this.routes.post("/", this.createNewMember);
 
     this.routes.get(
+      "/",
+      ApiAuthenticationController.restrict("admin"),
+      this.getAllUsers,
+    );
+
+    this.routes.get(
       "/self",
       ApiAuthenticationController.restrict("any"),
       this.getAuthenticatedUser,
@@ -142,6 +148,77 @@ export class ApiUserController {
    */
   static async getAuthenticatedUser(req, res) {
     return res.status(200).json(req.authenticatedUser);
+  }
+
+  /**
+   * @openapi
+   * /api/user:
+   *   get:
+   *     summary: Get all active users
+   *     description: Retrieves all active users. Only administrators can access this endpoint. Passwords and authentication keys are excluded from the response.
+   *     tags:
+   *       - User
+   *
+   *     security:
+   *       - ApiKey: []
+   *
+   *     responses:
+   *       200:
+   *         description: List of active users retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 type: object
+   *                 properties:
+   *                   id:
+   *                     type: integer
+   *                     example: 52
+   *                   firstName:
+   *                     type: string
+   *                     example: Jane
+   *                   lastName:
+   *                     type: string
+   *                     example: Doe
+   *                   role:
+   *                     type: string
+   *                     example: member
+   *                   email:
+   *                     type: string
+   *                     format: email
+   *                     example: jane@gmail.com
+   *
+   *       401:
+   *         $ref: "#/components/responses/Unauthorized"
+   *
+   *       403:
+   *         $ref: "#/components/responses/Forbidden"
+   *
+   *       500:
+   *         $ref: "#/components/responses/Error"
+   */
+  static async getAllUsers(req, res) {
+    try {
+      const users = await UserModel.getAll();
+
+      // Exclude passwords and authentication keys
+      const safeUsers = users.map((user) => ({
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        email: user.email,
+      }));
+
+      return res.status(200).json(safeUsers);
+    } catch (error) {
+      console.error("GET ALL USERS ERROR:", error);
+
+      return res.status(500).json({
+        message: "Failed to load users",
+      });
+    }
   }
 
   /**
