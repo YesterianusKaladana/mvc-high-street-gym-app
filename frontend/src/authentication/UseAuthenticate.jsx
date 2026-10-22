@@ -25,7 +25,7 @@ export function AuthenticationProvider({ children }) {
             setStatus("loaded");
           } else {
             localStorage.removeItem("auth-key");
-            setStatus("logged out");
+            setStatus("You are logged out. Please log in again.");
           }
         })
         .catch((error) => {
@@ -33,7 +33,7 @@ export function AuthenticationProvider({ children }) {
           setStatus(String(error));
         });
     } else {
-      setStatus("logged out");
+      setStatus("You are logged out. Please log in again.");
     }
   }, []);
 
@@ -122,7 +122,7 @@ export function useAuthenticate(restrictToRoles = null) {
       .finally(() => {
         setUser(null);
         localStorage.removeItem("auth-key");
-        setStatus("logged out");
+        setStatus("You are logged out. Please log in again.");
         navigate("/");
       });
   }, [setUser, setStatus, navigate]);
