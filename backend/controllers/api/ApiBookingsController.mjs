@@ -234,59 +234,26 @@ export class ApiBookingsController {
    * @openapi
    * /api/booking/xml:
    *   get:
-   *     summary: Export member bookings in XML format
-   *     description: Exports the authenticated member's bookings in XML 1.0 format.
+   *     summary: Export bookings as XML
+   *     description: Returns the authenticated member's bookings in XML format.
    *     tags:
    *       - XML
    *     security:
    *       - ApiKey: []
    *     responses:
    *       '200':
-   *         description: Successfully exported member bookings in XML format
+   *         description: Successfully retrieved bookings in XML format
    *         content:
    *           application/xml:
    *             schema:
    *               type: string
-   *             example: |
-   *               <?xml version="1.0" encoding="UTF-8"?>
-   *               <!DOCTYPE bookings [
-   *                 <!ELEMENT bookings (booking*)>
-   *                 <!ATTLIST bookings export-date CDATA "0000-00-00">
-   *                 <!ELEMENT booking (id, activity, location, date, start_time, end_time, trainer)>
-   *                 <!ELEMENT id (#PCDATA)>
-   *                 <!ELEMENT activity (#PCDATA)>
-   *                 <!ELEMENT location (#PCDATA)>
-   *                 <!ELEMENT date (#PCDATA)>
-   *                 <!ELEMENT start_time (#PCDATA)>
-   *                 <!ELEMENT end_time (#PCDATA)>
-   *                 <!ELEMENT trainer (#PCDATA)>
-   *               ]>
-   *               <bookings export-date="2026-10-02">
-   *                 <booking>
-   *                   <id>52</id>
-   *                   <activity>Yoga</activity>
-   *                   <location>Westlake</location>
-   *                   <date>2026-06-06</date>
-   *                   <start_time>09:58</start_time>
-   *                   <end_time>11:58</end_time>
-   *                   <trainer>Yesterianus Kaladana</trainer>
-   *                 </booking>
-   *               </bookings>
    *       '401':
    *         $ref: "#/components/responses/Unauthorized"
-   *       '403':
-   *         $ref: "#/components/responses/Forbidden"
    *       '500':
    *         $ref: "#/components/responses/Error"
    */
   static async handleExportBookingsXML(req, res) {
     try {
-      if (!req.authenticatedUser) {
-        return res.status(401).json({
-          message: "Authentication required",
-        });
-      }
-
       const exportDate = DatabaseModel.toMySqlDate(new Date());
 
       const bookings = await BookingActivityModel.getByMember(
@@ -294,19 +261,6 @@ export class ApiBookingsController {
       );
 
       let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-      xml += `<!DOCTYPE bookings [
-      <!ELEMENT bookings (booking*)>
-      <!ATTLIST bookings export-date CDATA #IMPLIED>
-      <!ELEMENT booking (id, activity, location, date, start_time, end_time, trainer)>
-      <!ELEMENT id (#PCDATA)>
-      <!ELEMENT activity (#PCDATA)>
-      <!ELEMENT location (#PCDATA)>
-      <!ELEMENT date (#PCDATA)>
-      <!ELEMENT start_time (#PCDATA)>
-      <!ELEMENT end_time (#PCDATA)>
-      <!ELEMENT trainer (#PCDATA)>
-  ]>\n`;
-
       xml += `<bookings export-date="${exportDate}">\n`;
 
       const escapeXML = (value) =>
@@ -318,32 +272,27 @@ export class ApiBookingsController {
           .replace(/'/g, "&apos;");
 
       bookings.forEach((booking) => {
-        xml += `    <booking>
-          <id>${escapeXML(booking.id)}</id>
-          <activity>${escapeXML(booking.activity_name)}</activity>
-          <location>${escapeXML(booking.location_name)}</location>
-          <date>${escapeXML(booking.date)}</date>
-          <start_time>${escapeXML(booking.start_time)}</start_time>
-          <end_time>${escapeXML(booking.end_time)}</end_time>
-          <trainer>${escapeXML(booking.trainer_name)}</trainer>
-      </booking>
-  `;
+        xml += `  <booking>
+    <id>${escapeXML(booking.id)}</id>
+    <activity>${escapeXML(booking.activity_name)}</activity>
+    <location>${escapeXML(booking.location_name)}</location>
+    <date>${escapeXML(String(booking.date).slice(0, 10))}</date>
+    <start_time>${escapeXML(booking.start_time)}</start_time>
+    <end_time>${escapeXML(booking.end_time)}</end_time>
+    <trainer>${escapeXML(booking.trainer_name)}</trainer>
+  </booking>\n`;
       });
 
-      xml += `</bookings>`;
-
+      xml += "</bookings>";
+      // Set the appropriate content type for XML
       res.setHeader("Content-Type", "application/xml; charset=UTF-8");
-      res.setHeader(
-        "Content-Disposition",
-        'attachment; filename="members.xml"',
-      );
-
+      // Send the XML response body with a 200 OK status
       return res.status(200).send(xml);
     } catch (error) {
-      console.error("BOOKING XML ERROR:", error);
+      console.error("EXPORT BOOKINGS XML ERROR:", error);
 
       return res.status(500).json({
-        message: "Failed to export XML bookings",
+        message: "Failed to generate XML bookings.",
       });
     }
   }

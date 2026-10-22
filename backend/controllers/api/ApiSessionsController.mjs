@@ -340,6 +340,8 @@ export class ApiSessionsController {
    *     description: Exports gym sessions in XML format.
    *     tags:
    *       - XML
+   *     security:
+   *       - ApiKey: []
    *     responses:
    *       '200':
    *         description: Successfully exported sessions
