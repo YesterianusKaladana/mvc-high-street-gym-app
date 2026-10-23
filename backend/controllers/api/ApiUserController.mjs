@@ -79,6 +79,8 @@ export class ApiUserController {
    *
    *       400:
    *         $ref: "#/components/responses/BadRequest"
+   *       401:
+   *         $ref: "#/components/responses/Unauthorized"
    *
    *       500:
    *         $ref: "#/components/responses/Error"
@@ -247,6 +249,8 @@ export class ApiUserController {
    *           application/json:
    *             schema:
    *               $ref: "#/components/schemas/User"
+   *       400:
+   *         $ref: "#/components/responses/BadRequest"
    *
    *       401:
    *         $ref: "#/components/responses/Unauthorized"
@@ -325,6 +329,9 @@ export class ApiUserController {
    *
    *       200:
    *         $ref: "#/components/responses/Updated"
+   *
+   *       400:
+   *         $ref: "#/components/responses/BadRequest"
    *
    *       401:
    *         $ref: "#/components/responses/Unauthorized"

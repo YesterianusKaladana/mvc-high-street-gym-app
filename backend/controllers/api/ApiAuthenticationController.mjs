@@ -14,7 +14,10 @@ export class ApiAuthenticationController {
   }
 
   /**
-   * Middleware: loads user from API key
+   * This middleware checks the for the API key header and
+   * loads the respective user into req.authenticatedUser if found.
+   *
+   * @type {express.RequestHandler}
    */
   static async #APIAuthenticationProvider(req, res, next) {
     const authenticationKey = req.headers["x-auth-key"];

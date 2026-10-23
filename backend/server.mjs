@@ -1,6 +1,6 @@
 import express from "express";
 import path from "path";
-import cors from 'cors';
+import cors from "cors";
 import { UserController } from "./controllers/UserController.mjs";
 import { AuthenticationController } from "./controllers/AuthenticationController.mjs";
 import { BookingController } from "./controllers/BookingController.mjs";
@@ -42,7 +42,6 @@ app.use("/activity", ActivityController.routes);
 app.use("/location", LocationController.routes);
 app.use("/post", PostController.routes);
 app.use("/api", ApiController.routes);
-
 
 app.get("/", (req, res) => {
   res.redirect("/session/view");
