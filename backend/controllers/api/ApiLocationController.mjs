@@ -37,6 +37,9 @@ export class ApiLocationController {
     this.routes.get("/", this.getLocations);
   }
 
+  /**
+   * @type {express.RequestHandler}
+   */
   static async getLocations(req, res) {
     try {
       const locations = await LocationModel.getAll();

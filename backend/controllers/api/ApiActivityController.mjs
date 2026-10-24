@@ -37,6 +37,9 @@ export class ApiActivityController {
     this.routes.get("/", this.getActivities);
   }
 
+  /**
+   * @type {express.RequestHandler}
+   */
   static async getActivities(req, res) {
     try {
       const activities = await ActivityModel.getAll();
