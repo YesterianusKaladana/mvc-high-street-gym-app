@@ -2,6 +2,7 @@
 <!DOCTYPE bookings [ <!ELEMENT bookings (booking*)>
 <!ATTLIST bookings export-date CDATA #IMPLIED>
 <!ELEMENT booking (id, activity, location, date, start_time, end_time, trainer)>
+<!ATTLIST booking id CDATA #REQUIRED>
 <!ELEMENT id (#PCDATA)>
 <!ELEMENT activity (#PCDATA)>
 <!ELEMENT location (#PCDATA)>
@@ -11,7 +12,7 @@
 <!ELEMENT trainer (#PCDATA)>
 ]>
 <bookings export-date="2026-10-17">
-  <booking>
+  <booking id="52">
     <id>52</id>
     <activity>Yoga</activity>
     <location>Westlake</location>

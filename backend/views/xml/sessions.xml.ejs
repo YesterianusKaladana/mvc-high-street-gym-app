@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE sessions [ <!ELEMENT sessions (session*)>
-<!ATTLIST sessions export-date CDATA "0000-00-00">
-<!ELEMENT session (session_id, trainer, location, activity, date, start_time, end_time, capacity)>
-<!ELEMENT session_id (#PCDATA)>
+<!ATTLIST sessions export-date CDATA #IMPLIED>
+<!ELEMENT session (trainer, location, activity, date, start_time, end_time, capacity)>
+<!ATTLIST session session_id CDATA #REQUIRED>
 <!ELEMENT trainer (#PCDATA)>
 <!ELEMENT location (#PCDATA)>
 <!ELEMENT activity (#PCDATA)>
@@ -12,8 +12,7 @@
 <!ELEMENT capacity (#PCDATA)>
 ]>
 <sessions export-date="2026-09-14">
-  <session>
-    <session_id>1</session_id>
+  <session session_id="1">
     <trainer>Yesterianus</trainer>
     <location>Westlake</location>
     <activity>Yoga</activity>
