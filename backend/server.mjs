@@ -25,8 +25,11 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "x-auth-key"],
 };
 
-// Apply CORS to all routes and handle preflight OPTIONS requests
+// Apply CORS to all routes
 app.use(cors(corsOptions));
+
+// Explicitly handle OPTIONS preflight requests for all routes
+app.options(/.*/, cors(corsOptions));
 
 app.set("view engine", "ejs");
 app.set("views", path.join(import.meta.dirname, "views"));
