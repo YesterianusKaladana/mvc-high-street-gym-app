@@ -63,14 +63,6 @@ export class ApiController {
       }),
     );
 
-    //TODO: Set up error response handling (in JSON format)
-    this.routes.use((err, req, res, next) => {
-      res.status(err.status || 500).json({
-        message: err.message,
-        errors: err.errors,
-      });
-    });
-
     // Authentication Middleware and Routes
     this.routes.use(ApiAuthenticationController.middleware);
     this.routes.use(ApiAuthenticationController.routes);
@@ -82,5 +74,13 @@ export class ApiController {
     this.routes.use("/booking", ApiBookingsController.routes);
     this.routes.use("/activity", ApiActivityController.routes);
     this.routes.use("/location", ApiLocationController.routes);
+
+    //TODO: Set up error response handling (in JSON format)
+    this.routes.use((err, req, res, next) => {
+      res.status(err.status || 500).json({
+        message: err.message,
+        errors: err.errors,
+      });
+    });
   }
 }
