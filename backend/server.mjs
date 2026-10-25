@@ -13,12 +13,20 @@ import { ApiController } from "./controllers/api/ApiController.mjs";
 const app = express();
 const port = 8080;
 
-//Enable cross-origin resource sharing (CORS) and preflight OPTIONS requests
-app.use(
-  cors({
-    origin: true,
-  }),
-);
+// Configure CORS to allow requests from the React frontend
+const corsOptions = {
+  // Allow requests from the frontend running on localhost:5173
+  origin: "http://localhost:5173",
+
+  // Allow the specified HTTP methods
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+
+  // Allow the headers used by the frontend, including the authentication key
+  allowedHeaders: ["Content-Type", "x-auth-key"],
+};
+
+// Apply CORS to all routes and handle preflight OPTIONS requests
+app.use(cors(corsOptions));
 
 app.set("view engine", "ejs");
 app.set("views", path.join(import.meta.dirname, "views"));
