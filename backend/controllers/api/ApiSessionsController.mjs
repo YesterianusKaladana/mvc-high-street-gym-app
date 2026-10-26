@@ -22,7 +22,7 @@ export class ApiSessionsController {
     this.routes.post(
       "/",
       ApiAuthenticationController.restrict(["trainer"]),
-      this.createSession,
+      this.createTrainerSession,
     );
 
     // Register specific routes before /:id.
@@ -33,34 +33,22 @@ export class ApiSessionsController {
     );
 
     this.routes.get(
-      "/trainer/:id",
+      "/:id",
       ApiAuthenticationController.restrict(["trainer"]),
-      this.getSessionsById,
+      this.getTrainerSessionsById,
     );
-
-    this.routes.get("/:id", this.getSessionById);
 
     this.routes.put(
       "/:id",
       ApiAuthenticationController.restrict(["trainer"]),
-      this.updateSessions,
+      this.updateTrainerSessions,
     );
 
     this.routes.delete(
       "/:id",
       ApiAuthenticationController.restrict(["trainer"]),
-      this.deleteSessions,
+      this.deleteTrainerSessions,
     );
-  }
-
-  // Escape XML special characters.
-  static escapeXML(value) {
-    return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&apos;");
   }
 
   /**
@@ -166,7 +154,7 @@ export class ApiSessionsController {
    * @openapi
    * /api/session:
    *   post:
-   *     summary: Create a session
+   *     summary: Create a trainer session
    *     description: Creates a new gym session for the authenticated trainer.
    *     tags:
    *       - Session
@@ -213,6 +201,7 @@ export class ApiSessionsController {
    *                   type: string
    *                 session:
    *                   type: object
+   *                   description: Newly created session returned by the session model
    *                   additionalProperties: true
    *       '400':
    *         description: Invalid session details
@@ -226,13 +215,34 @@ export class ApiSessionsController {
    *                 message:
    *                   type: string
    *       '401':
-   *         $ref: "#/components/responses/Unauthorized"
+   *         description: Authentication required
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               required:
+   *                 - message
+   *               properties:
+   *                 message:
+   *                   type: string
    *       '403':
    *         $ref: "#/components/responses/Forbidden"
    *       '500':
-   *         $ref: "#/components/responses/Error"
+   *         description: Failed to create session
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               required:
+   *                 - message
+   *                 - error
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                 error:
+   *                   type: string
    */
-  static async createSession(req, res) {
+  static async createTrainerSession(req, res) {
     try {
       if (!req.authenticatedUser) {
         return res.status(401).json({
@@ -351,20 +361,18 @@ export class ApiSessionsController {
       const exportDate = new Date().toISOString().slice(0, 10);
       const sessions = await SessionActivityModel.getAllWithDetails();
 
-      let xml =
-        `<?xml version="1.0" encoding="UTF-8"?>\n` +
-        `<sessions export-date="${exportDate}">\n`;
+      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<sessions export-date="${exportDate}">\n`;
 
       sessions.forEach((session) => {
         xml += `  <session>
-    <session_id>${this.escapeXML(session.session_id)}</session_id>
-    <activity_name>${this.escapeXML(session.activity_name)}</activity_name>
-    <location_name>${this.escapeXML(session.location_name)}</location_name>
-    <trainer_name>${this.escapeXML(session.trainer_name)}</trainer_name>
-    <date>${this.escapeXML(String(session.date).slice(0, 10))}</date>
-    <start_time>${this.escapeXML(session.start_time)}</start_time>
-    <end_time>${this.escapeXML(session.end_time)}</end_time>
-    <capacity>${this.escapeXML(session.capacity)}</capacity>
+    <session_id>${session.session_id}</session_id>
+    <activity_name>${session.activity_name}</activity_name>
+    <location_name>${session.location_name}</location_name>
+    <trainer_name>${session.trainer_name}</trainer_name>
+    <date>${String(session.date).slice(0, 10)}</date>
+    <start_time>${session.start_time}</start_time>
+    <end_time>${session.end_time}</end_time>
+    <capacity>${session.capacity}</capacity>
   </session>\n`;
       });
 
@@ -383,10 +391,10 @@ export class ApiSessionsController {
 
   /**
    * @openapi
-   * /api/session/trainer/{id}:
+   * /api/session/{id}:
    *   get:
    *     summary: Get sessions for a trainer
-   *     description: Returns sessions belonging to the authenticated trainer whose ID is provided.
+   *     description: Returns sessions belonging to the specified authenticated trainer.
    *     tags:
    *       - Session
    *     parameters:
@@ -415,7 +423,7 @@ export class ApiSessionsController {
    *       '500':
    *         $ref: "#/components/responses/Error"
    */
-  static async getSessionsById(req, res) {
+  static async getTrainerSessionsById(req, res) {
     try {
       const id = Number(req.params.id);
 
@@ -439,79 +447,6 @@ export class ApiSessionsController {
 
       return res.status(500).json({
         message: "Failed to load trainer sessions.",
-        error: error.message,
-      });
-    }
-  }
-
-  /**
-   * @openapi
-   * /api/session/{id}:
-   *   get:
-   *     summary: Get session details by ID
-   *     description: Returns the details of one gym session.
-   *     tags:
-   *       - Session
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: integer
-   *           minimum: 1
-   *         description: Session ID
-   *     responses:
-   *       '200':
-   *         description: Successfully retrieved session
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: "#/components/schemas/Session"
-   *       '400':
-   *         $ref: "#/components/responses/BadRequest"
-   *       '401':
-   *         $ref: "#/components/responses/Unauthorized"
-   *       '404':
-   *         $ref: "#/components/responses/NotFound"
-   *       '500':
-   *         $ref: "#/components/responses/Error"
-   */
-  static async getSessionById(req, res) {
-    try {
-      const id = Number(req.params.id);
-
-      if (!Number.isInteger(id) || id < 1) {
-        return res.status(400).json({
-          message: "Invalid session ID.",
-        });
-      }
-
-      const sessions = await SessionActivityModel.getAllWithDetails();
-      const session = sessions.find((item) => Number(item.session_id) === id);
-
-      if (!session) {
-        return res.status(404).json({
-          message: "Session not found.",
-        });
-      }
-
-      return res.status(200).json({
-        session_id: session.session_id,
-        activity_id: session.activity_id,
-        location_id: session.location_id,
-        activity_name: session.activity_name,
-        location_name: session.location_name,
-        trainer_name: session.trainer_name,
-        date: session.date,
-        start_time: session.start_time,
-        end_time: session.end_time,
-        capacity: session.capacity,
-      });
-    } catch (error) {
-      console.error("GET SESSION BY ID ERROR:", error);
-
-      return res.status(500).json({
-        message: "Failed to load session.",
         error: error.message,
       });
     }
@@ -564,8 +499,27 @@ export class ApiSessionsController {
    *     responses:
    *       '200':
    *         description: Session updated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               required:
+   *                 - message
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Session updated successfully.
    *       '400':
-   *         $ref: "#/components/responses/BadRequest"
+   *         description: Invalid session details
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               required:
+   *                 - message
+   *               properties:
+   *                 message:
+   *                   type: string
    *       '401':
    *         $ref: "#/components/responses/Unauthorized"
    *       '403':
@@ -573,9 +527,21 @@ export class ApiSessionsController {
    *       '404':
    *         $ref: "#/components/responses/NotFound"
    *       '500':
-   *         $ref: "#/components/responses/Error"
+   *         description: Failed to update session
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               required:
+   *                 - message
+   *                 - error
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                 error:
+   *                   type: string
    */
-  static async updateSessions(req, res) {
+  static async updateTrainerSessions(req, res) {
     try {
       const id = Number(req.params.id);
 
@@ -702,8 +668,27 @@ export class ApiSessionsController {
    *     responses:
    *       '200':
    *         description: Session deleted successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               required:
+   *                 - message
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Session deleted successfully.
    *       '400':
-   *         $ref: "#/components/responses/BadRequest"
+   *         description: Invalid session ID
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               required:
+   *                 - message
+   *               properties:
+   *                 message:
+   *                   type: string
    *       '401':
    *         $ref: "#/components/responses/Unauthorized"
    *       '403':
@@ -711,9 +696,21 @@ export class ApiSessionsController {
    *       '404':
    *         $ref: "#/components/responses/NotFound"
    *       '500':
-   *         $ref: "#/components/responses/Error"
+   *         description: Failed to delete session
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               required:
+   *                 - message
+   *                 - error
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                 error:
+   *                   type: string
    */
-  static async deleteSessions(req, res) {
+  static async deleteTrainerSessions(req, res) {
     try {
       const id = Number(req.params.id);
 
