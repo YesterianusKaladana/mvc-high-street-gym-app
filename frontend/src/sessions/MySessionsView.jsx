@@ -1,12 +1,5 @@
-
 import { useState, useEffect, useCallback } from "react";
-import {
-  FaPerson,
-  FaLocationDot,
-  FaCalendarDays,
-  FaClock,
-  FaUsers,
-} from "react-icons/fa6";
+import { FaPerson, FaLocationDot, FaCalendarDays, FaClock, FaUsers } from "react-icons/fa6";
 import { FaSearch, FaPlus, FaEdit, FaTrash, FaTimes } from "react-icons/fa";
 import { fetchAPI } from "../api.mjs";
 
