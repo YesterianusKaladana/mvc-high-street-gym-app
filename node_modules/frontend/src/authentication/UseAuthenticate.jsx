@@ -121,6 +121,7 @@ export function useAuthenticate(restrictToRoles = null) {
       });
   }, [setUser, setStatus, navigate]);
 
+  // Refresh — re-fetches user data from server with the same authentication key, if it exists in localStorage
   const refresh = useCallback(() => {
     const authenticationKey = localStorage.getItem("auth-key");
 

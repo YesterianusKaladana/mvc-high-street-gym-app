@@ -106,25 +106,11 @@ function ProfileView() {
     return (
         <section className="flex flex-col gap-4 p-4 items-center">
 
-            {/* HEADER */}
-            <div className="self-stretch">
-                <h1 className="text-3xl font-bold">
-                    My Profile
-                </h1>
-
-                <p className="text-sm opacity-60 mt-2">
-                    Role:{" "}
-                    <span className="badge badge-primary badge-sm">
-                        {user.role}
-                    </span>
-                </p>
-            </div>
-
             {/* PERSONAL DETAILS */}
             <fieldset className="fieldset rounded-box border p-4 self-stretch">
 
                 <legend className="fieldset-legend text-xl p-2">
-                    Personal Details
+                    My Personal Details
                 </legend>
 
                 {/* FIRST NAME */}

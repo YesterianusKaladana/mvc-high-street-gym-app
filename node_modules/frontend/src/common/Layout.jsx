@@ -47,7 +47,11 @@ function Layout() {
                             className="btn btn-ghost text-lg text-error"
                             aria-label="Logout"
                         >
-                            Logout
+                            <p className="text-sm opacity-60 mt-2">
+                                <span className="badge badge-primary badge-sm">
+                                    {user.firstName} {user.lastName}
+                                </span>
+                            </p>
                             <TbLogout />
                         </button>
                     ) : (
@@ -57,7 +61,6 @@ function Layout() {
                             className="btn btn-ghost text-lg text-success"
                             aria-label="Login"
                         >
-                            Login
                             <TbLogin />
                         </button>
                     )}
