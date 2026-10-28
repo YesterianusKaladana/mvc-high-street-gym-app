@@ -24,9 +24,10 @@ function XMLDownloadButton({
             a.click();
           });
         } else {
-          response.json().then((body) => {
-            console.error(body.message);
-          });
+          response.json()
+            .then((body) => {
+              console.error(body.message);
+            });
         }
       })
       .catch((error) => {

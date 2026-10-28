@@ -209,7 +209,7 @@ function ProfileView() {
                         localStorage.getItem("auth-key") || ""
                     }
                     filename="sessions.xml"
-                    className="btn btn-outline self-stretch"
+                    className="btn btn-warning self-stretch"
                 >
                     Export Sessions (XML)
                 </XMLDownloadButton>
@@ -223,7 +223,7 @@ function ProfileView() {
                         localStorage.getItem("auth-key") || ""
                     }
                     filename="members.xml"
-                    className="btn btn-outline self-stretch"
+                    className="btn btn-warning self-stretch"
                 >
                     Export Bookings (XML)
                 </XMLDownloadButton>
