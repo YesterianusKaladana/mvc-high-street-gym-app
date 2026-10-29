@@ -59,24 +59,23 @@ function ProfileView() {
             {
                 firstName: firstName.trim(),
                 lastName: lastName.trim(),
-                email: email.trim()
+                email: email.trim(),
             },
-            localStorage.getItem("auth-key")
+            localStorage.getItem("auth-key"),
         )
-            .then(response => {
+            .then((response) => {
                 if (response.status === 200) {
                     setStatus("Profile updated successfully!");
                     refresh();
                 } else {
                     setStatus(
-                        "Update failed: " +
-                        (response.body?.message || "Unknown error")
+                        "Update failed: " + (response.body?.message || "Unknown error"),
                     );
                 }
 
                 setLoading(false);
             })
-            .catch(error => {
+            .catch((error) => {
                 setStatus(String(error));
                 setLoading(false);
             });
@@ -91,36 +90,20 @@ function ProfileView() {
         );
     }
 
-    // Not logged in
-    if (!user) {
-        return (
-            <StatusPage
-                title="Login Required"
-                message="You need to login to view your profile."
-                actionLabel="Go to Login"
-                actionPath="/login"
-            />
-        );
-    }
-
     return (
         <section className="flex flex-col gap-4 p-4 items-center">
-
             {/* PERSONAL DETAILS */}
             <fieldset className="fieldset rounded-box border p-4 self-stretch">
-
                 <legend className="fieldset-legend text-xl p-2">
                     My Personal Details
                 </legend>
 
                 {/* FIRST NAME */}
-                <label className="label">
-                    First Name
-                </label>
+                <label className="label">First Name</label>
 
                 <input
                     value={firstName}
-                    onChange={e => setFirstName(e.target.value)}
+                    onChange={(e) => setFirstName(e.target.value)}
                     className="input w-full"
                     type="text"
                     placeholder="First name"
@@ -134,13 +117,11 @@ function ProfileView() {
                 )}
 
                 {/* LAST NAME */}
-                <label className="label">
-                    Last Name
-                </label>
+                <label className="label">Last Name</label>
 
                 <input
                     value={lastName}
-                    onChange={e => setLastName(e.target.value)}
+                    onChange={(e) => setLastName(e.target.value)}
                     className="input w-full"
                     type="text"
                     placeholder="Last name"
@@ -154,13 +135,11 @@ function ProfileView() {
                 )}
 
                 {/* EMAIL */}
-                <label className="label">
-                    Email
-                </label>
+                <label className="label">Email</label>
 
                 <input
                     value={email}
-                    onChange={e => setEmail(e.target.value)}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="input w-full"
                     type="email"
                     placeholder="Email"
@@ -168,11 +147,8 @@ function ProfileView() {
                 />
 
                 {validationErrors.email && (
-                    <label className="label text-red-500">
-                        {validationErrors.email}
-                    </label>
+                    <label className="label text-red-500">{validationErrors.email}</label>
                 )}
-
             </fieldset>
 
             {/* STATUS */}
@@ -195,7 +171,6 @@ function ProfileView() {
                 className="btn btn-primary self-stretch"
             >
                 Update Profile
-
                 {loading && (
                     <span className="loading loading-spinner loading-sm"></span>
                 )}
@@ -205,9 +180,7 @@ function ProfileView() {
             {user.role === "trainer" && (
                 <XMLDownloadButton
                     route="/session/xml"
-                    authenticationKey={
-                        localStorage.getItem("auth-key") || ""
-                    }
+                    authenticationKey={localStorage.getItem("auth-key") || ""}
                     filename="sessions.xml"
                     className="btn btn-warning self-stretch"
                 >
@@ -219,16 +192,13 @@ function ProfileView() {
             {user.role === "member" && (
                 <XMLDownloadButton
                     route="/booking/xml"
-                    authenticationKey={
-                        localStorage.getItem("auth-key") || ""
-                    }
+                    authenticationKey={localStorage.getItem("auth-key") || ""}
                     filename="members.xml"
                     className="btn btn-warning self-stretch"
                 >
                     Export Bookings (XML)
                 </XMLDownloadButton>
             )}
-
         </section>
     );
 }

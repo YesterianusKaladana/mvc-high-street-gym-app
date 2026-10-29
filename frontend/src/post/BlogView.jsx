@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback } from "react";
 import { fetchAPI } from "../api.mjs";
 import { FaPlus } from "react-icons/fa";
@@ -32,10 +31,7 @@ function BlogView() {
                 if (response.status === 200) {
                     setPosts(response.body);
                 } else {
-                    setStatus(
-                        response.body?.message ||
-                        "Failed to load blog posts."
-                    );
+                    setStatus(response.body?.message || "Failed to load blog posts.");
                 }
             })
             .catch((error) => {
@@ -87,21 +83,13 @@ function BlogView() {
             return;
         }
 
-        fetchAPI(
-            "DELETE",
-            `/post/${confirmDelete}`,
-            null,
-            authKey
-        )
+        fetchAPI("DELETE", `/post/${confirmDelete}`, null, authKey)
             .then((response) => {
                 if (response.status === 200) {
                     setConfirmDelete(null);
                     getPosts();
                 } else {
-                    setStatus(
-                        response.body?.message ||
-                        "Failed to delete post."
-                    );
+                    setStatus(response.body?.message || "Failed to delete post.");
                     setConfirmDelete(null);
                 }
             })
@@ -156,10 +144,10 @@ function BlogView() {
                 {
                     post: {
                         title: title.trim(),
-                        content: content.trim()
-                    }
+                        content: content.trim(),
+                    },
                 },
-                authKey
+                authKey,
             );
 
             if (response.status === 201) {
@@ -168,10 +156,7 @@ function BlogView() {
                 setContent("");
                 getPosts();
             } else {
-                setStatus(
-                    response.body?.message ||
-                    "Failed to create post."
-                );
+                setStatus(response.body?.message || "Failed to create post.");
             }
         } catch (error) {
             setStatus(String(error));
@@ -182,7 +167,6 @@ function BlogView() {
 
     return (
         <section className="flex flex-col items-center gap-4 p-4">
-
             {/* Navigation */}
             <div className="flex w-full max-w-4xl justify-start">
                 <div>
@@ -199,11 +183,7 @@ function BlogView() {
             </div>
 
             {/* Status */}
-            {status && (
-                <span className="w-full max-w-4xl text-error">
-                    {status}
-                </span>
-            )}
+            {status && <span className="w-full max-w-4xl text-error">{status}</span>}
 
             {/* Loading */}
             {posts.length === 0 && !status && (
@@ -225,9 +205,7 @@ function BlogView() {
                                 </h2>
 
                                 <span className="mt-1 font-bold text-xs opacity-50">
-                                    {new Date(
-                                        post.created_at
-                                    ).toLocaleDateString("en-AU", {
+                                    {new Date(post.created_at).toLocaleDateString("en-AU", {
                                         day: "2-digit",
                                         month: "short",
                                         year: "numeric",
@@ -238,16 +216,12 @@ function BlogView() {
                             {isLoggedIn && (
                                 <button
                                     type="button"
-                                    onClick={() =>
-                                        askDeletePost(post.id)
-                                    }
+                                    onClick={() => askDeletePost(post.id)}
                                     className="btn btn-ghost btn-sm shrink-0 text-error"
                                 >
                                     <MdDelete />
 
-                                    <span className="hidden sm:inline">
-                                        Delete
-                                    </span>
+                                    <span className="hidden sm:inline">Delete</span>
                                 </button>
                             )}
                         </div>
@@ -266,25 +240,18 @@ function BlogView() {
             {showCreate && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
                     <div className="w-full max-w-[350px] rounded-2xl bg-base-100 p-5 shadow-xl">
-
-                        <h3 className="text-lg font-bold">
-                            Create Blog Post
-                        </h3>
+                        <h3 className="text-lg font-bold">Create Blog Post</h3>
 
                         {/* Title */}
                         <div className="form-control mt-4">
                             <label className="label">
-                                <span className="label-text">
-                                    Title
-                                </span>
+                                <span className="label-text">Title</span>
                             </label>
 
                             <input
                                 type="text"
                                 value={title}
-                                onChange={(e) =>
-                                    setTitle(e.target.value)
-                                }
+                                onChange={(e) => setTitle(e.target.value)}
                                 placeholder="Enter post title"
                                 className="input input-bordered w-full"
                                 disabled={isCreating}
@@ -294,16 +261,12 @@ function BlogView() {
                         {/* Content */}
                         <div className="form-control mt-4">
                             <label className="label">
-                                <span className="label-text">
-                                    Content
-                                </span>
+                                <span className="label-text">Content</span>
                             </label>
 
                             <textarea
                                 value={content}
-                                onChange={(e) =>
-                                    setContent(e.target.value)
-                                }
+                                onChange={(e) => setContent(e.target.value)}
                                 placeholder="Write your post..."
                                 className="textarea textarea-bordered h-40 w-full"
                                 disabled={isCreating}
@@ -312,12 +275,9 @@ function BlogView() {
 
                         {/* Buttons */}
                         <div className="modal-action mt-5 flex justify-end gap-2">
-
                             <button
                                 type="button"
-                                onClick={() =>
-                                    setShowCreate(false)
-                                }
+                                onClick={() => setShowCreate(false)}
                                 className="btn btn-ghost"
                                 disabled={isCreating}
                             >
@@ -354,23 +314,17 @@ function BlogView() {
             {confirmDelete && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
                     <div className="w-full max-w-[350px] rounded-2xl bg-base-100 p-5 shadow-xl">
-
-                        <h3 className="text-lg font-bold">
-                            Delete Blog Post
-                        </h3>
+                        <h3 className="text-lg font-bold">Delete Blog Post</h3>
 
                         <p className="py-4">
-                            Are you sure you want to delete this blog post?
-                            This cannot be undone.
+                            Are you sure you want to delete this blog post? This cannot be
+                            undone.
                         </p>
 
                         <div className="modal-action flex justify-end gap-2">
-
                             <button
                                 type="button"
-                                onClick={() =>
-                                    setConfirmDelete(null)
-                                }
+                                onClick={() => setConfirmDelete(null)}
                                 className="btn btn-ghost"
                             >
                                 Cancel
@@ -384,19 +338,15 @@ function BlogView() {
                                 <MdDelete />
                                 Delete
                             </button>
-
                         </div>
                     </div>
 
                     <div
                         className="modal-backdrop"
-                        onClick={() =>
-                            setConfirmDelete(null)
-                        }
+                        onClick={() => setConfirmDelete(null)}
                     />
                 </div>
             )}
-
         </section>
     );
 }
