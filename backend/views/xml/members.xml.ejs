@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE bookings [ <!ELEMENT bookings (booking*)>
+<!DOCTYPE bookings [ <!ELEMENT bookings (copyright, booking*)>
 <!ATTLIST bookings export-date CDATA #IMPLIED>
+<!ELEMENT copyright (#PCDATA)>
 <!ELEMENT booking (id, activity, location, date, start_time, end_time, trainer)>
 <!ATTLIST booking id CDATA #REQUIRED>
 <!ELEMENT id (#PCDATA)>
@@ -13,6 +14,9 @@
 ]>
 <bookings export-date="2026-10-17">
   <booking id="52">
+    <copyright
+      >Copyright (c) 2026 High Street Gym. All rights reserved.</copyright
+    >
     <id>52</id>
     <activity>Yoga</activity>
     <location>Westlake</location>

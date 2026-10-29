@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE sessions [ <!ELEMENT sessions (session*)>
 <!ATTLIST sessions export-date CDATA #IMPLIED>
+<!ELEMENT copyright (#PCDATA)>
 <!ELEMENT session (trainer, location, activity, date, start_time, end_time, capacity)>
 <!ATTLIST session session_id CDATA #REQUIRED>
 <!ELEMENT trainer (#PCDATA)>
@@ -12,6 +13,9 @@
 <!ELEMENT capacity (#PCDATA)>
 ]>
 <sessions export-date="2026-09-14">
+  <copyright
+    >Copyright (c) 2026 High Street Gym. All rights reserved.</copyright
+  >
   <session session_id="1">
     <activity>Yoga</activity>
     <location>Westlake</location>

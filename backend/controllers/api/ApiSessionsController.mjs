@@ -362,6 +362,7 @@ export class ApiSessionsController {
       const sessions = await SessionActivityModel.getAllWithDetails();
 
       let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<sessions export-date="${exportDate}">\n`;
+      xml += `  <copyright>© 2026 High Street Gym. All rights reserved.</copyright>\n`;
 
       sessions.forEach((session) => {
         xml += `  <session>

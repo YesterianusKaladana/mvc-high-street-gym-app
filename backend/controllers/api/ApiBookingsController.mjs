@@ -262,6 +262,7 @@ export class ApiBookingsController {
 
       let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
       xml += `<bookings export-date="${exportDate}">\n`;
+      xml += `  <copyright>© 2026 High Street Gym. All rights reserved.</copyright>\n`;
 
       const escapeXML = (value) =>
         String(value ?? "")
