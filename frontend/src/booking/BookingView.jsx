@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { fetchAPI } from "../api.mjs";
+import { useAuthenticate } from "../authentication/UseAuthenticate";
 
 function BookingView() {
+  // Navigate is used to redirect the user to another page
   const navigate = useNavigate();
+
+  // Get the authenticated user and their role
+  const { user, status } = useAuthenticate(["member"]);
 
   const [bookings, setBookings] = useState([]);
   const [error, setError] = useState(null);

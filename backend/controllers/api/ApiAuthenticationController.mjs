@@ -21,17 +21,14 @@ export class ApiAuthenticationController {
    */
   static async #APIAuthenticationProvider(req, res, next) {
     const authenticationKey = req.headers["x-auth-key"];
-
-    console.log("AUTH HEADER:", authenticationKey);
-
     if (authenticationKey) {
       try {
         req.authenticatedUser =
           await UserModel.getByAuthenticationKey(authenticationKey);
       } catch (error) {
         if (error == "not found") {
-          return res.status(401).json({
-            message: "Invalid authentication key - key not found",
+          return res.status(404).json({
+            message: "Failed to authenticate - key not found",
           });
         } else {
           console.error(error);

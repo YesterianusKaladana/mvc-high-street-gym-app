@@ -6,11 +6,11 @@ import { createBrowserRouter, RouterProvider } from 'react-router';
 import Layout from './common/Layout'
 import LoginView from './authentication/LoginView'
 import Register from './authentication/Register'
-import MySessionsView from './sessions/MySessionsView';
 import BookingView from './booking/BookingView';
 import BlogView from './post/BlogView';
 import ProfileView from './profile/ProfileView';
 import TimetableView from './timetable/TimetableView';
+import SessionManagementView from './sessions/SessionManagementView';
 
 const router = createBrowserRouter([
   {
@@ -46,7 +46,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/session",
-        Component: MySessionsView
+        Component: SessionManagementView
       },
     ]
   }

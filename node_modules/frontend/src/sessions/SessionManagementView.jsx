@@ -2,8 +2,12 @@ import { useState, useEffect, useCallback } from "react";
 import { FaPerson, FaLocationDot, FaCalendarDays, FaClock, FaUsers } from "react-icons/fa6";
 import { FaSearch, FaPlus, FaEdit, FaTrash, FaTimes } from "react-icons/fa";
 import { fetchAPI } from "../api.mjs";
+import { useAuthenticate } from "../authentication/UseAuthenticate";
 
-function MySessionsView() {
+function SessionManagementView() {
+  // Get the authenticated user and their role
+  const { user, status } = useAuthenticate(["trainer"]);
+
   // Store the trainer's sessions and the available activity and location options.
   const [sessions, setSessions] = useState([]);
   const [activities, setActivities] = useState([]);
@@ -773,4 +777,4 @@ function MySessionsView() {
   );
 }
 
-export default MySessionsView;
+export default SessionManagementView;

@@ -1,3 +1,4 @@
+
 import { useCallback, useEffect, useState } from "react";
 import { FaSearch } from "react-icons/fa";
 import { fetchAPI } from "../api.mjs";
@@ -12,6 +13,7 @@ function TimetableView() {
     const [selectedSession, setSelectedSession] = useState(null);
     const [isBooking, setIsBooking] = useState(false);
     const [bookingError, setBookingError] = useState(null);
+    const [bookingSuccess, setBookingSuccess] = useState(null);
     const [bookedSessionIds, setBookedSessionIds] = useState([]);
     const [isLoadingBookings, setIsLoadingBookings] = useState(false);
 
@@ -20,52 +22,55 @@ function TimetableView() {
     const authKey = localStorage.getItem("auth-key");
     const isLoggedIn = Boolean(authKey);
 
-    // Redirect trainers to the session management page instead of the member timetable.
+    // Redirect trainers to the session management page.
     useEffect(() => {
         if (user?.role === "trainer") {
             navigate("/session", { replace: true });
         }
     }, [user, navigate]);
 
-    // Get sessions from the API and filter them using the search text.
-    const getSessions = useCallback(() => {
-        setIsLoading(true);
-        setError(null);
+    // Load sessions from the API using the search filter.
+    const getSessions = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
 
-        const url =
-            filter.length > 0
+            const url = filter.trim()
                 ? "/session?filter=" + encodeURIComponent(filter)
                 : "/session";
 
-        fetchAPI("GET", url)
-            .then((response) => {
-                if (response.status === 200) {
-                    if (Array.isArray(response.body) && response.body.length > 0) {
-                        setSessions(response.body);
-                    } else {
-                        setSessions([]);
-                        setError("No sessions found");
-                    }
-                } else {
-                    setSessions([]);
-                    setError(response.body?.message || "Failed to load sessions");
+            const response = await fetchAPI("GET", url);
+
+            if (response.status !== 200) {
+                throw new Error(
+                    response.body?.message || "Failed to load sessions"
+                );
+            }
+
+            if (Array.isArray(response.body)) {
+                setSessions(response.body);
+
+                if (response.body.length === 0) {
+                    setError("No sessions found");
                 }
-            })
-            .catch((error) => {
+            } else {
                 setSessions([]);
-                setError(String(error));
-            })
-            .finally(() => {
-                setIsLoading(false);
-            });
+                setError("Invalid session response from the server");
+            }
+        } catch (error) {
+            setSessions([]);
+            setError(error.message || String(error));
+        } finally {
+            setIsLoading(false);
+        }
     }, [filter]);
 
-    // Load the timetable when the page opens or when the search filter changes.
+    // Load sessions when the page opens or the search changes.
     useEffect(() => {
         getSessions();
     }, [getSessions]);
 
-    // Get the current member's bookings so already-booked sessions can be identified.
+    // Load the current member's bookings from the API.
     useEffect(() => {
         if (!authKey || user?.role === "trainer") {
             setBookedSessionIds([]);
@@ -74,53 +79,60 @@ function TimetableView() {
         }
 
         let isMounted = true;
-        setIsLoadingBookings(true);
 
-        fetchAPI("GET", "/booking")
-            .then((response) => {
+        const getBookings = async () => {
+            try {
+                setIsLoadingBookings(true);
+
+                const response = await fetchAPI("GET", "/booking", null, authKey);
+
                 if (!isMounted) {
                     return;
                 }
 
-                // If the API returns a list of bookings, extract the session IDs and store them in state.
-                // The session ID may be returned as either "session_id" or "sessionId" depending on the API version.
-                // Filter out any undefined or null values, and convert the IDs to strings for consistent comparison.
-                // This allows the timetable to correctly identify which sessions the member has already booked.
                 if (response.status === 200 && Array.isArray(response.body)) {
+                    // Extract each booked session ID from the booking response.
                     const ids = response.body
-                        .map((booking) => booking.session_id ?? booking.sessionId)
+                        .map((booking) =>
+                            booking.session_id ??
+                            booking.sessionId ??
+                            booking.session?.session_id
+                        )
                         .filter((id) => id !== undefined && id !== null)
                         .map(String);
 
-                    setBookedSessionIds(ids);
+                    setBookedSessionIds([...new Set(ids)]);
                 } else {
                     console.error(
                         "Failed to load bookings:",
-                        response.body?.message || response.status,
+                        response.body?.message || response.status
                     );
                 }
-            })
-            .catch((error) => {
-                console.error("Failed to load bookings:", error);
-            })
-            .finally(() => {
+            } catch (error) {
+                if (isMounted) {
+                    console.error("Failed to load bookings:", error);
+                }
+            } finally {
                 if (isMounted) {
                     setIsLoadingBookings(false);
                 }
-            });
+            }
+        };
 
-        // Prevent state updates if the component is no longer on the page.
+        getBookings();
+
+        // Prevent state updates after leaving the page.
         return () => {
             isMounted = false;
         };
     }, [authKey, user?.role]);
 
-    // Check whether a session is already in the member's booking list.
+    // Check whether the current member has booked a session.
     const hasBookedSession = (session) => {
         return bookedSessionIds.includes(String(session.session_id));
     };
 
-    // Open the booking confirmation modal, or send the user to login if needed.
+    // Open the confirmation modal or redirect to login.
     const handleConfirm = (session) => {
         if (!localStorage.getItem("auth-key")) {
             navigate("/login");
@@ -128,89 +140,101 @@ function TimetableView() {
         }
 
         if (hasBookedSession(session)) {
+            setBookingSuccess(null);
+            setBookingError("You have already booked this session.");
             return;
         }
 
         setBookingError(null);
+        setBookingSuccess(null);
         setSelectedSession(session);
     };
 
-    // Close the booking confirmation modal and clear any booking error.
+    // Close the confirmation modal and clear its error.
     const handleCancel = () => {
         setSelectedSession(null);
         setBookingError(null);
     };
 
-    // Send the booking request to the API and update the page after the result.
-    const handleBookSession = () => {
+    // Book the selected session and update the timetable.
+    const handleBookSession = async () => {
         if (!selectedSession || isBooking) {
             return;
         }
 
-        if (!localStorage.getItem("auth-key")) {
+        const currentAuthKey = localStorage.getItem("auth-key");
+
+        if (!currentAuthKey) {
             navigate("/login");
             return;
         }
 
+        const bookedId = String(selectedSession.session_id);
+
+        // Prevent duplicate booking requests from this page.
         if (hasBookedSession(selectedSession)) {
             setBookingError("You have already booked this session.");
             return;
         }
 
-        setIsBooking(true);
-        setBookingError(null);
+        try {
+            setIsBooking(true);
+            setBookingError(null);
+            setBookingSuccess(null);
 
-        fetchAPI("POST", "/booking", {
-            sessionId: selectedSession.session_id,
-        })
-            .then((response) => {
-                if (response.status === 200 || response.status === 201) {
-                    const bookedId = String(selectedSession.session_id);
+            const response = await fetchAPI("POST", "/booking", {
+                sessionId: selectedSession.session_id
+            }, currentAuthKey);
 
+            if (response.status === 200 || response.status === 201) {
+                // Immediately mark this session as booked.
+                setBookedSessionIds((previousIds) =>
+                    previousIds.includes(bookedId)
+                        ? previousIds
+                        : [...previousIds, bookedId]
+                );
+
+                setSelectedSession(null);
+                setBookingSuccess("Booking confirmed successfully!");
+            } else {
+                const message =
+                    response.body?.message || "Failed to book session";
+
+                // Handle a booking that already exists in the database.
+                if (
+                    message.toLowerCase().includes("already booked") ||
+                    message.toLowerCase().includes("duplicate")
+                ) {
                     setBookedSessionIds((previousIds) =>
                         previousIds.includes(bookedId)
                             ? previousIds
-                            : [...previousIds, bookedId],
+                            : [...previousIds, bookedId]
                     );
 
-                    setSelectedSession(null);
-                    setBookingError(null);
+                    setBookingError("You have already booked this session.");
                 } else {
-                    const message = response.body?.message || "Failed to book session";
-
-                    if (
-                        message.toLowerCase().includes("already booked") ||
-                        message.toLowerCase().includes("duplicate")
-                    ) {
-                        setBookedSessionIds((previousIds) => {
-                            const bookedId = String(selectedSession.session_id);
-
-                            return previousIds.includes(bookedId)
-                                ? previousIds
-                                : [...previousIds, bookedId];
-                        });
-
-                        setSelectedSession(null);
-                    } else {
-                        setBookingError(message);
-                    }
+                    setBookingError(message);
                 }
-            })
-            .catch((error) => {
-                setBookingError(String(error));
-            })
-            .finally(() => {
-                setIsBooking(false);
-            });
+            }
+        } catch (error) {
+            setBookingError(error.message || String(error));
+        } finally {
+            setIsBooking(false);
+        }
     };
 
     return (
         <section className="flex flex-col items-center">
-            {/* Search bar for finding sessions */}
+            {/* Search bar for finding sessions. */}
             <div className="join p-4 self-stretch">
                 <input
                     value={filter}
-                    onChange={(e) => setFilter(e.target.value)}
+                    onChange={(event) => setFilter(event.target.value)}
+                    onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                            getSessions();
+                        }
+                    }}
                     type="text"
                     className="input join-item grow"
                     placeholder="Search sessions"
@@ -225,17 +249,31 @@ function TimetableView() {
                 </button>
             </div>
 
-            {/* Show a loading spinner while sessions are being fetched */}
+            {/* Display the result of a successful booking. */}
+            {bookingSuccess && (
+                <div className="alert alert-success mx-4 mb-4 w-auto self-stretch">
+                    <span>{bookingSuccess}</span>
+                </div>
+            )}
+
+            {/* Display a duplicate-booking message when necessary. */}
+            {bookingError && !selectedSession && (
+                <div className="alert alert-warning mx-4 mb-4 w-auto self-stretch">
+                    <span>{bookingError}</span>
+                </div>
+            )}
+
+            {/* Show a spinner while sessions are loading. */}
             {isLoading && (
                 <span className="loading loading-spinner loading-xl"></span>
             )}
 
-            {/* Display an error message if the sessions cannot be loaded */}
+            {/* Display an error if sessions cannot be loaded. */}
             {!isLoading && error && (
-                <span className="p-4 self-center text-red-500">{error}</span>
+                <span className="p-4 self-center text-error">{error}</span>
             )}
 
-            {/* Display the available sessions and their details */}
+            {/* Display the available sessions. */}
             {!isLoading && !error && sessions.length > 0 && (
                 <ul className="list bg-base-100 self-stretch">
                     {sessions.map((session) => {
@@ -244,7 +282,9 @@ function TimetableView() {
                         return (
                             <li key={session.session_id} className="list-row">
                                 <div>
-                                    <div className="font-bold">{session.activity_name}</div>
+                                    <div className="font-bold">
+                                        {session.activity_name}
+                                    </div>
 
                                     <div className="text-xs uppercase font-semibold opacity-60">
                                         {session.location_name}
@@ -267,19 +307,25 @@ function TimetableView() {
                                     </div>
                                 </div>
 
-                                {/* Show booking buttons to users who are not trainers */}
+                                {/* Members can book sessions; trainers are redirected. */}
                                 {user?.role !== "trainer" && (
                                     <button
                                         onClick={() => handleConfirm(session)}
-                                        className={`btn ${alreadyBooked ? "btn-disabled" : "btn-primary btn-outline"
+                                        className={`btn ${alreadyBooked
+                                            ? "btn-disabled"
+                                            : "btn-primary btn-outline"
                                             }`}
-                                        disabled={alreadyBooked || isLoadingBookings}
+                                        disabled={
+                                            alreadyBooked || isLoadingBookings
+                                        }
                                     >
                                         {alreadyBooked
                                             ? "You Already Booked This Session"
-                                            : isLoggedIn
-                                                ? "Book Session"
-                                                : "Login to Book"}
+                                            : isLoadingBookings
+                                                ? "Checking Bookings..."
+                                                : isLoggedIn
+                                                    ? "Book Session"
+                                                    : "Login to Book"}
                                     </button>
                                 )}
                             </li>
@@ -288,17 +334,21 @@ function TimetableView() {
                 </ul>
             )}
 
-            {/* Show a modal so the member can check the session before booking */}
+            {/* Booking confirmation modal. */}
             {selectedSession && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
                     <div className="w-full max-w-[350px] rounded-2xl bg-base-100 p-5 shadow-xl">
                         <h3 className="font-bold text-lg">Confirm Booking</h3>
 
-                        <p className="py-4">Are you sure you want to book this session?</p>
+                        <p className="py-4">
+                            Are you sure you want to book this session?
+                        </p>
 
-                        {/* Display the details of the selected session */}
+                        {/* Show the selected session details. */}
                         <div className="py-2">
-                            <p className="font-bold">{selectedSession.activity_name}</p>
+                            <p className="font-bold">
+                                {selectedSession.activity_name}
+                            </p>
 
                             <p className="text-sm opacity-70">
                                 {selectedSession.date} ({selectedSession.weekday})
@@ -321,14 +371,14 @@ function TimetableView() {
                             </p>
                         </div>
 
-                        {/* Display an error if the booking request fails */}
-                        {bookingError && (
+                        {/* Display booking errors inside the modal. */}
+                        {bookingError && selectedSession && (
                             <p className="text-error font-semibold text-sm py-2">
                                 {bookingError}
                             </p>
                         )}
 
-                        {/* Provide options to cancel or confirm the booking */}
+                        {/* Cancel or confirm the booking. */}
                         <div className="modal-action">
                             <button
                                 className="btn btn-outline"
