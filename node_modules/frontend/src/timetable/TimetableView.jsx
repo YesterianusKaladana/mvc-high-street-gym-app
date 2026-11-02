@@ -280,7 +280,7 @@ function TimetableView() {
                         const alreadyBooked = hasBookedSession(session);
 
                         return (
-                            <li key={session.session_id} className="list-row border border-base-300 rounded-xl shadow-sm mb-3 items-center">
+                            <li key={session.session_id} className="list-row border border-blue-300 rounded-xl shadow-sm mb-3 items-center">
                                 <div>
                                     <div className="font-bold">
                                         {session.activity_name}

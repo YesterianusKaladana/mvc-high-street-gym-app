@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import {
   FaPerson,
@@ -48,7 +49,7 @@ function SessionManagementView() {
     return () => clearTimeout(timer);
   }, [success]);
 
-  // Fetch sessions and filter the results.
+  // Fetch trainer sessions and filter the results.
   const getSessions = useCallback((searchFilter = "") => {
     const authKey = localStorage.getItem("auth-key");
 
@@ -62,10 +63,12 @@ function SessionManagementView() {
     setIsLoading(true);
     setError(null);
 
-    fetchAPI("GET", "/session", null, authKey)
+    fetchAPI("GET", "/session/trainer", null, authKey)
       .then((response) => {
         if (response.status == 200) {
-          const allSessions = Array.isArray(response.body) ? response.body : [];
+          const allSessions = Array.isArray(response.body)
+            ? response.body
+            : [];
 
           const searchTerm = searchFilter.trim().toLowerCase();
 
@@ -231,7 +234,7 @@ function SessionManagementView() {
     setError(null);
     setSuccess(null);
 
-    fetchAPI("DELETE", `/session/${session.session_id}`, null, authKey)
+    fetchAPI("DELETE", `/session/trainer/${session.session_id}`, null, authKey)
       .then((response) => {
         if (response.status == 200 || response.status == 204) {
           setSuccess("Session deleted successfully.");
@@ -322,7 +325,9 @@ function SessionManagementView() {
       return;
     }
 
-    const sessionDateTime = new Date(`${editForm.date}T${editForm.start_time}`);
+    const sessionDateTime = new Date(
+      `${editForm.date}T${editForm.start_time}`,
+    );
 
     if (
       Number.isNaN(sessionDateTime.getTime()) ||
@@ -346,10 +351,10 @@ function SessionManagementView() {
     };
 
     const request = isCreating
-      ? fetchAPI("POST", "/session", sessionData, authKey)
+      ? fetchAPI("POST", "/session/trainer", sessionData, authKey)
       : fetchAPI(
         "PUT",
-        `/session/${editingSession.session_id}`,
+        `/session/trainer/${editingSession.session_id}`,
         sessionData,
         authKey,
       );

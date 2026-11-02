@@ -92,22 +92,64 @@ export class SessionActivityModel extends DatabaseModel {
    * @param {number} id - Session ID
    * @returns {Promise<SessionActivityModel|null>}
    */
-  static getById(id) {
-    return this.query(this.baseQuery() + " AND session.id = ?", [id]).then(
-      (rows) => (rows.length ? this.tableToModel(rows[0]) : null),
-    );
+  static async getById(id) {
+    const query = `
+        SELECT
+            session.id,
+            session.activity_id,
+            session.location_id,
+            session.date,
+            session.start_time,
+            session.end_time,
+            session.capacity,
+            user.first_name,
+            user.last_name,
+            location.name,
+            activity.name
+        FROM session
+        INNER JOIN user
+            ON session.user_id = user.id
+        INNER JOIN location
+            ON session.location_id = location.id
+        INNER JOIN activity
+            ON session.activity_id = activity.id
+        WHERE session.deleted = 0
+        AND session.id = ?
+    `;
+
+    const rows = await this.query(query, [id]);
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    const row = rows[0];
+
+    return {
+      session_id: row.session.id,
+      activity_id: row.session.activity_id,
+      location_id: row.session.location_id,
+      activity_name: row.activity.name,
+      location_name: row.location.name,
+      trainer_name: `${row.user.first_name} ${row.user.last_name}`,
+      date: row.session.date,
+      start_time: row.session.start_time?.substring(0, 5),
+      end_time: row.session.end_time?.substring(0, 5),
+      capacity: row.session.capacity,
+    };
   }
 
   /**
-   * Retrieves all sessions created by a specific user (trainer)
+   * Retrieves all sessions created by a specific trainer.
    *
    * @param {number} userId - Trainer ID
    * @returns {Promise<SessionActivityModel[]>}
    */
   static getByUserId(userId) {
-    return this.query(this.baseQuery() + " AND session.user_id = ?", [
-      userId,
-    ]).then((rows) => rows.map((row) => this.tableToModel(row)));
+    return this.query(
+      this.baseQuery() + " AND session.user_id = ? AND user.role = ?",
+      [userId, "trainer"],
+    ).then((rows) => rows.map((row) => this.tableToModel(row)));
   }
 
   /**

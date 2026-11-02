@@ -9,7 +9,7 @@ components:
         email:
           type: string
           format: email
-          example: "your@gmail.com.au"
+          example: "your@gmail.com"
         password:
           type: string
           example: "abc123"
@@ -57,7 +57,7 @@ components:
         email:
           type: string
           format: email
-          example: "your@gmail.com.au"
+          example: "your@gmail.com"
 
         authenticationKey:
           type: string
