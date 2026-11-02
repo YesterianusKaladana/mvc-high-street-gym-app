@@ -97,7 +97,7 @@ function LoginView() {
             )}
 
             {/* Display the Login and Register buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 mt-6">
+            <div className="flex flex-col sm:flex-row gap-5 mt-6">
               {/* Submit the login form */}
               <button
                 type="submit"
@@ -120,7 +120,7 @@ function LoginView() {
               <button
                 type="button"
                 onClick={() => navigate("/register")}
-                className="btn btn-outline flex-1"
+                className="btn btn-primary flex-1"
                 disabled={isAuthenticating}
               >
                 <FaRegistered className="text-xl" />
