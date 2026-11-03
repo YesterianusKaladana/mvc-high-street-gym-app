@@ -23,19 +23,10 @@ export class ApiSessionsController {
       this.createTrainerSession,
     );
 
-    // Register specific routes before /:id.
     this.routes.get(
       "/xml",
       ApiAuthenticationController.restrict(["trainer"]),
       this.handleExportSessionsXML,
-    );
-
-    this.routes.get("/:id", this.getAllSessionsById);
-
-    this.routes.get(
-      "/trainer/:id",
-      ApiAuthenticationController.restrict(["trainer"]),
-      this.getTrainerSessionsById,
     );
 
     this.routes.put(
@@ -49,6 +40,8 @@ export class ApiSessionsController {
       ApiAuthenticationController.restrict(["trainer"]),
       this.deleteTrainerSessions,
     );
+
+    this.routes.get("/:id", this.getAllSessionsById);
   }
 
   /**
@@ -204,10 +197,18 @@ export class ApiSessionsController {
    *         $ref: "#/components/responses/Unauthorized"
    *       '403':
    *         $ref: "#/components/responses/Forbidden"
+   *       '404':
+   *         description: Trainer sessions not found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
    *       '500':
    *         $ref: "#/components/responses/Error"
    */
-
   static async getAllTrainerSessions(req, res) {
     try {
       const trainerId = req.authenticatedUser.id;
@@ -429,95 +430,28 @@ export class ApiSessionsController {
       }));
 
       let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<sessions export-date="${exportDate}">\n`;
-      xml += `  <copyright>© 2026 High Street Gym. All rights reserved.</copyright>\n`;
+      xml += `  <copyright>© 2026 HSG. All rights reserved.</copyright>\n`;
 
       sessions.forEach((session) => {
         xml += `  <session>
-    <session_id>${session.session_id}</session_id>
-    <activity_name>${session.activity_name}</activity_name>
-    <location_name>${session.location_name}</location_name>
-    <trainer_name>${session.trainer_name}</trainer_name>
-    <date>${String(session.date).slice(0, 10)}</date>
-    <start_time>${session.start_time}</start_time>
-    <end_time>${session.end_time}</end_time>
-    <capacity>${session.capacity}</capacity>
-  </session>\n`;
+          <session_id>${session.session_id}</session_id>
+          <activity_name>${session.activity_name}</activity_name>
+          <location_name>${session.location_name}</location_name>
+          <trainer_name>${session.trainer_name}</trainer_name>
+          <date>${String(session.date).slice(0, 10)}</date>
+          <start_time>${session.start_time}</start_time>
+          <end_time>${session.end_time}</end_time>
+          <capacity>${session.capacity}</capacity>
+        </session>\n`;
       });
-
       xml += "</sessions>";
-
+      // Set the appropriate content type for XML
       res.setHeader("Content-Type", "application/xml; charset=UTF-8");
       return res.status(200).send(xml);
     } catch (error) {
       console.error("EXPORT SESSIONS XML ERROR:", error);
-
       return res.status(500).json({
         message: "Failed to generate XML sessions.",
-      });
-    }
-  }
-
-  /**
-   * @openapi
-   * /api/session/trainer/{id}:
-   *   get:
-   *     summary: Get trainer sessions by ID
-   *     description: Returns sessions belonging to the specified authenticated trainer.
-   *     tags:
-   *       - Session
-   *     security:
-   *       - ApiKey: []
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: integer
-   *           minimum: 1
-   *         description: Trainer user ID
-   *     responses:
-   *       '200':
-   *         description: Successfully retrieved trainer sessions
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: array
-   *               items:
-   *                 $ref: "#/components/schemas/Session"
-   *       '400':
-   *         $ref: "#/components/responses/BadRequest"
-   *       '401':
-   *         $ref: "#/components/responses/Unauthorized"
-   *       '403':
-   *         $ref: "#/components/responses/Forbidden"
-   *       '500':
-   *         $ref: "#/components/responses/Error"
-   */
-  static async getTrainerSessionsById(req, res) {
-    try {
-      const id = Number(req.params.id);
-
-      if (!Number.isInteger(id) || id < 1) {
-        return res.status(400).json({
-          message: "Invalid trainer ID.",
-        });
-      }
-
-      if (id !== Number(req.authenticatedUser.id)) {
-        return res.status(403).json({
-          message: "You can only view your own sessions.",
-        });
-      }
-
-      const sessions = await SessionActivityModel.getByUserId(id);
-
-      return res.status(200).json(sessions);
-    } catch (error) {
-      console.error("GET TRAINER SESSIONS ERROR:", error);
-
-      return res.status(500).json({
-        message: "Failed to load trainer sessions.",
-        error: error.message,
       });
     }
   }

@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useCallback } from "react";
 import { fetchAPI } from "../api.mjs";
 import { FaPlus } from "react-icons/fa";
@@ -115,7 +116,7 @@ function BlogView() {
     };
 
     // Create post
-    const createPost = async () => {
+    const createPost = () => {
         const authKey = getAuthKey();
 
         if (!authKey) {
@@ -134,35 +135,36 @@ function BlogView() {
             return;
         }
 
-        try {
-            setIsCreating(true);
-            setStatus(null);
+        setIsCreating(true);
+        setStatus(null);
 
-            const response = await fetchAPI(
-                "POST",
-                "/post/",
-                {
-                    post: {
-                        title: title.trim(),
-                        content: content.trim(),
-                    },
+        fetchAPI(
+            "POST",
+            "/post/",
+            {
+                post: {
+                    title: title.trim(),
+                    content: content.trim(),
                 },
-                authKey,
-            );
+            },
+            authKey,
+        )
+            .then((response) => {
+                if (response.status === 201) {
+                    setShowCreate(false);
+                    setTitle("");
+                    setContent("");
+                    getPosts();
+                } else {
+                    setStatus(response.body?.message || "Failed to create post.");
+                }
 
-            if (response.status === 201) {
-                setShowCreate(false);
-                setTitle("");
-                setContent("");
-                getPosts();
-            } else {
-                setStatus(response.body?.message || "Failed to create post.");
-            }
-        } catch (error) {
-            setStatus(String(error));
-        } finally {
-            setIsCreating(false);
-        }
+                setIsCreating(false);
+            })
+            .catch((error) => {
+                setStatus(String(error));
+                setIsCreating(false);
+            });
     };
 
     return (
@@ -183,7 +185,11 @@ function BlogView() {
             </div>
 
             {/* Status */}
-            {status && <span className="w-full max-w-4xl text-error">{status}</span>}
+            {status && (
+                <span className="w-full max-w-4xl text-error">
+                    {status}
+                </span>
+            )}
 
             {/* Loading */}
             {posts.length === 0 && !status && (
@@ -220,7 +226,6 @@ function BlogView() {
                                     className="btn btn-ghost btn-sm shrink-0 text-error"
                                 >
                                     <MdDelete />
-
                                     <span className="hidden sm:inline">Delete</span>
                                 </button>
                             )}

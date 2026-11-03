@@ -234,7 +234,7 @@ export class ApiBookingsController {
    * @openapi
    * /api/booking/xml:
    *   get:
-   *     summary: Export bookings as XML
+   *     summary: Export bookings in XML format
    *     description: Returns the authenticated member's bookings in XML format.
    *     tags:
    *       - XML
@@ -262,7 +262,7 @@ export class ApiBookingsController {
 
       let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
       xml += `<bookings export-date="${exportDate}">\n`;
-      xml += `  <copyright>© 2026 High Street Gym. All rights reserved.</copyright>\n`;
+      xml += `  <copyright>© 2026 HSG. All rights reserved.</copyright>\n`;
 
       const escapeXML = (value) =>
         String(value ?? "")
@@ -274,14 +274,14 @@ export class ApiBookingsController {
 
       bookings.forEach((booking) => {
         xml += `  <booking>
-    <id>${escapeXML(booking.id)}</id>
-    <activity>${escapeXML(booking.activity_name)}</activity>
-    <location>${escapeXML(booking.location_name)}</location>
-    <date>${escapeXML(String(booking.date).slice(0, 10))}</date>
-    <start_time>${escapeXML(booking.start_time)}</start_time>
-    <end_time>${escapeXML(booking.end_time)}</end_time>
-    <trainer>${escapeXML(booking.trainer_name)}</trainer>
-  </booking>\n`;
+          <id>${escapeXML(booking.id)}</id>
+          <activity>${escapeXML(booking.activity_name)}</activity>
+          <location>${escapeXML(booking.location_name)}</location>
+          <date>${escapeXML(String(booking.date).slice(0, 10))}</date>
+          <start_time>${escapeXML(booking.start_time)}</start_time>
+          <end_time>${escapeXML(booking.end_time)}</end_time>
+          <trainer>${escapeXML(booking.trainer_name)}</trainer>
+        </booking>\n`;
       });
 
       xml += "</bookings>";

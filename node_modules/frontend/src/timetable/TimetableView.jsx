@@ -34,45 +34,40 @@ function TimetableView() {
         setIsLoading(true);
         setError(null);
 
-        const url = filter.trim()
-            ? "/session?filter=" + encodeURIComponent(filter.trim())
-            : "/session";
+        // Use the filter to fetch sessions, or fetch all sessions if the filter is empty.
+        const request = filter.trim()
+            ? fetchAPI("GET", "/session?filter=" + filter.trim())
+            : fetchAPI("GET", "/session");
 
-        fetchAPI("GET", url)
+        request
             .then((response) => {
                 if (response.status === 200) {
-                    if (Array.isArray(response.body)) {
+                    if (response.body.length > 0) {
                         setSessions(response.body);
-
-                        if (response.body.length === 0) {
-                            setError("No sessions found");
-                        }
-                    } else if (response.body) {
-                        setSessions([response.body]);
+                        setError(null);
                     } else {
                         setSessions([]);
                         setError("No sessions found");
                     }
                 } else {
                     setSessions([]);
-                    setError(
-                        response.body?.message || "Failed to load sessions"
-                    );
+                    setError(response.body.message);
                 }
 
                 setIsLoading(false);
             })
             .catch((error) => {
                 setSessions([]);
-                setError(error.message || String(error));
+                setError(error);
                 setIsLoading(false);
             });
     }, [filter]);
 
-    // Load sessions when the page opens or the search changes.
+    // Load all sessions when the page opens.
     useEffect(() => {
         getSessions();
-    }, [getSessions]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Load the current member's bookings from the API.
     useEffect(() => {
@@ -280,7 +275,10 @@ function TimetableView() {
                         const alreadyBooked = hasBookedSession(session);
 
                         return (
-                            <li key={session.session_id} className="list-row border border-blue-300 rounded-xl shadow-sm mb-3 items-center">
+                            <li
+                                key={session.session_id}
+                                className="list-row border border-blue-300 rounded-xl shadow-sm mb-3 items-center"
+                            >
                                 <div>
                                     <div className="font-bold">
                                         {session.activity_name}
