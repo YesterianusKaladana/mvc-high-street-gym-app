@@ -10,18 +10,32 @@ export class ApiBookingsController {
   static {
     this.routes.use(ApiAuthenticationController.middleware);
 
-    this.routes.post("/", this.createBooking);
+    this.routes.get(
+      "/",
+      ApiAuthenticationController.restrict("member"),
+      this.getBookings,
+    );
 
-    this.routes.get("/", this.getBookings);
+    this.routes.post(
+      "/",
+      ApiAuthenticationController.restrict("member"),
+      this.createBooking,
+    );
 
-    this.routes.get("/xml", this.handleExportBookingsXML);
+    this.routes.get(
+      "/xml",
+      ApiAuthenticationController.restrict("member"),
+      this.handleExportBookingsXML,
+    );
 
-    this.routes.delete("/:id", this.deleteBooking);
+    this.routes.delete(
+      "/:id",
+      ApiAuthenticationController.restrict("member"),
+      this.deleteBooking,
+    );
   }
 
   /**
-   * Create a new booking
-   *
    * @openapi
    * /api/booking:
    *   post:
@@ -115,8 +129,6 @@ export class ApiBookingsController {
   }
 
   /**
-   * Get bookings for logged-in user
-   *
    * @openapi
    * /api/booking:
    *   get:
@@ -160,8 +172,6 @@ export class ApiBookingsController {
   }
 
   /**
-   * Delete booking
-   *
    * @openapi
    * /api/booking/{id}:
    *   delete:

@@ -5,40 +5,38 @@ export class ApiActivityController {
   static routes = express.Router();
 
   static {
-    /**
-     * @openapi
-     * /api/activity:
-     *   get:
-     *     summary: Get all gym activities
-     *     tags:
-     *       - Activity
-     *     responses:
-     *       200:
-     *         description: Activities retrieved successfully
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: array
-     *               items:
-     *                 type: object
-     *                 properties:
-     *                   id:
-     *                     type: integer
-     *                     example: "1"
-     *                   name:
-     *                     type: string
-     *                     example: "Yoga"
-     *                   description:
-     *                     type: string
-     *                     example: "A relaxing and flexible yoga session"
-     *       500:
-     *         description: Failed to load activities
-     */
     this.routes.get("/", this.getActivities);
   }
 
   /**
    * @type {express.RequestHandler}
+   * @openapi
+   * /api/activity:
+   *   get:
+   *     summary: Get all gym activities
+   *     tags:
+   *       - Activity
+   *     responses:
+   *       200:
+   *         description: Activities retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 type: object
+   *                 properties:
+   *                   id:
+   *                     type: integer
+   *                     example: "1"
+   *                   name:
+   *                     type: string
+   *                     example: "Yoga"
+   *                   description:
+   *                     type: string
+   *                     example: "A relaxing and flexible yoga session"
+   *       500:
+   *         description: Failed to load activities
    */
   static async getActivities(req, res) {
     try {

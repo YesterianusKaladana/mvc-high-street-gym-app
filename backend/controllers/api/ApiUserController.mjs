@@ -38,89 +38,6 @@ export class ApiUserController {
 
   /**
    * @openapi
-   * /api/user:
-   *   post:
-   *     summary: Create a new member
-   *     tags:
-   *       - User
-   *
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required:
-   *               - firstName
-   *               - lastName
-   *               - role
-   *               - email
-   *               - password
-   *             properties:
-   *              firstName:
-   *                type: string
-   *                example: "John"
-   *              lastName:
-   *                type: string
-   *                example: "Doe"
-   *              role:
-   *                type: string
-   *                example: "member"
-   *              email:
-   *                type: string
-   *                example: "user@gmail.com"
-   *              password:
-   *                type: string
-   *                example: "password123"
-
-   *     responses:
-   *       201:
-   *         $ref: "#/components/responses/Created"
-   *
-   *       400:
-   *         $ref: "#/components/responses/BadRequest"
-   *       401:
-   *         $ref: "#/components/responses/Unauthorized"
-   *
-   *       500:
-   *         $ref: "#/components/responses/Error"
-   */
-  static async createNewMember(req, res) {
-    try {
-      const { firstName, lastName, role, email, password } = req.body;
-
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      const user = {
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        role: req.body.role || "member",
-        email: req.body.email,
-        password: hashedPassword,
-      };
-
-      const result = await UserModel.create(user);
-
-      return res.status(201).json({
-        id: result.insertId,
-        message: "Member created successfully",
-      });
-    } catch (error) {
-      console.error("CREATE USER ERROR:", error);
-      return res.status(500).json({
-        message: "Failed to create user",
-        errors: [
-          {
-            path: req.path,
-            message: error.message,
-          },
-        ],
-      });
-    }
-  }
-
-  /**
-   * @openapi
    * /api/user/self:
    *   get:
    *     summary: Get current authenticated user
@@ -225,6 +142,89 @@ export class ApiUserController {
 
   /**
    * @openapi
+   * /api/user:
+   *   post:
+   *     summary: Create a new member
+   *     tags:
+   *       - User
+   *
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - firstName
+   *               - lastName
+   *               - role
+   *               - email
+   *               - password
+   *             properties:
+   *              firstName:
+   *                type: string
+   *                example: "John"
+   *              lastName:
+   *                type: string
+   *                example: "Doe"
+   *              role:
+   *                type: string
+   *                example: "member"
+   *              email:
+   *                type: string
+   *                example: "user@gmail.com"
+   *              password:
+   *                type: string
+   *                example: "password123"
+
+   *     responses:
+   *       201:
+   *         $ref: "#/components/responses/Created"
+   *
+   *       400:
+   *         $ref: "#/components/responses/BadRequest"
+   *       401:
+   *         $ref: "#/components/responses/Unauthorized"
+   *
+   *       500:
+   *         $ref: "#/components/responses/Error"
+   */
+  static async createNewMember(req, res) {
+    try {
+      const { firstName, lastName, role, email, password } = req.body;
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const user = {
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        role: req.body.role || "member",
+        email: req.body.email,
+        password: hashedPassword,
+      };
+
+      const result = await UserModel.create(user);
+
+      return res.status(201).json({
+        id: result.insertId,
+        message: "Member created successfully",
+      });
+    } catch (error) {
+      console.error("CREATE USER ERROR:", error);
+      return res.status(500).json({
+        message: "Failed to create user",
+        errors: [
+          {
+            path: req.path,
+            message: error.message,
+          },
+        ],
+      });
+    }
+  }
+
+  /**
+   * @openapi
    * /api/user/{id}:
    *   get:
    *     summary: Get user by ID
@@ -314,17 +314,14 @@ export class ApiUserController {
    *     summary: Update user information
    *     tags:
    *       - User
-   *
    *     security:
    *       - ApiKey: []
-   *
    *     parameters:
    *       - name: id
    *         in: path
    *         required: true
    *         schema:
    *           type: integer
-   *
    *     responses:
    *
    *       200:
