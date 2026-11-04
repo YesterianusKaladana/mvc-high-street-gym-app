@@ -5,7 +5,7 @@ import XMLDownloadButton from "../common/XMLDownloadButton";
 import validator from "validator";
 
 function ProfileView() {
-    const { user, refresh, status: authStatus } = useAuthenticate();
+    const { user, refresh, status: authStatus } = useAuthenticate("member", "trainer");
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -48,6 +48,7 @@ function ProfileView() {
 
         setValidationErrors(errors);
 
+        // If there are validation errors, stop the update process
         if (Object.keys(errors).length > 0) {
             setLoading(false);
             return;
