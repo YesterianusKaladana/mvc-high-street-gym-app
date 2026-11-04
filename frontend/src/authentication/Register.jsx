@@ -1,5 +1,4 @@
 
-// Import React hooks, navigation, API function, and email validator
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { fetchAPI } from "../api.mjs";
@@ -61,7 +60,7 @@ function Register() {
     }
 
     // Send the new member's details to the backend API
-    fetchAPI("POST", "/user", {
+    fetchAPI("POST", "/user/register", {
       firstName: first_name,
       lastName: lastName,
       email: email,
@@ -72,9 +71,7 @@ function Register() {
         // Check whether the account was created successfully
         if (response.status === 200 || response.status === 201) {
           setIsSuccess(true);
-          setStatus(
-            "Registration successful! Redirecting to login...",
-          );
+          setStatus("Registration successful! Redirecting to login...");
           setLoading(false);
 
           // Redirect the user to the login page after 2 seconds
@@ -85,16 +82,14 @@ function Register() {
           // Display an error if the backend cannot create the account
           setStatus(
             "Failed to create user - " +
-            (response.body?.message || "Unknown Error"),
+            (response.body?.message || "Unknown Error")
           );
           setLoading(false);
         }
       })
       .catch((error) => {
         // Display an error if the API request fails
-        setStatus(
-          "Failed to create user - " + error.message,
-        );
+        setStatus("Failed to create user - " + error.message);
         setLoading(false);
       });
   }, [first_name, lastName, email, password, navigate]);
@@ -126,7 +121,7 @@ function Register() {
               placeholder="John"
               className={`input input-bordered w-full ${validationErrors.first_name ? "input-error" : ""
                 }`}
-              disabled={loading}
+              disabled={loading || isSuccess}
             />
             {validationErrors.first_name && (
               <p className="text-error text-xs mt-1">
@@ -145,7 +140,7 @@ function Register() {
               placeholder="Doe"
               className={`input input-bordered w-full ${validationErrors.lastName ? "input-error" : ""
                 }`}
-              disabled={loading}
+              disabled={loading || isSuccess}
             />
             {validationErrors.lastName && (
               <p className="text-error text-xs mt-1">
@@ -164,7 +159,7 @@ function Register() {
               placeholder="john@example.com"
               className={`input input-bordered w-full ${validationErrors.email ? "input-error" : ""
                 }`}
-              disabled={loading}
+              disabled={loading || isSuccess}
             />
             {validationErrors.email && (
               <p className="text-error text-xs mt-1">
@@ -183,24 +178,13 @@ function Register() {
               placeholder="••••••••"
               className={`input input-bordered w-full ${validationErrors.password ? "input-error" : ""
                 }`}
-              disabled={loading}
+              disabled={loading || isSuccess}
             />
             {validationErrors.password && (
               <p className="text-error text-xs mt-1">
                 {validationErrors.password}
               </p>
             )}
-          </label>
-
-          {/* Set the member role automatically; users cannot change it */}
-          <label className="form-control w-full">
-            <span className="label-text">Role</span>
-            <input
-              type="text"
-              value="member"
-              className="input input-bordered w-full bg-base-200 cursor-not-allowed"
-              readOnly
-            />
           </label>
 
           {/* Submit the form and prevent duplicate submissions */}
@@ -210,10 +194,8 @@ function Register() {
             className="btn btn-success w-full mt-4 text-white"
           >
             {loading ? (
-              // Show a spinner while the API request is running
               <span className="loading loading-spinner"></span>
             ) : isSuccess ? (
-              // Update the button text after successful registration
               "Registration Successful"
             ) : (
               "Become a Member"

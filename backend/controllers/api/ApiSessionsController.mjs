@@ -388,34 +388,84 @@ export class ApiSessionsController {
    * @openapi
    * /api/session/xml:
    *   get:
-   *     summary: Export Trainer sessions in XML format
-   *     description: Exports trainer sessions only the authenticated trainer.
+   *     summary: Export trainer sessions as XML 1.0 with DTD
+   *     description: Exports sessions belonging to the authenticated trainer.
    *     tags:
    *       - XML
    *     security:
    *       - ApiKey: []
    *     responses:
    *       '200':
-   *         description: Successfully exported sessions
+   *         description: XML export of trainer sessions with DTD and copyright tag
    *         content:
    *           application/xml:
    *             schema:
    *               type: string
+   *             example: |
+   *               <?xml version="1.0" encoding="UTF-8"?>
+   *               <!DOCTYPE sessions [
+   *                 <!ELEMENT sessions (copyright, session*)>
+   *                 <!ATTLIST sessions export-date CDATA #IMPLIED>
+   *                 <!ELEMENT copyright (#PCDATA)>
+   *                 <!ELEMENT session (session_id, activity_name, location_name, trainer_name, date, start_time, end_time, capacity)>
+   *                 <!ELEMENT session_id (#PCDATA)>
+   *                 <!ELEMENT activity_name (#PCDATA)>
+   *                 <!ELEMENT location_name (#PCDATA)>
+   *                 <!ELEMENT trainer_name (#PCDATA)>
+   *                 <!ELEMENT date (#PCDATA)>
+   *                 <!ELEMENT start_time (#PCDATA)>
+   *                 <!ELEMENT end_time (#PCDATA)>
+   *                 <!ELEMENT capacity (#PCDATA)>
+   *               ]>
+   *               <sessions export-date="2026-11-04">
+   *                 <copyright>© 2026 HSG. All rights reserved.</copyright>
+   *                 <session>
+   *                   <session_id>1</session_id>
+   *                   <activity_name>Yoga</activity_name>
+   *                   <location_name>Studio 1</location_name>
+   *                   <trainer_name>Yesterianus Kaladana</trainer_name>
+   *                   <date>2026-11-10</date>
+   *                   <start_time>09:00</start_time>
+   *                   <end_time>10:00</end_time>
+   *                   <capacity>20</capacity>
+   *                 </session>
+   *               </sessions>
    *       '401':
-   *         $ref: "#/components/responses/Unauthorized"
+   *         description: Not authenticated
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Authentication required
    *       '403':
-   *         $ref: "#/components/responses/Forbidden"
+   *         description: Forbidden - trainer access required
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Access denied
    *       '500':
-   *         $ref: "#/components/responses/Error"
+   *         description: Server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Failed to generate XML sessions.
    */
   static async handleExportSessionsXML(req, res) {
     try {
-      // Get the current date in YYYY-MM-DD format for the export date
       const exportDate = new Date().toISOString().slice(0, 10);
-
-      // Get the authenticated trainer's ID and retrieve their sessions
-      // They can only export their own sessions, not other trainers' sessions
       const trainerId = req.authenticatedUser.id;
+
       const trainerSessions = await SessionActivityModel.getByUserId(trainerId);
 
       const sessions = trainerSessions.map((item) => ({
@@ -429,27 +479,53 @@ export class ApiSessionsController {
         capacity: item.session.capacity,
       }));
 
-      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<sessions export-date="${exportDate}">\n`;
+      const escapeXML = (value) =>
+        String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&apos;");
+
+      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+      xml += `<!DOCTYPE sessions [\n`;
+      xml += `  <!ELEMENT sessions (copyright, session*)>\n`;
+      xml += `  <!ATTLIST sessions export-date CDATA #IMPLIED>\n`;
+      xml += `  <!ELEMENT copyright (#PCDATA)>\n`;
+      xml += `  <!ELEMENT session (session_id, activity_name, location_name, trainer_name, date, start_time, end_time, capacity)>\n`;
+      xml += `  <!ELEMENT session_id (#PCDATA)>\n`;
+      xml += `  <!ELEMENT activity_name (#PCDATA)>\n`;
+      xml += `  <!ELEMENT location_name (#PCDATA)>\n`;
+      xml += `  <!ELEMENT trainer_name (#PCDATA)>\n`;
+      xml += `  <!ELEMENT date (#PCDATA)>\n`;
+      xml += `  <!ELEMENT start_time (#PCDATA)>\n`;
+      xml += `  <!ELEMENT end_time (#PCDATA)>\n`;
+      xml += `  <!ELEMENT capacity (#PCDATA)>\n`;
+      xml += `]>\n`;
+
+      xml += `<sessions export-date="${escapeXML(exportDate)}">\n`;
       xml += `  <copyright>© 2026 HSG. All rights reserved.</copyright>\n`;
 
       sessions.forEach((session) => {
-        xml += `  <session>
-          <session_id>${session.session_id}</session_id>
-          <activity_name>${session.activity_name}</activity_name>
-          <location_name>${session.location_name}</location_name>
-          <trainer_name>${session.trainer_name}</trainer_name>
-          <date>${String(session.date).slice(0, 10)}</date>
-          <start_time>${session.start_time}</start_time>
-          <end_time>${session.end_time}</end_time>
-          <capacity>${session.capacity}</capacity>
-        </session>\n`;
+        xml += `  <session>\n`;
+        xml += `    <session_id>${escapeXML(session.session_id)}</session_id>\n`;
+        xml += `    <activity_name>${escapeXML(session.activity_name)}</activity_name>\n`;
+        xml += `    <location_name>${escapeXML(session.location_name)}</location_name>\n`;
+        xml += `    <trainer_name>${escapeXML(session.trainer_name)}</trainer_name>\n`;
+        xml += `    <date>${escapeXML(String(session.date).slice(0, 10))}</date>\n`;
+        xml += `    <start_time>${escapeXML(session.start_time)}</start_time>\n`;
+        xml += `    <end_time>${escapeXML(session.end_time)}</end_time>\n`;
+        xml += `    <capacity>${escapeXML(session.capacity)}</capacity>\n`;
+        xml += `  </session>\n`;
       });
-      xml += "</sessions>";
-      // Set the appropriate content type for XML
+
+      xml += `</sessions>`;
+
       res.setHeader("Content-Type", "application/xml; charset=UTF-8");
       return res.status(200).send(xml);
     } catch (error) {
       console.error("EXPORT SESSIONS XML ERROR:", error);
+
       return res.status(500).json({
         message: "Failed to generate XML sessions.",
       });

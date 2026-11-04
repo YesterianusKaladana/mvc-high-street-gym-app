@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect } from "react";
 import { useAuthenticate } from "../authentication/UseAuthenticate";
 import { fetchAPI } from "../api.mjs";
@@ -24,13 +25,21 @@ function ProfileView() {
         }
     }, [user]);
 
+    // Hide success message after 2 seconds
+    useEffect(() => {
+        if (status === "Profile updated successfully!") {
+            const timeout = setTimeout(() => {
+                setStatus(null);
+            }, 2000);
+
+            return () => clearTimeout(timeout);
+        }
+    }, [status]);
+
     const submitUpdate = useCallback(() => {
         if (!user) {
             return;
         }
-
-        setLoading(true);
-        setStatus(null);
 
         const errors = {};
 
@@ -42,48 +51,55 @@ function ProfileView() {
             errors.lastName = "Invalid last name";
         }
 
-        if (!validator.isEmail(email)) {
+        if (!validator.isEmail(email.trim())) {
             errors.email = "Invalid email address";
         }
 
         setValidationErrors(errors);
 
-        // If there are validation errors, stop the update process
+        // Stop if there are validation errors
         if (Object.keys(errors).length > 0) {
-            setLoading(false);
             return;
         }
 
+        setLoading(true);
+        setStatus(null);
+
+        // Update personal information
         fetchAPI(
-            "PUT",
-            "/users/" + user.id,
+            "PATCH",
+            "/user/self",
             {
                 firstName: firstName.trim(),
                 lastName: lastName.trim(),
-                email: email.trim(),
+                email: email.trim()
             },
-            localStorage.getItem("auth-key"),
+            localStorage.getItem("auth-key")
         )
-            .then((response) => {
+            .then(response => {
                 if (response.status === 200) {
                     setStatus("Profile updated successfully!");
                     refresh();
                 } else {
                     setStatus(
-                        "Update failed: " + (response.body?.message || "Unknown error"),
+                        "Update failed: " +
+                        (response.body?.message || "Unknown error")
                     );
                 }
 
                 setLoading(false);
             })
-            .catch((error) => {
+            .catch(error => {
                 setStatus(String(error));
                 setLoading(false);
             });
     }, [firstName, lastName, email, user, refresh]);
 
     // Authentication is still loading
-    if (authStatus === "resuming") {
+    if (
+        authStatus === "resuming" ||
+        authStatus === "loading"
+    ) {
         return (
             <div className="flex justify-center p-8">
                 <span className="loading loading-spinner loading-xl"></span>
@@ -91,20 +107,28 @@ function ProfileView() {
         );
     }
 
+    if (!user) {
+        return (
+            <div className="flex justify-center p-8">
+                <span className="text-error">
+                    Please log in to view your profile.
+                </span>
+            </div>
+        );
+    }
+
     return (
         <section className="flex flex-col gap-4 p-4 items-center">
-            {/* PERSONAL DETAILS */}
             <fieldset className="fieldset rounded-box border p-4 self-stretch">
                 <legend className="fieldset-legend text-xl p-2">
                     My Personal Details
                 </legend>
 
-                {/* FIRST NAME */}
+                {/* First Name */}
                 <label className="label">First Name</label>
-
                 <input
                     value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
+                    onChange={e => setFirstName(e.target.value)}
                     className="input w-full"
                     type="text"
                     placeholder="First name"
@@ -117,12 +141,11 @@ function ProfileView() {
                     </label>
                 )}
 
-                {/* LAST NAME */}
+                {/* Last Name */}
                 <label className="label">Last Name</label>
-
                 <input
                     value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
+                    onChange={e => setLastName(e.target.value)}
                     className="input w-full"
                     type="text"
                     placeholder="Last name"
@@ -135,12 +158,11 @@ function ProfileView() {
                     </label>
                 )}
 
-                {/* EMAIL */}
+                {/* Email */}
                 <label className="label">Email</label>
-
                 <input
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={e => setEmail(e.target.value)}
                     className="input w-full"
                     type="email"
                     placeholder="Email"
@@ -148,11 +170,13 @@ function ProfileView() {
                 />
 
                 {validationErrors.email && (
-                    <label className="label text-red-500">{validationErrors.email}</label>
+                    <label className="label text-red-500">
+                        {validationErrors.email}
+                    </label>
                 )}
             </fieldset>
 
-            {/* STATUS */}
+            {/* Status */}
             {status && (
                 <span
                     className={
@@ -165,8 +189,9 @@ function ProfileView() {
                 </span>
             )}
 
-            {/* UPDATE */}
+            {/* Update Profile */}
             <button
+                type="button"
                 disabled={loading}
                 onClick={submitUpdate}
                 className="btn btn-primary self-stretch"
@@ -177,7 +202,7 @@ function ProfileView() {
                 )}
             </button>
 
-            {/* TRAINER XML */}
+            {/* Trainer XML */}
             {user.role === "trainer" && (
                 <XMLDownloadButton
                     route="/session/xml"
@@ -189,7 +214,7 @@ function ProfileView() {
                 </XMLDownloadButton>
             )}
 
-            {/* MEMBER XML */}
+            {/* Member XML */}
             {user.role === "member" && (
                 <XMLDownloadButton
                     route="/booking/xml"

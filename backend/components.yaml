@@ -37,15 +37,12 @@ components:
         id:
           type: integer
           example: 1
-
         firstName:
           type: string
           example: "John"
-
         lastName:
           type: string
           example: "Doe"
-
         role:
           type: string
           enum:
@@ -53,17 +50,14 @@ components:
             - member
             - trainer
           example: "trainer"
-
         email:
           type: string
           format: email
           example: "your@gmail.com"
-
         authenticationKey:
           type: string
           format: uuid
           example: "550e8400-e29b-41d4-a716-446655440000"
-
         deleted:
           type: boolean
           example: false
@@ -83,32 +77,25 @@ components:
         session_id:
           type: integer
           example: 1
-
         trainer_name:
           type: string
           example: "Yesterianus"
-
         location_name:
           type: string
           example: "Westlake"
-
         activity_name:
           type: string
           example: "Yoga"
-
         date:
           type: string
           format: date
           example: "2026-06-06"
-
         start_time:
           type: string
           example: "09:58:00"
-
         end_time:
           type: string
           example: "11:58:00"
-
         capacity:
           type: integer
           example: 3
@@ -130,41 +117,32 @@ components:
         id:
           type: integer
           example: 30
-
         session_id:
           type: integer
           example: 63
-
         user_id:
           type: integer
           example: 5
-
         created:
           type: string
           format: date-time
           example: "2026-06-06T14:30:00Z"
-
         activity_name:
           type: string
           example: "Yoga"
-
         location_name:
           type: string
           example: "Westlake"
-
         trainer_name:
           type: string
           example: "Jhon Wick"
-
         date:
           type: string
           format: date
           example: "2026-06-06"
-
         start_time:
           type: string
           example: "09:58:00"
-
         end_time:
           type: string
           example: "11:58:00"
@@ -180,33 +158,18 @@ components:
         id:
           type: integer
           example: 1
-
         user_id:
           type: integer
           example: 1
-
         title:
           type: string
           example: "My first post"
-
         content:
           type: string
           example: "This is my first post."
-
         deleted:
           type: boolean
           example: false
-
-    ErrorDetail:
-      type: object
-      properties:
-        path:
-          type: string
-          example: "/api/post"
-
-        message:
-          type: string
-          example: "'x-auth-key' header required"
 
     ErrorResponse:
       type: object
@@ -215,12 +178,7 @@ components:
       properties:
         message:
           type: string
-          example: "Unauthorized request"
-
-        errors:
-          type: array
-          items:
-            $ref: "#/components/schemas/ErrorDetail"
+          example: "An error occurred"
 
   responses:
     LoginSuccessful:
@@ -250,7 +208,6 @@ components:
               id:
                 type: integer
                 example: 1
-
               message:
                 type: string
                 example: "Item created"
@@ -287,6 +244,8 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
+          example:
+            message: "Unauthorized - missing or invalid authentication"
 
     Forbidden:
       description: "Forbidden - insufficient permissions"
@@ -294,6 +253,8 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
+          example:
+            message: "You are not allowed to access this resource"
 
     NotFound:
       description: "Item not found"
@@ -301,20 +262,26 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
+          example:
+            message: "The requested item could not be found"
 
     BadRequest:
-      description: "Bad request"
+      description: "Bad request - invalid or missing request information"
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
+          example:
+            message: "First name, last name and email are required"
 
     Conflict:
-      description: "Conflict"
+      description: "Conflict - request conflicts with existing data"
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
+          example:
+            message: "You have already booked this session"
 
     Error:
       description: "Internal server error"
@@ -322,3 +289,5 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
+          example:
+            message: "An unexpected server error occurred"

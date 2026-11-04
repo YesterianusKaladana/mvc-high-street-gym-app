@@ -41,19 +41,22 @@ function Layout() {
                     </button>
 
                     {user ? (
-                        <button
-                            type="button"
-                            onClick={handleLogout}
-                            className="btn btn-ghost text-lg text-error"
-                            aria-label="Logout"
-                        >
-                            <p className="text-sm opacity-60 mt-2">
-                                <span className="badge badge-primary badge-sm">
-                                    {user.firstName} {user.lastName}
-                                </span>
-                            </p>
-                            <TbLogout />
-                        </button>
+                        <div className="flex items-center gap-2">
+                            {/* Display the user's name separately */}
+                            <span className="badge badge-primary badge-sm">
+                                {user.firstName} {user.lastName}
+                            </span>
+
+                            {/* Logout button */}
+                            <button
+                                type="button"
+                                onClick={handleLogout}
+                                className="btn btn-ghost text-lg text-error"
+                                aria-label="Logout"
+                            >
+                                <TbLogout />
+                            </button>
+                        </div>
                     ) : (
                         <button
                             type="button"
@@ -133,12 +136,12 @@ function Layout() {
                     disabled={!user}
                     onClick={() => navigate("/user/self")}
                     className={
-                        location.pathname.startsWith("/user/self")
+                        location.pathname === "/user/self"
                             ? "dock-active"
                             : ""
                     }
                     aria-current={
-                        location.pathname.startsWith("/user/self")
+                        location.pathname === "/user/self"
                             ? "page"
                             : undefined
                     }

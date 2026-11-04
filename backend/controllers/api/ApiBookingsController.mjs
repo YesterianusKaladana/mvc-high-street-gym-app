@@ -244,23 +244,65 @@ export class ApiBookingsController {
    * @openapi
    * /api/booking/xml:
    *   get:
-   *     summary: Export bookings in XML format
-   *     description: Returns the authenticated member's bookings in XML format.
+   *     summary: Export member bookings as XML 1.0 with DTD
    *     tags:
    *       - XML
    *     security:
    *       - ApiKey: []
    *     responses:
    *       '200':
-   *         description: Successfully retrieved bookings in XML format
+   *         description: XML export of member bookings with DTD and copyright tag
    *         content:
    *           application/xml:
    *             schema:
    *               type: string
+   *             example: |
+   *               <?xml version="1.0" encoding="UTF-8"?>
+   *               <!DOCTYPE bookings [
+   *                 <!ELEMENT bookings (copyright, booking*)>
+   *                 <!ATTLIST bookings export-date CDATA #IMPLIED>
+   *                 <!ELEMENT copyright (#PCDATA)>
+   *                 <!ELEMENT booking (id, activity, location, date, start_time, end_time, trainer)>
+   *                 <!ELEMENT id (#PCDATA)>
+   *                 <!ELEMENT activity (#PCDATA)>
+   *                 <!ELEMENT location (#PCDATA)>
+   *                 <!ELEMENT date (#PCDATA)>
+   *                 <!ELEMENT start_time (#PCDATA)>
+   *                 <!ELEMENT end_time (#PCDATA)>
+   *                 <!ELEMENT trainer (#PCDATA)>
+   *               ]>
+   *               <bookings export-date="2026-11-04">
+   *                 <copyright>© 2026 HSG. All rights reserved.</copyright>
+   *                 <booking>
+   *                   <id>52</id>
+   *                   <activity>Yoga</activity>
+   *                   <location>Westlake</location>
+   *                   <date>2026-11-10</date>
+   *                   <start_time>09:00</start_time>
+   *                   <end_time>11:00</end_time>
+   *                   <trainer>Yesterianus Kaladana</trainer>
+   *                 </booking>
+   *               </bookings>
    *       '401':
-   *         $ref: "#/components/responses/Unauthorized"
+   *         description: Not authenticated
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Authentication required
    *       '500':
-   *         $ref: "#/components/responses/Error"
+   *         description: Server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Failed to generate XML bookings.
    */
   static async handleExportBookingsXML(req, res) {
     try {
@@ -270,10 +312,6 @@ export class ApiBookingsController {
         req.authenticatedUser.id,
       );
 
-      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-      xml += `<bookings export-date="${exportDate}">\n`;
-      xml += `  <copyright>© 2026 HSG. All rights reserved.</copyright>\n`;
-
       const escapeXML = (value) =>
         String(value ?? "")
           .replace(/&/g, "&amp;")
@@ -282,22 +320,39 @@ export class ApiBookingsController {
           .replace(/"/g, "&quot;")
           .replace(/'/g, "&apos;");
 
+      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+      xml += `<!DOCTYPE bookings [\n`;
+      xml += `  <!ELEMENT bookings (copyright, booking*)>\n`;
+      xml += `  <!ATTLIST bookings export-date CDATA #IMPLIED>\n`;
+      xml += `  <!ELEMENT copyright (#PCDATA)>\n`;
+      xml += `  <!ELEMENT booking (id, activity, location, date, start_time, end_time, trainer)>\n`;
+      xml += `  <!ELEMENT id (#PCDATA)>\n`;
+      xml += `  <!ELEMENT activity (#PCDATA)>\n`;
+      xml += `  <!ELEMENT location (#PCDATA)>\n`;
+      xml += `  <!ELEMENT date (#PCDATA)>\n`;
+      xml += `  <!ELEMENT start_time (#PCDATA)>\n`;
+      xml += `  <!ELEMENT end_time (#PCDATA)>\n`;
+      xml += `  <!ELEMENT trainer (#PCDATA)>\n`;
+      xml += `]>\n`;
+
+      xml += `<bookings export-date="${escapeXML(exportDate)}">\n`;
+      xml += `  <copyright>© 2026 HSG. All rights reserved.</copyright>\n`;
+
       bookings.forEach((booking) => {
-        xml += `  <booking>
-          <id>${escapeXML(booking.id)}</id>
-          <activity>${escapeXML(booking.activity_name)}</activity>
-          <location>${escapeXML(booking.location_name)}</location>
-          <date>${escapeXML(String(booking.date).slice(0, 10))}</date>
-          <start_time>${escapeXML(booking.start_time)}</start_time>
-          <end_time>${escapeXML(booking.end_time)}</end_time>
-          <trainer>${escapeXML(booking.trainer_name)}</trainer>
-        </booking>\n`;
+        xml += `  <booking>\n`;
+        xml += `    <id>${escapeXML(booking.id)}</id>\n`;
+        xml += `    <activity>${escapeXML(booking.activity_name)}</activity>\n`;
+        xml += `    <location>${escapeXML(booking.location_name)}</location>\n`;
+        xml += `    <date>${escapeXML(String(booking.date).slice(0, 10))}</date>\n`;
+        xml += `    <start_time>${escapeXML(booking.start_time)}</start_time>\n`;
+        xml += `    <end_time>${escapeXML(booking.end_time)}</end_time>\n`;
+        xml += `    <trainer>${escapeXML(booking.trainer_name)}</trainer>\n`;
+        xml += `  </booking>\n`;
       });
 
-      xml += "</bookings>";
-      // Set the appropriate content type for XML
+      xml += `</bookings>`;
+
       res.setHeader("Content-Type", "application/xml; charset=UTF-8");
-      // Send the XML response body with a 200 OK status
       return res.status(200).send(xml);
     } catch (error) {
       console.error("EXPORT BOOKINGS XML ERROR:", error);

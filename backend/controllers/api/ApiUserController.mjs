@@ -9,7 +9,7 @@ export class ApiUserController {
   static {
     this.routes.use(ApiAuthenticationController.middleware);
 
-    this.routes.post("/", this.createNewMember);
+    this.routes.post("/register", this.createNewMember);
 
     this.routes.get(
       "/",
@@ -24,7 +24,7 @@ export class ApiUserController {
     );
 
     this.routes.patch(
-      "/:id",
+      "/self",
       ApiAuthenticationController.restrict("any"),
       this.UserPersonalInformation,
     );
@@ -43,25 +43,19 @@ export class ApiUserController {
    *     summary: Get current authenticated user
    *     tags:
    *       - User
-   *
    *     security:
    *       - ApiKey: []
-   *
    *     responses:
-   *
    *       200:
    *         description: Current user information
    *         content:
    *           application/json:
    *             schema:
    *               $ref: "#/components/schemas/User"
-   *
    *       401:
    *         $ref: "#/components/responses/Unauthorized"
-   *
    *       403:
    *         $ref: "#/components/responses/Forbidden"
-   *
    *       500:
    *         $ref: "#/components/responses/Error"
    */
@@ -77,10 +71,8 @@ export class ApiUserController {
    *     description: Retrieves all active users. Only administrators can access this endpoint. Passwords and authentication keys are excluded from the response.
    *     tags:
    *       - User
-   *
    *     security:
    *       - ApiKey: []
-   *
    *     responses:
    *       200:
    *         description: List of active users retrieved successfully
@@ -107,13 +99,10 @@ export class ApiUserController {
    *                     type: string
    *                     format: email
    *                     example: jane@gmail.com
-   *
    *       401:
    *         $ref: "#/components/responses/Unauthorized"
-   *
    *       403:
    *         $ref: "#/components/responses/Forbidden"
-   *
    *       500:
    *         $ref: "#/components/responses/Error"
    */
@@ -142,12 +131,11 @@ export class ApiUserController {
 
   /**
    * @openapi
-   * /api/user:
+   * /api/user/register:
    *   post:
    *     summary: Create a new member
    *     tags:
    *       - User
-   *
    *     requestBody:
    *       required: true
    *       content:
@@ -161,31 +149,29 @@ export class ApiUserController {
    *               - email
    *               - password
    *             properties:
-   *              firstName:
-   *                type: string
-   *                example: "John"
-   *              lastName:
-   *                type: string
-   *                example: "Doe"
-   *              role:
-   *                type: string
-   *                example: "member"
-   *              email:
-   *                type: string
-   *                example: "user@gmail.com"
-   *              password:
-   *                type: string
-   *                example: "password123"
-
+   *               firstName:
+   *                 type: string
+   *                 example: "John"
+   *               lastName:
+   *                 type: string
+   *                 example: "Doe"
+   *               role:
+   *                 type: string
+   *                 example: "member"
+   *               email:
+   *                 type: string
+   *                 format: email
+   *                 example: "user@gmail.com"
+   *               password:
+   *                 type: string
+   *                 example: "password123"
    *     responses:
    *       201:
    *         $ref: "#/components/responses/Created"
-   *
    *       400:
    *         $ref: "#/components/responses/BadRequest"
    *       401:
    *         $ref: "#/components/responses/Unauthorized"
-   *
    *       500:
    *         $ref: "#/components/responses/Error"
    */
@@ -196,10 +182,10 @@ export class ApiUserController {
       const hashedPassword = await bcrypt.hash(password, 10);
 
       const user = {
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        role: req.body.role || "member",
-        email: req.body.email,
+        firstName: firstName,
+        lastName: lastName,
+        role: role || "member",
+        email: email,
         password: hashedPassword,
       };
 
@@ -211,14 +197,9 @@ export class ApiUserController {
       });
     } catch (error) {
       console.error("CREATE USER ERROR:", error);
+
       return res.status(500).json({
         message: "Failed to create user",
-        errors: [
-          {
-            path: req.path,
-            message: error.message,
-          },
-        ],
       });
     }
   }
@@ -230,19 +211,15 @@ export class ApiUserController {
    *     summary: Get user by ID
    *     tags:
    *       - User
-   *
    *     security:
    *       - ApiKey: []
-   *
    *     parameters:
    *       - name: id
    *         in: path
    *         required: true
    *         schema:
    *           type: integer
-   *
    *     responses:
-   *
    *       200:
    *         description: User found
    *         content:
@@ -251,16 +228,12 @@ export class ApiUserController {
    *               $ref: "#/components/schemas/User"
    *       400:
    *         $ref: "#/components/responses/BadRequest"
-   *
    *       401:
    *         $ref: "#/components/responses/Unauthorized"
-   *
    *       403:
    *         $ref: "#/components/responses/Forbidden"
-   *
    *       404:
    *         $ref: "#/components/responses/NotFound"
-   *
    *       500:
    *         $ref: "#/components/responses/Error"
    */
@@ -292,79 +265,78 @@ export class ApiUserController {
 
       return res.status(200).json(foundUser);
     } catch (error) {
-      console.error(error);
+      console.error("GET USER BY ID ERROR:", error);
 
       return res.status(500).json({
         message: "Failed to load user",
-
-        errors: [
-          {
-            path: req.path,
-            message: error.message,
-          },
-        ],
       });
     }
   }
 
   /**
    * @openapi
-   * /api/user/{id}:
+   * /api/user/self:
    *   patch:
-   *     summary: Update user information
+   *     summary: Update personal information
+   *     description: Updates the authenticated user's personal information.
    *     tags:
    *       - User
    *     security:
    *       - ApiKey: []
-   *     parameters:
-   *       - name: id
-   *         in: path
-   *         required: true
-   *         schema:
-   *           type: integer
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - firstName
+   *               - lastName
+   *               - email
+   *             properties:
+   *               firstName:
+   *                 type: string
+   *                 example: John
+   *               lastName:
+   *                 type: string
+   *                 example: Smith
+   *               email:
+   *                 type: string
+   *                 format: email
+   *                 example: john@gmail.com
    *     responses:
-   *
    *       200:
    *         $ref: "#/components/responses/Updated"
-   *
    *       400:
    *         $ref: "#/components/responses/BadRequest"
-   *
    *       401:
    *         $ref: "#/components/responses/Unauthorized"
-   *
-   *       403:
-   *         $ref: "#/components/responses/Forbidden"
-   *
    *       404:
    *         $ref: "#/components/responses/NotFound"
-   *
    *       500:
    *         $ref: "#/components/responses/Error"
    */
   static async UserPersonalInformation(req, res) {
     try {
       const user = req.authenticatedUser;
+      const targetUserId = user.id;
 
-      const targetUserId = Number(req.params.id);
+      const { firstName, lastName, email } = req.body;
 
-      if (!user || user.id !== targetUserId) {
-        return res.status(403).json({
-          message: "You are not allowed to update this user",
+      if (!firstName?.trim() || !lastName?.trim() || !email?.trim()) {
+        return res.status(400).json({
+          message: "First name, last name and email are required",
         });
       }
 
       const updateData = {
-        ...req.body,
-
         id: targetUserId,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
       };
 
-      if (updateData.password) {
-        updateData.password = await bcrypt.hash(updateData.password, 10);
-      }
-
-      const result = await UserModel.update(updateData);
+      const result = await UserModel.updatePersonalInformation(updateData);
 
       if (result.affectedRows === 1) {
         return res.status(200).json({
@@ -376,17 +348,10 @@ export class ApiUserController {
         message: "User not found",
       });
     } catch (error) {
-      console.error(error);
+      console.error("UPDATE USER ERROR:", error);
 
       return res.status(500).json({
         message: "Failed to update user",
-
-        errors: [
-          {
-            path: req.path,
-            message: error.message,
-          },
-        ],
       });
     }
   }

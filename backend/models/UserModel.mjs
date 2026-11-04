@@ -200,6 +200,26 @@ export class UserModel extends DatabaseModel {
   }
 
   /**
+   * Updates a user's personal information (first name, last name, email).
+   * @param {UserModel} user
+   * @returns {Promise<any>}
+   */
+  static async updatePersonalInformation(user) {
+    return this.query(
+      `
+        UPDATE user
+        SET
+            first_name = ?,
+            last_name = ?,
+            email = ?
+        WHERE id = ?
+        AND deleted = 0
+        `,
+      [user.firstName, user.lastName, user.email, user.id],
+    );
+  }
+
+  /**
    * Delete users.
    *
    * @param {number} id

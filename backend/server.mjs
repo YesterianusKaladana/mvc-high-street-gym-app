@@ -19,7 +19,7 @@ const corsOptions = {
   origin: "http://localhost:5173",
 
   // Allow the specified HTTP methods
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 
   // Allow the headers used by the frontend, including the authentication key
   allowedHeaders: ["Content-Type", "x-auth-key"],

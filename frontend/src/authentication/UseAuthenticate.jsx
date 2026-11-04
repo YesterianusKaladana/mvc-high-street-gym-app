@@ -6,11 +6,11 @@ import { useNavigate } from "react-router"
 export const AuthenticationContext = createContext(null)
 
 export function AuthenticationProvider({ children }) {
-  // User and status state to be shared via context
+  // User and status state shared through context
   const [user, setUser] = useState(null)
   const [status, setStatus] = useState("resuming")
 
-  // Attempt to reload user from auth-key saved in local storage
+  // Reload the user using the saved authentication key
   useEffect(() => {
     const authenticationKey = localStorage.getItem("auth-key")
 
@@ -34,9 +34,8 @@ export function AuthenticationProvider({ children }) {
     } else {
       setStatus(null)
     }
-  }, [setUser, setStatus])
+  }, [])
 
-  // Provide user and status state to all children via context
   return (
     <AuthenticationContext.Provider value={[user, setUser, status, setStatus]}>
       {children}
@@ -44,10 +43,12 @@ export function AuthenticationProvider({ children }) {
   )
 }
 
-export function useAuthenticate(restrictToRoles = null) {
+export function useAuthenticate(...roles) {
   const [user, setUser, status, setStatus] = useContext(AuthenticationContext)
-
   const navigate = useNavigate()
+
+  // Support both useAuthenticate("trainer") and useAuthenticate("member", "trainer")
+  const restrictToRoles = roles.flat()
 
   const getUser = useCallback((authenticationKey) => {
     if (authenticationKey) {
@@ -125,7 +126,7 @@ export function useAuthenticate(restrictToRoles = null) {
   // Check whether the user has permission to access the page
   useEffect(() => {
     if (
-      restrictToRoles &&
+      restrictToRoles.length > 0 &&
       status !== "resuming" &&
       status !== "loading" &&
       status !== "authenticating" &&
@@ -133,7 +134,7 @@ export function useAuthenticate(restrictToRoles = null) {
     ) {
       navigate("/")
     }
-  }, [user, status, restrictToRoles, navigate])
+  }, [user, status, navigate, roles])
 
   return {
     user,

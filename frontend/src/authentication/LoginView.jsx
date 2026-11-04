@@ -1,5 +1,4 @@
 
-// Import React hooks, login and register icons, authentication hook, and navigation
 import { useCallback, useEffect, useState } from "react";
 import { CiLogin } from "react-icons/ci";
 import { FaRegistered } from "react-icons/fa";
@@ -10,9 +9,10 @@ function LoginView() {
   // Used to redirect the user to another page
   const navigate = useNavigate();
 
-  // Store the email and password entered by the user
+  // Store the email, password and agreement status
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Get the login function, current status, and authenticated user
   const { login, status, user } = useAuthenticate();
@@ -23,10 +23,15 @@ function LoginView() {
       // Prevent the browser from refreshing the page
       e.preventDefault();
 
+      // Check whether the user has agreed to the terms
+      if (!agreedToTerms) {
+        return;
+      }
+
       // Send the email and password to the authentication function
       login(email, password);
     },
-    [email, password, login]
+    [email, password, agreedToTerms, login]
   );
 
   // Redirect the user to the correct page after successful login
@@ -96,19 +101,32 @@ function LoginView() {
               </div>
             )}
 
+            {/* Terms and Conditions agreement checkbox */}
+            <label className="flex items-start gap-2 text-sm cursor-pointer mt-2">
+              <input
+                type="checkbox"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                className="checkbox checkbox-primary checkbox-sm mt-0.5"
+                disabled={isAuthenticating}
+                required
+              />
+              <span>
+                By logging in, I agree to the Terms and Conditions of this fitness community.
+              </span>
+            </label>
+
             {/* Display the Login and Register buttons */}
-            <div className="flex flex-col sm:flex-row gap-5 mt-6">
+            <div className="flex flex-col sm:flex-row gap-5 mt-4">
               {/* Submit the login form */}
               <button
                 type="submit"
                 className="btn btn-success flex-1"
-                disabled={isAuthenticating}
+                disabled={isAuthenticating || !agreedToTerms}
               >
                 {isAuthenticating ? (
-                  // Show a loading spinner while logging in
                   <span className="loading loading-spinner loading-sm"></span>
                 ) : (
-                  // Display the login icon and button text
                   <>
                     <CiLogin className="text-xl" />
                     Login
@@ -128,6 +146,21 @@ function LoginView() {
               </button>
             </div>
           </form>
+
+          {/* Privacy Policy and Copyright */}
+          <div className="text-center mt-8 pt-4 border-t border-base-300">
+            <a
+              href="#"
+              onClick={(e) => e.preventDefault()}
+              className="link link-hover text-sm text-base-content/70"
+            >
+              Privacy Policy
+            </a>
+
+            <p className="text-xs text-base-content/50 mt-2">
+              &copy; {new Date().getFullYear()} High Street Gym. All rights reserved.
+            </p>
+          </div>
         </div>
       </div>
     </section>
