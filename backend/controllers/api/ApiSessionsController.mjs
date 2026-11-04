@@ -389,18 +389,48 @@ export class ApiSessionsController {
    * /api/session/xml:
    *   get:
    *     summary: Export trainer sessions as XML 1.0 with DTD
-   *     description: Exports sessions belonging to the authenticated trainer.
+   *     description: Exports sessions belonging to the authenticated trainer in XML format, including an internal DTD and copyright element.
    *     tags:
    *       - XML
    *     security:
    *       - ApiKey: []
    *     responses:
    *       '200':
-   *         description: XML export of trainer sessions with DTD and copyright tag
+   *         description: XML export of trainer sessions with internal DTD and copyright tag
    *         content:
    *           application/xml:
    *             schema:
-   *               type: string
+   *               type: object
+   *               xml:
+   *                 name: sessions
+   *               properties:
+   *                 export-date:
+   *                   type: string
+   *                   xml:
+   *                     attribute: true
+   *                 copyright:
+   *                   type: string
+   *                 session:
+   *                   type: array
+   *                   items:
+   *                     type: object
+   *                     properties:
+   *                       session_id:
+   *                         type: integer
+   *                       activity_name:
+   *                         type: string
+   *                       location_name:
+   *                         type: string
+   *                       trainer_name:
+   *                         type: string
+   *                       date:
+   *                         type: string
+   *                       start_time:
+   *                         type: string
+   *                       end_time:
+   *                         type: string
+   *                       capacity:
+   *                         type: integer
    *             example: |
    *               <?xml version="1.0" encoding="UTF-8"?>
    *               <!DOCTYPE sessions [
@@ -417,7 +447,7 @@ export class ApiSessionsController {
    *                 <!ELEMENT end_time (#PCDATA)>
    *                 <!ELEMENT capacity (#PCDATA)>
    *               ]>
-   *               <sessions export-date="2026-11-04">
+   *               <sessions export-date="2026-11-05">
    *                 <copyright>© 2026 HSG. All rights reserved.</copyright>
    *                 <session>
    *                   <session_id>1</session_id>
@@ -488,6 +518,8 @@ export class ApiSessionsController {
           .replace(/'/g, "&apos;");
 
       let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+
+      // Internal DTD
       xml += `<!DOCTYPE sessions [\n`;
       xml += `  <!ELEMENT sessions (copyright, session*)>\n`;
       xml += `  <!ATTLIST sessions export-date CDATA #IMPLIED>\n`;
@@ -503,9 +535,11 @@ export class ApiSessionsController {
       xml += `  <!ELEMENT capacity (#PCDATA)>\n`;
       xml += `]>\n`;
 
+      // Root element
       xml += `<sessions export-date="${escapeXML(exportDate)}">\n`;
       xml += `  <copyright>© 2026 HSG. All rights reserved.</copyright>\n`;
 
+      // Session elements
       sessions.forEach((session) => {
         xml += `  <session>\n`;
         xml += `    <session_id>${escapeXML(session.session_id)}</session_id>\n`;
@@ -521,7 +555,16 @@ export class ApiSessionsController {
 
       xml += `</sessions>`;
 
-      res.setHeader("Content-Type", "application/xml; charset=UTF-8");
+      // Download XML file
+      res.setHeader("Content-Type", "application/json; charset=UTF-8");
+      res.setHeader(
+        "Content-Disposition",
+        'attachment; filename="my-sessions.xml"',
+      );
+
+      console.log("GENERATED XML:");
+      console.log(xml);
+
       return res.status(200).send(xml);
     } catch (error) {
       console.error("EXPORT SESSIONS XML ERROR:", error);
