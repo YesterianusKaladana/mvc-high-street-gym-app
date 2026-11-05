@@ -82,7 +82,7 @@ function ProfileView() {
                     refresh();
                 } else {
                     setStatus(
-                        "Update failed: " +
+                        "Update profile failed: " +
                         (response.body?.message || "Unknown error")
                     );
                 }
@@ -207,7 +207,7 @@ function ProfileView() {
                 <XMLDownloadButton
                     route="/session/xml"
                     authenticationKey={localStorage.getItem("auth-key") || ""}
-                    filename="sessions.xml"
+                    filename="my-sessions.xml"
                     className="btn btn-warning self-stretch"
                 >
                     Export Sessions (XML)
@@ -219,7 +219,7 @@ function ProfileView() {
                 <XMLDownloadButton
                     route="/booking/xml"
                     authenticationKey={localStorage.getItem("auth-key") || ""}
-                    filename="members.xml"
+                    filename="my-bookings.xml"
                     className="btn btn-warning self-stretch"
                 >
                     Export Bookings (XML)

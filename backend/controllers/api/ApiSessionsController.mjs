@@ -398,7 +398,7 @@ export class ApiSessionsController {
    *       '200':
    *         description: XML export of trainer sessions with internal DTD and copyright tag
    *         content:
-   *           application/xml:
+   *           text/plain:
    *             schema:
    *               type: object
    *               xml:
@@ -494,20 +494,10 @@ export class ApiSessionsController {
   static async handleExportSessionsXML(req, res) {
     try {
       const exportDate = new Date().toISOString().slice(0, 10);
+      const year = new Date().getFullYear();
       const trainerId = req.authenticatedUser.id;
 
       const trainerSessions = await SessionActivityModel.getByUserId(trainerId);
-
-      const sessions = trainerSessions.map((item) => ({
-        session_id: item.session.id,
-        activity_name: item.activity.name,
-        location_name: item.location.name,
-        trainer_name: `${item.user.firstName} ${item.user.lastName}`,
-        date: item.session.date,
-        start_time: item.session.start_time?.substring(0, 5),
-        end_time: item.session.end_time?.substring(0, 5),
-        capacity: item.session.capacity,
-      }));
 
       const escapeXML = (value) =>
         String(value ?? "")
@@ -537,18 +527,20 @@ export class ApiSessionsController {
 
       // Root element
       xml += `<sessions export-date="${escapeXML(exportDate)}">\n`;
-      xml += `  <copyright>© 2026 HSG. All rights reserved.</copyright>\n`;
+      xml += `  <copyright>© ${year} HSG. All rights reserved.</copyright>\n`;
 
       // Session elements
-      sessions.forEach((session) => {
+      trainerSessions.forEach((item) => {
+        const session = item.session;
+
         xml += `  <session>\n`;
-        xml += `    <session_id>${escapeXML(session.session_id)}</session_id>\n`;
-        xml += `    <activity_name>${escapeXML(session.activity_name)}</activity_name>\n`;
-        xml += `    <location_name>${escapeXML(session.location_name)}</location_name>\n`;
-        xml += `    <trainer_name>${escapeXML(session.trainer_name)}</trainer_name>\n`;
-        xml += `    <date>${escapeXML(String(session.date).slice(0, 10))}</date>\n`;
-        xml += `    <start_time>${escapeXML(session.start_time)}</start_time>\n`;
-        xml += `    <end_time>${escapeXML(session.end_time)}</end_time>\n`;
+        xml += `    <session_id>${escapeXML(session.id)}</session_id>\n`;
+        xml += `    <activity_name>${escapeXML(item.activity.name)}</activity_name>\n`;
+        xml += `    <location_name>${escapeXML(item.location.name)}</location_name>\n`;
+        xml += `    <trainer_name>${escapeXML(`${item.user.firstName} ${item.user.lastName}`)}</trainer_name>\n`;
+        xml += `    <date>${escapeXML(String(session.date ?? "").slice(0, 10))}</date>\n`;
+        xml += `    <start_time>${escapeXML(session.start_time?.substring(0, 5))}</start_time>\n`;
+        xml += `    <end_time>${escapeXML(session.end_time?.substring(0, 5))}</end_time>\n`;
         xml += `    <capacity>${escapeXML(session.capacity)}</capacity>\n`;
         xml += `  </session>\n`;
       });
@@ -556,14 +548,11 @@ export class ApiSessionsController {
       xml += `</sessions>`;
 
       // Download XML file
-      res.setHeader("Content-Type", "application/json; charset=UTF-8");
+      res.setHeader("Content-Type", "text/plain; charset=UTF-8");
       res.setHeader(
         "Content-Disposition",
         'attachment; filename="my-sessions.xml"',
       );
-
-      console.log("GENERATED XML:");
-      console.log(xml);
 
       return res.status(200).send(xml);
     } catch (error) {
