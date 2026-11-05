@@ -76,7 +76,7 @@ function Register() {
 
           // Redirect the user to the login page after 2 seconds
           setTimeout(() => {
-            navigate("/");
+            navigate("/login");
           }, 2000);
         } else {
           // Display an error if the backend cannot create the account

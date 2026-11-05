@@ -417,20 +417,28 @@ export class ApiSessionsController {
    *                     properties:
    *                       session_id:
    *                         type: integer
+   *                         example: 1
    *                       activity_name:
    *                         type: string
+   *                         example: Yoga
    *                       location_name:
    *                         type: string
+   *                         example: Studio 1
    *                       trainer_name:
    *                         type: string
+   *                         example: Yesterianus Kaladana
    *                       date:
    *                         type: string
+   *                         example: 2026-11-10
    *                       start_time:
    *                         type: string
+   *                         example: 09:00
    *                       end_time:
    *                         type: string
+   *                         example: 10:00
    *                       capacity:
    *                         type: integer
+   *                         example: 20
    *             example: |
    *               <?xml version="1.0" encoding="UTF-8"?>
    *               <!DOCTYPE sessions [
