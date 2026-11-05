@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE bookings [
+    <!ELEMENT bookings (copyright, booking*)>
+    <!ATTLIST bookings export-date CDATA #IMPLIED>
+
+    <!ELEMENT copyright (#PCDATA)>
+
+    <!ELEMENT booking (id, activity, location, date, start_time, end_time, trainer)>
+
+    <!ELEMENT id (#PCDATA)>
+    <!ELEMENT activity (#PCDATA)>
+    <!ELEMENT location (#PCDATA)>
+    <!ELEMENT date (#PCDATA)>
+    <!ELEMENT start_time (#PCDATA)>
+    <!ELEMENT end_time (#PCDATA)>
+    <!ELEMENT trainer (#PCDATA)>
+]>
+<bookings export-date="<%= exportDate %>">
+    <copyright>© <%= year %> HSG. All rights reserved.</copyright>
+
+    <% bookings.forEach((booking) => { %>
+        <booking>
+            <id><%= booking.id %></id>
+            <activity><%= booking.activity_name %></activity>
+            <location><%= booking.location_name %></location>
+            <date><%= String(booking.date ?? "").slice(0, 10) %></date>
+            <start_time><%= booking.start_time %></start_time>
+            <end_time><%= booking.end_time %></end_time>
+            <trainer><%= booking.trainer_name %></trainer>
+        </booking>
+    <% }); %>
+</bookings>

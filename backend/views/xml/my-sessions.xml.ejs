@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sessions [
+    <!ELEMENT sessions (copyright, session*)>
+    <!ATTLIST sessions export-date CDATA #IMPLIED>
+
+    <!ELEMENT copyright (#PCDATA)>
+
+    <!ELEMENT session (session_id, activity_name, location_name, trainer_name, date, start_time, end_time, capacity)>
+
+    <!ELEMENT session_id (#PCDATA)>
+    <!ELEMENT activity_name (#PCDATA)>
+    <!ELEMENT location_name (#PCDATA)>
+    <!ELEMENT trainer_name (#PCDATA)>
+    <!ELEMENT date (#PCDATA)>
+    <!ELEMENT start_time (#PCDATA)>
+    <!ELEMENT end_time (#PCDATA)>
+    <!ELEMENT capacity (#PCDATA)>
+]>
+
+<sessions export-date="<%= exportDate %>">
+    <copyright>© <%= year %> HSG. All rights reserved.</copyright>
+
+    <% trainerSessions.forEach((item) => { %>
+        <session>
+            <session_id><%= item.session.id %></session_id>
+            <activity_name><%= item.activity.name %></activity_name>
+            <location_name><%= item.location.name %></location_name>
+            <trainer_name><%= item.user.firstName %> <%= item.user.lastName %></trainer_name>
+            <date><%= String(item.session.date ?? "").slice(0, 10) %></date>
+            <start_time><%= item.session.start_time?.substring(0, 5) %></start_time>
+            <end_time><%= item.session.end_time?.substring(0, 5) %></end_time>
+            <capacity><%= item.session.capacity %></capacity>
+        </session>
+    <% }); %>
+</sessions>

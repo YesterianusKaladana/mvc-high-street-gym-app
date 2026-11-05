@@ -292,7 +292,7 @@ export class ApiBookingsController {
    *               properties:
    *                 message:
    *                   type: string
-   *                   example: Authentication required
+   *                   example: Authentication required - please log in.
    *       '500':
    *         description: Server error
    *         content:
@@ -302,63 +302,29 @@ export class ApiBookingsController {
    *               properties:
    *                 message:
    *                   type: string
-   *                   example: Failed to generate XML bookings.
+   *                   example: Failed to generate XML bookings from database.
    */
   static async handleExportBookingsXML(req, res) {
     try {
       const exportDate = DatabaseModel.toMySqlDate(new Date());
+      const year = new Date().getFullYear();
 
       const bookings = await BookingActivityModel.getByMember(
         req.authenticatedUser.id,
       );
 
-      const escapeXML = (value) =>
-        String(value ?? "")
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;")
-          .replace(/'/g, "&apos;");
-
-      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-      xml += `<!DOCTYPE bookings [\n`;
-      xml += `  <!ELEMENT bookings (copyright, booking*)>\n`;
-      xml += `  <!ATTLIST bookings export-date CDATA #IMPLIED>\n`;
-      xml += `  <!ELEMENT copyright (#PCDATA)>\n`;
-      xml += `  <!ELEMENT booking (id, activity, location, date, start_time, end_time, trainer)>\n`;
-      xml += `  <!ELEMENT id (#PCDATA)>\n`;
-      xml += `  <!ELEMENT activity (#PCDATA)>\n`;
-      xml += `  <!ELEMENT location (#PCDATA)>\n`;
-      xml += `  <!ELEMENT date (#PCDATA)>\n`;
-      xml += `  <!ELEMENT start_time (#PCDATA)>\n`;
-      xml += `  <!ELEMENT end_time (#PCDATA)>\n`;
-      xml += `  <!ELEMENT trainer (#PCDATA)>\n`;
-      xml += `]>\n`;
-
-      xml += `<bookings export-date="${escapeXML(exportDate)}">\n`;
-      xml += `  <copyright>© 2026 HSG. All rights reserved.</copyright>\n`;
-
-      bookings.forEach((booking) => {
-        xml += `  <booking>\n`;
-        xml += `    <id>${escapeXML(booking.id)}</id>\n`;
-        xml += `    <activity>${escapeXML(booking.activity_name)}</activity>\n`;
-        xml += `    <location>${escapeXML(booking.location_name)}</location>\n`;
-        xml += `    <date>${escapeXML(String(booking.date).slice(0, 10))}</date>\n`;
-        xml += `    <start_time>${escapeXML(booking.start_time)}</start_time>\n`;
-        xml += `    <end_time>${escapeXML(booking.end_time)}</end_time>\n`;
-        xml += `    <trainer>${escapeXML(booking.trainer_name)}</trainer>\n`;
-        xml += `  </booking>\n`;
-      });
-
-      xml += `</bookings>`;
-
-      res.setHeader("Content-Type", "text/plain; charset=UTF-8");
-      return res.status(200).send(xml);
+      return res
+        .status(200)
+        .type("text/plain")
+        .render("xml/my-bookings.xml.ejs", {
+          bookings,
+          exportDate,
+          year,
+        });
     } catch (error) {
-      console.error("EXPORT BOOKINGS XML ERROR:", error);
-
+      console.error(error);
       return res.status(500).json({
-        message: "Failed to generate XML bookings.",
+        message: "Failed to generate XML bookings from database.",
       });
     }
   }

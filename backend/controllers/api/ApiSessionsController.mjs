@@ -400,45 +400,7 @@ export class ApiSessionsController {
    *         content:
    *           text/plain:
    *             schema:
-   *               type: object
-   *               xml:
-   *                 name: sessions
-   *               properties:
-   *                 export-date:
-   *                   type: string
-   *                   xml:
-   *                     attribute: true
-   *                 copyright:
-   *                   type: string
-   *                 session:
-   *                   type: array
-   *                   items:
-   *                     type: object
-   *                     properties:
-   *                       session_id:
-   *                         type: integer
-   *                         example: 1
-   *                       activity_name:
-   *                         type: string
-   *                         example: Yoga
-   *                       location_name:
-   *                         type: string
-   *                         example: Studio 1
-   *                       trainer_name:
-   *                         type: string
-   *                         example: Yesterianus Kaladana
-   *                       date:
-   *                         type: string
-   *                         example: 2026-11-10
-   *                       start_time:
-   *                         type: string
-   *                         example: 09:00
-   *                       end_time:
-   *                         type: string
-   *                         example: 10:00
-   *                       capacity:
-   *                         type: integer
-   *                         example: 20
+   *               type: string
    *             example: |
    *               <?xml version="1.0" encoding="UTF-8"?>
    *               <!DOCTYPE sessions [
@@ -477,7 +439,7 @@ export class ApiSessionsController {
    *               properties:
    *                 message:
    *                   type: string
-   *                   example: Authentication required
+   *                   example: Authentication required - please log in.
    *       '403':
    *         description: Forbidden - trainer access required
    *         content:
@@ -497,7 +459,7 @@ export class ApiSessionsController {
    *               properties:
    *                 message:
    *                   type: string
-   *                   example: Failed to generate XML sessions.
+   *                   example: Failed to generate XML sessions from database.
    */
   static async handleExportSessionsXML(req, res) {
     try {
@@ -507,67 +469,18 @@ export class ApiSessionsController {
 
       const trainerSessions = await SessionActivityModel.getByUserId(trainerId);
 
-      const escapeXML = (value) =>
-        String(value ?? "")
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;")
-          .replace(/'/g, "&apos;");
-
-      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-
-      // Internal DTD
-      xml += `<!DOCTYPE sessions [\n`;
-      xml += `  <!ELEMENT sessions (copyright, session*)>\n`;
-      xml += `  <!ATTLIST sessions export-date CDATA #IMPLIED>\n`;
-      xml += `  <!ELEMENT copyright (#PCDATA)>\n`;
-      xml += `  <!ELEMENT session (session_id, activity_name, location_name, trainer_name, date, start_time, end_time, capacity)>\n`;
-      xml += `  <!ELEMENT session_id (#PCDATA)>\n`;
-      xml += `  <!ELEMENT activity_name (#PCDATA)>\n`;
-      xml += `  <!ELEMENT location_name (#PCDATA)>\n`;
-      xml += `  <!ELEMENT trainer_name (#PCDATA)>\n`;
-      xml += `  <!ELEMENT date (#PCDATA)>\n`;
-      xml += `  <!ELEMENT start_time (#PCDATA)>\n`;
-      xml += `  <!ELEMENT end_time (#PCDATA)>\n`;
-      xml += `  <!ELEMENT capacity (#PCDATA)>\n`;
-      xml += `]>\n`;
-
-      // Root element
-      xml += `<sessions export-date="${escapeXML(exportDate)}">\n`;
-      xml += `  <copyright>© ${year} HSG. All rights reserved.</copyright>\n`;
-
-      // Session elements
-      trainerSessions.forEach((item) => {
-        const session = item.session;
-
-        xml += `  <session>\n`;
-        xml += `    <session_id>${escapeXML(session.id)}</session_id>\n`;
-        xml += `    <activity_name>${escapeXML(item.activity.name)}</activity_name>\n`;
-        xml += `    <location_name>${escapeXML(item.location.name)}</location_name>\n`;
-        xml += `    <trainer_name>${escapeXML(`${item.user.firstName} ${item.user.lastName}`)}</trainer_name>\n`;
-        xml += `    <date>${escapeXML(String(session.date ?? "").slice(0, 10))}</date>\n`;
-        xml += `    <start_time>${escapeXML(session.start_time?.substring(0, 5))}</start_time>\n`;
-        xml += `    <end_time>${escapeXML(session.end_time?.substring(0, 5))}</end_time>\n`;
-        xml += `    <capacity>${escapeXML(session.capacity)}</capacity>\n`;
-        xml += `  </session>\n`;
-      });
-
-      xml += `</sessions>`;
-
-      // Download XML file
-      res.setHeader("Content-Type", "text/plain; charset=UTF-8");
-      res.setHeader(
-        "Content-Disposition",
-        'attachment; filename="my-sessions.xml"',
-      );
-
-      return res.status(200).send(xml);
+      return res
+        .status(200)
+        .type("text/plain")
+        .render("xml/my-sessions.xml.ejs", {
+          trainerSessions,
+          exportDate,
+          year,
+        });
     } catch (error) {
-      console.error("EXPORT SESSIONS XML ERROR:", error);
-
+      console.error(error);
       return res.status(500).json({
-        message: "Failed to generate XML sessions.",
+        message: "Failed to generate XML sessions from database.",
       });
     }
   }
