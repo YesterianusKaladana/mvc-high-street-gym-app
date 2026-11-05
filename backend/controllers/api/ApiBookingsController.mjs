@@ -253,7 +253,7 @@ export class ApiBookingsController {
    *       '200':
    *         description: XML export of member bookings with DTD and copyright tag
    *         content:
-   *           application/xml:
+   *           text/plain:
    *             schema:
    *               type: string
    *             example: |
@@ -352,7 +352,7 @@ export class ApiBookingsController {
 
       xml += `</bookings>`;
 
-      res.setHeader("Content-Type", "application/xml; charset=UTF-8");
+      res.setHeader("Content-Type", "text/plain; charset=UTF-8");
       return res.status(200).send(xml);
     } catch (error) {
       console.error("EXPORT BOOKINGS XML ERROR:", error);
