@@ -18,12 +18,9 @@ function Layout() {
     const isTrainer = user?.role === "trainer";
     const isMember = user?.role === "member";
 
-    // Change the timetable label for trainers
-    const timetableLabel = isTrainer ? "My Sessions" : "Timetable";
-
     // Check whether the timetable dock item is active
     const isTimetableActive = isTrainer
-        ? location.pathname === "/session"
+        ? location.pathname === "/timetable/sessions"
         : location.pathname === "/timetable" ||
         location.pathname === "/";
 
@@ -80,15 +77,13 @@ function Layout() {
                 <button
                     type="button"
                     onClick={() =>
-                        navigate(isTrainer ? "/session" : "/timetable")
+                        navigate(isTrainer ? "/timetable/sessions" : "/timetable")
                     }
                     className={isTimetableActive ? "dock-active" : ""}
                     aria-current={isTimetableActive ? "page" : undefined}
                 >
                     <FaCalendarAlt className="text-2xl" />
-                    <span className="dock-label">
-                        {timetableLabel}
-                    </span>
+                    <span className="dock-label">My Timetable</span>
                 </button>
 
                 <button
@@ -106,7 +101,7 @@ function Layout() {
                     }
                 >
                     <FaBlog className="text-2xl" />
-                    <span className="dock-label">Blog</span>
+                    <span className="dock-label">My Blog</span>
                 </button>
 
                 {/* Bookings are hidden for trainers */}
@@ -127,7 +122,7 @@ function Layout() {
                         }
                     >
                         <FaDumbbell className="text-2xl" />
-                        <span className="dock-label">Bookings</span>
+                        <span className="dock-label">My Bookings</span>
                     </button>
                 )}
 
@@ -147,7 +142,7 @@ function Layout() {
                     }
                 >
                     <FaUser className="text-2xl" />
-                    <span className="dock-label">Profile</span>
+                    <span className="dock-label">My Profile</span>
                 </button>
             </nav>
         </main>

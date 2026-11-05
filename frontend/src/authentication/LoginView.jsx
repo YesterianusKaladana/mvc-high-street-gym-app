@@ -43,7 +43,7 @@ function LoginView() {
       }
       // Trainers go to the session management page
       else if (user.role === "trainer") {
-        navigate("/session");
+        navigate("/timetable/sessions");
       }
     }
   }, [user, navigate]);

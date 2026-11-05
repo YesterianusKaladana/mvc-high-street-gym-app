@@ -45,7 +45,7 @@ const router = createBrowserRouter([
         Component: ProfileView
       },
       {
-        path: "/session",
+        path: "/timetable/sessions",
         Component: SessionManagementView
       },
     ]

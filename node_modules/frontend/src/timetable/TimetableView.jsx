@@ -25,7 +25,7 @@ function TimetableView() {
     // Redirect trainers to the session management page.
     useEffect(() => {
         if (user?.role === "trainer") {
-            navigate("/session", { replace: true });
+            navigate("/timetable/sessions", { replace: true });
         }
     }, [user, navigate]);
 
