@@ -396,7 +396,7 @@ export class ApiSessionsController {
    *       - ApiKey: []
    *     responses:
    *       '200':
-   *         description: XML export of trainer sessions with internal DTD and copyright tag
+   *         description: XML export displayed as plain text
    *         content:
    *           text/plain:
    *             schema:
@@ -461,6 +461,7 @@ export class ApiSessionsController {
    *                   type: string
    *                   example: Failed to generate XML sessions from database.
    */
+
   static async handleExportSessionsXML(req, res) {
     try {
       const exportDate = new Date().toISOString().slice(0, 10);
@@ -469,14 +470,27 @@ export class ApiSessionsController {
 
       const trainerSessions = await SessionActivityModel.getByUserId(trainerId);
 
-      return res
-        .status(200)
-        .type("text/plain")
-        .render("xml/my-sessions.xml.ejs", {
+      return res.render(
+        "xml/my-sessions.xml.ejs",
+        {
           trainerSessions,
           exportDate,
           year,
-        });
+        },
+        (error, xml) => {
+          if (error) {
+            console.error(error);
+            return res.status(500).json({
+              message: "Failed to generate XML sessions from database.",
+            });
+          }
+
+          return res
+            .status(200)
+            .set("Content-Type", "text/plain; charset=utf-8")
+            .send(xml);
+        },
+      );
     } catch (error) {
       console.error(error);
       return res.status(500).json({
