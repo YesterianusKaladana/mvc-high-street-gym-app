@@ -390,7 +390,7 @@ export class ApiSessionsController {
    *       '200':
    *         description: XML export displayed as plain text
    *         content:
-   *           text/plain:
+   *           text/xml:
    *             schema:
    *               type: string
    *             example: |
@@ -463,9 +463,9 @@ export class ApiSessionsController {
 
       return res
         .status(200)
-        .contentType("text/plain")
-        .render("xml/my-sessions.xml", {
-          sessions: trainerSessions,
+        .contentType("text/xml")
+        .render("xml/my-sessions.xml.ejs", {
+          trainerSessions,
           exportDate,
           year,
         });
