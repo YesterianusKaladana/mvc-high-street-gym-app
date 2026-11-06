@@ -94,11 +94,9 @@ export class ApiSessionsController {
 
       return res.status(200).json(formattedSessions);
     } catch (error) {
-      console.error("GET SESSIONS ERROR:", error);
-
+      console.error(error);
       return res.status(500).json({
         message: "Failed to load sessions from database.",
-        error: error.message,
       });
     }
   }
@@ -163,11 +161,9 @@ export class ApiSessionsController {
 
       return res.status(200).json(session);
     } catch (error) {
-      console.error("GET ALL SESSIONS BY ID ERROR:", error);
-
+      console.error(error);
       return res.status(500).json({
-        message: "Failed to load session.",
-        error: error.message,
+        message: "Failed to load session from database.",
       });
     }
   }
@@ -229,11 +225,9 @@ export class ApiSessionsController {
 
       return res.status(200).json(formattedSessions);
     } catch (error) {
-      console.error("GET ALL TRAINER SESSIONS ERROR:", error);
-
+      console.error(error);
       return res.status(500).json({
-        message: "Failed to load trainer sessions.",
-        error: error.message,
+        message: "Failed to load trainer sessions from database.",
       });
     }
   }
@@ -375,11 +369,9 @@ export class ApiSessionsController {
         session: newSession,
       });
     } catch (error) {
-      console.error("SESSION CREATE ERROR:", error);
-
+      console.error(error);
       return res.status(500).json({
         message: "Failed to create session.",
-        error: error.message,
       });
     }
   }
@@ -461,7 +453,6 @@ export class ApiSessionsController {
    *                   type: string
    *                   example: Failed to generate XML sessions from database.
    */
-
   static async handleExportSessionsXML(req, res) {
     try {
       const exportDate = new Date().toISOString().slice(0, 10);
@@ -470,27 +461,14 @@ export class ApiSessionsController {
 
       const trainerSessions = await SessionActivityModel.getByUserId(trainerId);
 
-      return res.render(
-        "xml/my-sessions.xml.ejs",
-        {
-          trainerSessions,
+      return res
+        .status(200)
+        .contentType("text/plain")
+        .render("xml/my-sessions.xml", {
+          sessions: trainerSessions,
           exportDate,
           year,
-        },
-        (error, xml) => {
-          if (error) {
-            console.error(error);
-            return res.status(500).json({
-              message: "Failed to generate XML sessions from database.",
-            });
-          }
-
-          return res
-            .status(200)
-            .set("Content-Type", "text/plain; charset=utf-8")
-            .send(xml);
-        },
-      );
+        });
     } catch (error) {
       console.error(error);
       return res.status(500).json({
@@ -689,11 +667,9 @@ export class ApiSessionsController {
         message: "Session updated successfully.",
       });
     } catch (error) {
-      console.error("SESSION UPDATE ERROR:", error);
-
+      console.error(error);
       return res.status(500).json({
-        message: "Failed to update session.",
-        error: error.message,
+        message: "Failed to update session from database.",
       });
     }
   }
@@ -791,11 +767,9 @@ export class ApiSessionsController {
         message: "Session deleted successfully.",
       });
     } catch (error) {
-      console.error("SESSION DELETE ERROR:", error);
-
+      console.error(error);
       return res.status(500).json({
-        message: "Failed to delete session.",
-        error: error.message,
+        message: "Failed to delete session from database.",
       });
     }
   }

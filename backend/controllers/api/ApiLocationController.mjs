@@ -36,7 +36,7 @@ export class ApiLocationController {
    *                     type: string
    *                     example: "Level A Fitness Center"
    *       500:
-   *         description: Failed to load locations
+   *         description: Failed to load locations from database
    */
   static async getLocations(req, res) {
     try {
@@ -45,7 +45,7 @@ export class ApiLocationController {
     } catch (error) {
       console.error(error);
       return res.status(500).json({
-        message: "Failed to load locations",
+        message: "Failed to load locations from database.",
       });
     }
   }

@@ -120,10 +120,8 @@ export class ApiBookingsController {
       });
     } catch (error) {
       console.error(error);
-
       return res.status(500).json({
-        message: "Failed to create booking",
-        errors: [error.message || error],
+        message: "Failed to create booking from database.",
       });
     }
   }
@@ -164,9 +162,8 @@ export class ApiBookingsController {
       return res.status(200).json(bookings);
     } catch (error) {
       console.error(error);
-
       return res.status(500).json({
-        message: "Failed to load bookings",
+        message: "Failed to load bookings from database.",
       });
     }
   }
@@ -233,9 +230,8 @@ export class ApiBookingsController {
       });
     } catch (error) {
       console.error(error);
-
       return res.status(500).json({
-        message: "Failed to delete booking",
+        message: "Failed to delete booking from database.",
       });
     }
   }
@@ -312,11 +308,10 @@ export class ApiBookingsController {
       const bookings = await BookingActivityModel.getByMember(
         req.authenticatedUser.id,
       );
-
       return res
         .status(200)
-        .type("text/plain")
-        .render("xml/my-bookings.xml.ejs", {
+        .contentType("text/plain")
+        .render("xml/my-bookings.xml", {
           bookings,
           exportDate,
           year,

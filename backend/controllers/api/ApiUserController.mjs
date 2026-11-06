@@ -123,10 +123,9 @@ export class ApiUserController {
 
       return res.status(200).json(safeUsers);
     } catch (error) {
-      console.error("GET ALL USERS ERROR:", error);
-
+      console.error(error);
       return res.status(500).json({
-        message: "Failed to load users",
+        message: "Failed to load users from database.",
       });
     }
   }
@@ -180,7 +179,6 @@ export class ApiUserController {
   static async createNewMember(req, res) {
     try {
       const { firstName, lastName, role, email, password } = req.body;
-
       const hashedPassword = await bcrypt.hash(password, 10);
 
       const user = {
@@ -198,10 +196,9 @@ export class ApiUserController {
         message: "Member created successfully",
       });
     } catch (error) {
-      console.error("CREATE USER ERROR:", error);
-
+      console.error(error);
       return res.status(500).json({
-        message: "Failed to create user",
+        message: "Failed to create user from database.",
       });
     }
   }
@@ -267,10 +264,9 @@ export class ApiUserController {
 
       return res.status(200).json(foundUser);
     } catch (error) {
-      console.error("GET USER BY ID ERROR:", error);
-
+      console.error(error);
       return res.status(500).json({
-        message: "Failed to load user",
+        message: "Failed to load user from database.",
       });
     }
   }
@@ -350,10 +346,9 @@ export class ApiUserController {
         message: "User not found",
       });
     } catch (error) {
-      console.error("UPDATE USER ERROR:", error);
-
+      console.error(error);
       return res.status(500).json({
-        message: "Failed to update user",
+        message: "Failed to update user from database.",
       });
     }
   }

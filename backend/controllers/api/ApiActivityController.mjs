@@ -36,7 +36,7 @@ export class ApiActivityController {
    *                     type: string
    *                     example: "A relaxing and flexible yoga session"
    *       500:
-   *         description: Failed to load activities
+   *         description: Failed to load activities from database
    */
   static async getActivities(req, res) {
     try {
@@ -45,7 +45,7 @@ export class ApiActivityController {
     } catch (error) {
       console.error(error);
       return res.status(500).json({
-        message: "Failed to load activities",
+        message: "Failed to load activities from database.",
       });
     }
   }

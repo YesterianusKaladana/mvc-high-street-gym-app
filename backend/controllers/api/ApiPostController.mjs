@@ -52,7 +52,6 @@ export class ApiPostController {
    *       500:
    *         $ref: "#/components/responses/Error"
    */
-
   static async getPosts(req, res) {
     try {
       const user = req.authenticatedUser;
@@ -75,10 +74,9 @@ export class ApiPostController {
 
       return res.status(200).json(posts);
     } catch (error) {
-      console.error("Failed to load posts:", error);
-
+      console.error(error);
       return res.status(500).json({
-        message: "Failed to load posts",
+        message: "Failed to load posts from database.",
       });
     }
   }
@@ -152,16 +150,13 @@ export class ApiPostController {
       });
     } catch (error) {
       console.error(error);
-
       return res.status(500).json({
-        message: "Failed to create post",
+        message: "Failed to create post from database.",
       });
     }
   }
 
   /**
-   * Get post by ID
-   *
    * @openapi
    * /api/post/{id}:
    *   get:
@@ -235,7 +230,7 @@ export class ApiPostController {
       console.error(error);
 
       return res.status(500).json({
-        message: "Failed to fetch post",
+        message: "Failed to fetch post from database.",
       });
     }
   }
@@ -331,9 +326,8 @@ export class ApiPostController {
       });
     } catch (error) {
       console.error(error);
-
       return res.status(500).json({
-        message: "Failed to delete post",
+        message: "Failed to delete post from database.",
       });
     }
   }

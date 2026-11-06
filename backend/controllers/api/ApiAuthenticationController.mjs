@@ -108,7 +108,7 @@ export class ApiAuthenticationController {
       } catch (error) {
         console.error(error);
         return res.status(500).json({
-          message: "Failed to authenticate user",
+          message: "Failed to authenticate user from database.",
         });
       }
     }
@@ -134,7 +134,7 @@ export class ApiAuthenticationController {
       } catch (error) {
         console.error(error);
         return res.status(500).json({
-          message: "Failed to deauthenticate user",
+          message: "Failed to deauthenticate user from database.",
         });
       }
     }
