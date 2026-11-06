@@ -28,7 +28,7 @@ A full-stack gym management system developed using modern web technologies, foll
 
 ## Project Disclaimer
 
-This project, HSG (High Street Gym), was developed by Yesterianus Kalaadana as part of the Diploma of Information Technology at TAFE Queensland to fulfil the course requirements and demonstrate the skills and knowledge gained throughout the course.
+This project, HSG (High Street Gym), was developed by Yesterianus Kalaadana as part of the Diploma of Information Technology (Front End Web Development) at TAFE Queensland to fulfil the course requirements and demonstrate the skills and knowledge gained throughout the course.
 
 It is an educational project intended for learning and assessment purposes. It is not designed, tested, or recommended for production use in a real-world industry environment.
 
@@ -36,4 +36,4 @@ It is an educational project intended for learning and assessment purposes. It i
 
 ## Copyright
 
-Copyright © 2026 HSG – Yesterianus Kaladana. All rights reserved.
+Copyright © 2026 HSG – Yesterianus Kaladana.
