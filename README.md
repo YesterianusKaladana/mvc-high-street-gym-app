@@ -23,3 +23,17 @@ A full-stack gym management system developed using modern web technologies, foll
 - [DaisyUI](https://daisyui.com/): DaisyUI is a component library built on top of Tailwind CSS. It is used to create reusable interface components and improve the application's design.
 - [React Icons](https://www.npmjs.com/package/react-icons): React Icons provides a collection of popular icon libraries. It is used to add icons to the application's user interface.
 - [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API): Fetch API is a built-in JavaScript feature for making HTTP requests. It is used to communicate with the backend RESTful API and retrieve or submit data.
+
+---
+
+## Project Disclaimer
+
+This project, HSG (High Street Gym), was developed by Yesterianus Kalaadana as part of the Diploma of Information Technology at TAFE Queensland to fulfil the course requirements and demonstrate the skills and knowledge gained throughout the course.
+
+It is an educational project intended for learning and assessment purposes. It is not designed, tested, or recommended for production use in a real-world industry environment.
+
+---
+
+## Copyright
+
+Copyright © 2026 HSG – Yesterianus Kaladana. All rights reserved.
