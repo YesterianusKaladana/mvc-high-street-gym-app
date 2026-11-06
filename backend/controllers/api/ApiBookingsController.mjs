@@ -310,8 +310,9 @@ export class ApiBookingsController {
       );
       return res
         .status(200)
-        .contentType("text/plain")
-        .render("xml/my-bookings.xml", {
+        .contentType("text/xml")
+        .set("Content-Disposition", `inline; filename="my-bookings.xml"`)
+        .render("xml/my-bookings.xml.ejs", {
           bookings,
           exportDate,
           year,
