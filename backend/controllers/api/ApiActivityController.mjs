@@ -36,7 +36,15 @@ export class ApiActivityController {
    *                     type: string
    *                     example: "A relaxing and flexible yoga session"
    *       500:
-   *         description: Failed to load activities from database
+   *        description: Internal server error
+   *        content:
+   *          application/json:
+   *            schema:
+   *              type: object
+   *              properties:
+   *                message:
+   *                  type: string
+   *                  example: "Failed to load activities from database."
    */
   static async getActivities(req, res) {
     try {

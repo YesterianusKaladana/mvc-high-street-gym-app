@@ -290,4 +290,4 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
           example:
-            message: "An unexpected server error occurred"
+            message: "An unexpected server error occurred while processing your request."

@@ -36,7 +36,15 @@ export class ApiLocationController {
    *                     type: string
    *                     example: "Level A Fitness Center"
    *       500:
-   *         description: Failed to load locations from database
+   *         description: Internal server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: "Failed to load locations from database."
    */
   static async getLocations(req, res) {
     try {

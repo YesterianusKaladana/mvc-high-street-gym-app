@@ -31,8 +31,6 @@ export class ApiPostController {
   }
 
   /**
-   * Get all posts
-   *
    * @openapi
    * /api/post:
    *   get:
