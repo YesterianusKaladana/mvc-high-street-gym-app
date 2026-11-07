@@ -59,6 +59,16 @@ export class ApiAuthenticationController {
    *         $ref: "#/components/responses/LoginSuccessful"
    *       '401':
    *         $ref: "#/components/responses/Unauthorized"
+   *       '404':
+   *         description: "Authentication key not found"
+   *         content:
+   *             application/json:
+   *               schema:
+   *                 type: object
+   *                 properties:
+   *                   message:
+   *                     type: string
+   *                     example: "Failed to authenticate - key not found"
    *       '500':
    *         $ref: "#/components/responses/Error"
    *
@@ -72,6 +82,16 @@ export class ApiAuthenticationController {
    *         $ref: "#/components/responses/Updated"
    *       '401':
    *         $ref: "#/components/responses/Unauthorized"
+   *       '404':
+   *         description: "Failed to deauthenticate - key not found"
+   *         content:
+   *             application/json:
+   *               schema:
+   *                 type: object
+   *                 properties:
+   *                   message:
+   *                     type: string
+   *                     example: "Failed to deauthenticate - key not found"
    *       '500':
    *         $ref: "#/components/responses/Error"
    */
