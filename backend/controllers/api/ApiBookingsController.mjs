@@ -28,6 +28,12 @@ export class ApiBookingsController {
       this.handleExportBookingsXML,
     );
 
+    this.routes.get(
+      "/xml/download",
+      ApiAuthenticationController.restrict("member"),
+      this.handleDownloadBookingsXML,
+    );
+
     this.routes.delete(
       "/:id",
       ApiAuthenticationController.restrict("member"),
@@ -312,6 +318,95 @@ export class ApiBookingsController {
         .status(200)
         .contentType("text/xml")
         .set("Content-Disposition", `inline; filename="my-bookings.xml"`)
+        .render("xml/my-bookings.xml.ejs", {
+          bookings,
+          exportDate,
+          year,
+        });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        message: "Failed to generate XML bookings from database.",
+      });
+    }
+  }
+
+  /**
+   * @openapi
+   * /api/booking/xml/download:
+   *   get:
+   *     summary: Download member bookings as XML 1.0 with DTD
+   *     tags:
+   *       - XML
+   *     security:
+   *       - ApiKey: []
+   *     responses:
+   *       '200':
+   *         description: Download XML file of member bookings with DTD and copyright tag
+   *         content:
+   *           text/plain:
+   *             schema:
+   *               type: string
+   *             example: |
+   *               <?xml version="1.0" encoding="UTF-8"?>
+   *               <!DOCTYPE bookings [
+   *                 <!ELEMENT bookings (copyright, booking*)>
+   *                 <!ATTLIST bookings export-date CDATA #IMPLIED>
+   *                 <!ELEMENT copyright (#PCDATA)>
+   *                 <!ELEMENT booking (id, activity, location, date, start_time, end_time, trainer)>
+   *                 <!ELEMENT id (#PCDATA)>
+   *                 <!ELEMENT activity (#PCDATA)>
+   *                 <!ELEMENT location (#PCDATA)>
+   *                 <!ELEMENT date (#PCDATA)>
+   *                 <!ELEMENT start_time (#PCDATA)>
+   *                 <!ELEMENT end_time (#PCDATA)>
+   *                 <!ELEMENT trainer (#PCDATA)>
+   *               ]>
+   *               <bookings export-date="2026-11-04">
+   *                 <copyright>© 2026 HSG. All rights reserved.</copyright>
+   *                 <booking>
+   *                   <id>52</id>
+   *                   <activity>Yoga</activity>
+   *                   <location>Westlake</location>
+   *                   <date>2026-11-10</date>
+   *                   <start_time>09:00</start_time>
+   *                   <end_time>11:00</end_time>
+   *                   <trainer>Yesterianus Kaladana</trainer>
+   *                 </booking>
+   *               </bookings>
+   *       '401':
+   *         description: Not authenticated
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Authentication required - please log in.
+   *       '500':
+   *         description: Server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Failed to generate XML bookings from database.
+   */
+  static async handleDownloadBookingsXML(req, res) {
+    try {
+      const exportDate = DatabaseModel.toMySqlDate(new Date());
+      const year = new Date().getFullYear();
+
+      const bookings = await BookingActivityModel.getByMember(
+        req.authenticatedUser.id,
+      );
+      return res
+        .status(200)
+        .contentType("text/xml")
+        .set("Content-Disposition", `attachment; filename="my-bookings.xml"`)
         .render("xml/my-bookings.xml.ejs", {
           bookings,
           exportDate,

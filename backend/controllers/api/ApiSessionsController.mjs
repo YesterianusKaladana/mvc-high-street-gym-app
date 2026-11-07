@@ -29,6 +29,12 @@ export class ApiSessionsController {
       this.handleExportSessionsXML,
     );
 
+    this.routes.get(
+      "/xml/download",
+      ApiAuthenticationController.restrict(["trainer"]),
+      this.handleDownloadSessionsXML,
+    );
+
     this.routes.put(
       "/trainer/:id",
       ApiAuthenticationController.restrict(["trainer"]),
@@ -380,15 +386,17 @@ export class ApiSessionsController {
    * @openapi
    * /api/session/xml:
    *   get:
-   *     summary: Export trainer sessions as XML 1.0 with DTD
-   *     description: Exports sessions belonging to the authenticated trainer in XML format, including an internal DTD and copyright element.
+   *     summary: Preview trainer sessions as XML 1.0 with DTD
+   *     description: >
+   *       Displays sessions belonging to the authenticated trainer as an XML 1.0
+   *       document including the sessions information.
    *     tags:
    *       - XML
    *     security:
    *       - ApiKey: []
    *     responses:
    *       '200':
-   *         description: XML export displayed as plain text
+   *         description: Successfully generated trainer sessions XML document.
    *         content:
    *           text/plain:
    *             schema:
@@ -396,75 +404,141 @@ export class ApiSessionsController {
    *             example: |
    *               <?xml version="1.0" encoding="UTF-8"?>
    *               <!DOCTYPE sessions [
-   *                 <!ELEMENT sessions (copyright, session*)>
-   *                 <!ATTLIST sessions export-date CDATA #IMPLIED>
-   *                 <!ELEMENT copyright (#PCDATA)>
-   *                 <!ELEMENT session (session_id, activity_name, location_name, trainer_name, date, start_time, end_time, capacity)>
-   *                 <!ELEMENT session_id (#PCDATA)>
-   *                 <!ELEMENT activity_name (#PCDATA)>
-   *                 <!ELEMENT location_name (#PCDATA)>
-   *                 <!ELEMENT trainer_name (#PCDATA)>
-   *                 <!ELEMENT date (#PCDATA)>
-   *                 <!ELEMENT start_time (#PCDATA)>
-   *                 <!ELEMENT end_time (#PCDATA)>
-   *                 <!ELEMENT capacity (#PCDATA)>
+   *                   <!ELEMENT sessions (copyright, session*)>
+   *                   <!ATTLIST sessions export-date CDATA #IMPLIED>
+   *                   <!ELEMENT copyright (#PCDATA)>
+   *                   <!ELEMENT session (session_id, activity_name, location_name, trainer_name, date, start_time, end_time, capacity)>
+   *                   <!ELEMENT session_id (#PCDATA)>
+   *                   <!ELEMENT activity_name (#PCDATA)>
+   *                   <!ELEMENT location_name (#PCDATA)>
+   *                   <!ELEMENT trainer_name (#PCDATA)>
+   *                   <!ELEMENT date (#PCDATA)>
+   *                   <!ELEMENT start_time (#PCDATA)>
+   *                   <!ELEMENT end_time (#PCDATA)>
+   *                   <!ELEMENT capacity (#PCDATA)>
    *               ]>
-   *               <sessions export-date="2026-11-05">
-   *                 <copyright>© 2026 HSG. All rights reserved.</copyright>
-   *                 <session>
-   *                   <session_id>1</session_id>
-   *                   <activity_name>Yoga</activity_name>
-   *                   <location_name>Studio 1</location_name>
-   *                   <trainer_name>Yesterianus Kaladana</trainer_name>
-   *                   <date>2026-11-10</date>
-   *                   <start_time>09:00</start_time>
-   *                   <end_time>10:00</end_time>
-   *                   <capacity>20</capacity>
-   *                 </session>
+   *               <sessions export-date="2026-11-07">
+   *                   <copyright>© 2026 HSG. All rights reserved.</copyright>
+   *                   <session>
+   *                       <session_id>1</session_id>
+   *                       <activity_name>Yoga</activity_name>
+   *                       <location_name>Studio 1</location_name>
+   *                       <trainer_name>Yesterianus Kaladana</trainer_name>
+   *                       <date>2026-11-10</date>
+   *                       <start_time>09:00</start_time>
+   *                       <end_time>10:00</end_time>
+   *                       <capacity>20</capacity>
+   *                   </session>
    *               </sessions>
    *       '401':
-   *         description: Not authenticated
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 message:
-   *                   type: string
-   *                   example: Authentication required - please log in.
+   *         $ref: "#/components/responses/Unauthorized"
    *       '403':
-   *         description: Forbidden - trainer access required
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 message:
-   *                   type: string
-   *                   example: Access denied
+   *         $ref: "#/components/responses/Forbidden"
    *       '500':
-   *         description: Server error
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 message:
-   *                   type: string
-   *                   example: Failed to generate XML sessions from database.
+   *         $ref: "#/components/responses/Error"
    */
   static async handleExportSessionsXML(req, res) {
     try {
+      // Get the current export date and year
       const exportDate = new Date().toISOString().slice(0, 10);
       const year = new Date().getFullYear();
-      const trainerId = req.authenticatedUser.id;
 
+      // Get the authenticated trainer's ID
+      const trainerId = Number(req.authenticatedUser.id);
+
+      // Retrieve only sessions belonging to this trainer
       const trainerSessions = await SessionActivityModel.getByUserId(trainerId);
 
       return res
         .status(200)
         .contentType("text/xml")
         .set("Content-Disposition", `inline; filename="my-sessions.xml"`)
+        .render("xml/my-sessions.xml.ejs", {
+          trainerSessions,
+          exportDate,
+          year,
+        });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        message: "Failed to generate XML sessions from database.",
+      });
+    }
+  }
+
+  /**
+   * @openapi
+   * /api/session/xml/download:
+   *   get:
+   *     summary: Download trainer sessions as XML 1.0 with DTD
+   *     description: >
+   *       Downloads sessions belonging to the authenticated trainer as an XML 1.0
+   *       file.
+   *     tags:
+   *       - XML
+   *     security:
+   *       - ApiKey: []
+   *     responses:
+   *       '200':
+   *         description: Successfully downloaded trainer sessions XML document.
+   *         headers:
+   *           Content-Disposition:
+   *             description: Specifies the XML file download filename.
+   *             schema:
+   *               type: string
+   *               example: attachment; filename="my-sessions.xml"
+   *         content:
+   *           text/plain:
+   *             schema:
+   *               type: string
+   *             example: |
+   *               <?xml version="1.0" encoding="UTF-8"?>
+   *               <!DOCTYPE sessions [
+   *                   <!ELEMENT sessions (copyright, session*)>
+   *                   <!ATTLIST sessions export-date CDATA #IMPLIED>
+   *                   <!ELEMENT copyright (#PCDATA)>
+   *                   <!ELEMENT session (session_id, activity_name, location_name, trainer_name, date, start_time, end_time, capacity)>
+   *                   <!ELEMENT session_id (#PCDATA)>
+   *                   <!ELEMENT activity_name (#PCDATA)>
+   *                   <!ELEMENT location_name (#PCDATA)>
+   *                   <!ELEMENT trainer_name (#PCDATA)>
+   *                   <!ELEMENT date (#PCDATA)>
+   *                   <!ELEMENT start_time (#PCDATA)>
+   *                   <!ELEMENT end_time (#PCDATA)>
+   *                   <!ELEMENT capacity (#PCDATA)>
+   *               ]>
+   *               <sessions export-date="2026-11-07">
+   *                   <copyright>© 2026 HSG. All rights reserved.</copyright>
+   *                   <session>
+   *                       <session_id>1</session_id>
+   *                       <activity_name>Yoga</activity_name>
+   *                       <location_name>Studio 1</location_name>
+   *                       <trainer_name>Yesterianus Kaladana</trainer_name>
+   *                       <date>2026-11-10</date>
+   *                       <start_time>09:00</start_time>
+   *                       <end_time>10:00</end_time>
+   *                       <capacity>20</capacity>
+   *                   </session>
+   *               </sessions>
+   *       '401':
+   *         $ref: "#/components/responses/Unauthorized"
+   *       '403':
+   *         $ref: "#/components/responses/Forbidden"
+   *       '500':
+   *         $ref: "#/components/responses/Error"
+   */
+  static async handleDownloadSessionsXML(req, res) {
+    try {
+      const exportDate = new Date().toISOString().slice(0, 10);
+      const year = new Date().getFullYear();
+      const trainerId = Number(req.authenticatedUser.id);
+
+      const trainerSessions = await SessionActivityModel.getByUserId(trainerId);
+
+      return res
+        .status(200)
+        .contentType("application/xml")
+        .set("Content-Disposition", 'attachment; filename="my-sessions.xml"')
         .render("xml/my-sessions.xml.ejs", {
           trainerSessions,
           exportDate,
