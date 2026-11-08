@@ -36,20 +36,26 @@ function Register() {
     // Check that all form values are valid
     const errors = {};
 
-    if (!/^[a-zA-Z\-'\s]{2,}$/.test(first_name)) {
-      errors.first_name = "Missing or invalid first name";
+    // Validate first name
+    if (!/^[A-Z][a-zA-Z\-'\s]*$/.test(first_name) || first_name.length < 2) {
+      errors.first_name =
+        "First name must start with a capital letter and contain only letters.";
     }
 
-    if (!/^[a-zA-Z\-'\s]{1,}$/.test(lastName)) {
-      errors.lastName = "Missing or invalid last name";
+    // Validate last name
+    if (!/^[A-Z][a-zA-Z\-'\s]*$/.test(lastName)) {
+      errors.lastName =
+        "Last name must start with a capital letter and contain only letters.";
     }
 
+    // Validate email
     if (!validator.isEmail(email)) {
-      errors.email = "Missing or invalid email";
+      errors.email = "Please provide a valid email address.";
     }
 
+    // Validate password
     if (!password || password.length < 4) {
-      errors.password = "Password must be at least 4 characters long";
+      errors.password = "Password must be at least 4 characters long.";
     }
 
     // Display validation errors and stop if any field is invalid
@@ -78,8 +84,21 @@ function Register() {
           setTimeout(() => {
             navigate("/login");
           }, 2000);
+        } else if (response.status === 409) {
+          // Display an error if the email is already registered
+          setStatus(
+            response.body?.message ||
+            "This email is already registered. Please use another email."
+          );
+          setLoading(false);
+        } else if (response.status === 400) {
+          // Display backend validation errors
+          setStatus(
+            response.body?.message || "Please check your registration details."
+          );
+          setLoading(false);
         } else {
-          // Display an error if the backend cannot create the account
+          // Display other registration errors
           setStatus(
             "Failed to create user - " +
             (response.body?.message || "Unknown Error")
@@ -95,17 +114,18 @@ function Register() {
   }, [first_name, lastName, email, password, navigate]);
 
   return (
-    // Centre the registration card on the page
-    <section className="flex justify-center items-center min-h-screen bg-base-200 px-4">
+    // Centre the registration card on all screen sizes
+    <section className="flex justify-center items-center min-h-screen bg-base-200 px-4 py-4">
       <div className="card w-full max-w-md shadow-xl bg-base-100 p-6">
+
         {/* Display the registration page title */}
-        <h1 className="text-2xl font-bold text-center mb-6">
+        <h1 className="text-2xl font-bold text-center mb-8">
           Join High Street Gym
         </h1>
 
         {/* Submit the registration form when the button is clicked */}
         <form
-          className="space-y-4"
+          className="space-y-5"
           onSubmit={(e) => {
             e.preventDefault();
             submitUser();

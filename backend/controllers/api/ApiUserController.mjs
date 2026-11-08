@@ -2,6 +2,7 @@ import express from "express";
 import { ApiAuthenticationController } from "./ApiAuthenticationController.mjs";
 import bcrypt from "bcryptjs";
 import { UserModel } from "../../models/UserModel.mjs";
+import validator from "validator";
 
 export class ApiUserController {
   static routes = express.Router();
@@ -173,12 +174,58 @@ export class ApiUserController {
    *         $ref: "#/components/responses/BadRequest"
    *       401:
    *         $ref: "#/components/responses/Unauthorized"
+   *       409:
+   *         description: Conflict - Email already registered
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: "This email is already registered. Please use another email."
    *       500:
    *         $ref: "#/components/responses/Error"
    */
   static async createNewMember(req, res) {
     try {
       const { firstName, lastName, role, email, password } = req.body;
+
+      // Validate first name
+      if (
+        !firstName ||
+        !/^[A-Z][a-zA-Z\-'\s]*$/.test(firstName) ||
+        firstName.length < 2
+      ) {
+        return res.status(400).json({
+          message:
+            "First name must start with a capital letter and contain only letters.",
+        });
+      }
+
+      // Validate last name
+      if (!lastName || !/^[A-Z][a-zA-Z\-'\s]*$/.test(lastName)) {
+        return res.status(400).json({
+          message:
+            "Last name must start with a capital letter and contain only letters.",
+        });
+      }
+
+      // Validate email
+      if (!email || !validator.isEmail(email)) {
+        return res.status(400).json({
+          message: "Please provide a valid email address.",
+        });
+      }
+
+      // Validate password
+      if (!password || password.length < 4) {
+        return res.status(400).json({
+          message: "Password must be at least 4 characters long.",
+        });
+      }
+
+      // Hash the password
       const hashedPassword = await bcrypt.hash(password, 10);
 
       const user = {
@@ -189,6 +236,7 @@ export class ApiUserController {
         password: hashedPassword,
       };
 
+      // Create the new member
       const result = await UserModel.create(user);
 
       return res.status(201).json({
@@ -196,7 +244,17 @@ export class ApiUserController {
         message: "Member created successfully",
       });
     } catch (error) {
+      // Handle duplicate email
+      if (error.code === "ER_DUP_ENTRY") {
+        return res.status(409).json({
+          message:
+            "This email is already registered. Please use another email.",
+        });
+      }
+
+      // Handle other database errors
       console.error(error);
+
       return res.status(500).json({
         message: "Failed to create user from database.",
       });
