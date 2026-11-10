@@ -133,11 +133,37 @@ export class ApiPostController {
         });
       }
 
+      const { title, content } = req.body.post || {};
+
+      if (typeof title !== "string" || !title.trim()) {
+        return res.status(400).json({
+          message: "Title is required.",
+        });
+      }
+
+      if (!/^[A-Z]/.test(title.trim())) {
+        return res.status(400).json({
+          message: "Title must start with a capital letter.",
+        });
+      }
+
+      if (typeof content !== "string" || !content.trim()) {
+        return res.status(400).json({
+          message: "Content is required.",
+        });
+      }
+
+      if (!/^[A-Z]/.test(content.trim())) {
+        return res.status(400).json({
+          message: "Content must start with a capital letter.",
+        });
+      }
+
       const post = new PostModel(
         null,
         req.authenticatedUser.id,
-        req.body.post.title,
-        req.body.post.content,
+        title.trim(),
+        content.trim(),
       );
 
       const result = await PostModel.create(post);

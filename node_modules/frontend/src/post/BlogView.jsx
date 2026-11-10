@@ -1,7 +1,10 @@
 
 import { useEffect, useState, useCallback } from "react";
+
 import { fetchAPI } from "../api.mjs";
+
 import { FaPlus } from "react-icons/fa";
+
 import { MdDelete } from "react-icons/md";
 
 function BlogView() {
@@ -15,6 +18,10 @@ function BlogView() {
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [isCreating, setIsCreating] = useState(false);
+
+    // Validation error state
+    const [titleError, setTitleError] = useState("");
+    const [contentError, setContentError] = useState("");
 
     const getAuthKey = () => {
         return localStorage.getItem("auth-key");
@@ -112,12 +119,17 @@ function BlogView() {
         setStatus(null);
         setTitle("");
         setContent("");
+        setTitleError("");
+        setContentError("");
         setShowCreate(true);
     };
 
-    // Create post
+    // Create post with validation
     const createPost = () => {
         const authKey = getAuthKey();
+
+        setTitleError("");
+        setContentError("");
 
         if (!authKey) {
             setStatus("Please login to create posts.");
@@ -126,12 +138,22 @@ function BlogView() {
         }
 
         if (!title.trim()) {
-            setStatus("Please enter a title.");
+            setTitleError("Please enter a title.");
+            return;
+        }
+
+        if (!/^[A-Z]/.test(title.trim())) {
+            setTitleError("Title must start with a capital letter.");
             return;
         }
 
         if (!content.trim()) {
-            setStatus("Please enter some content.");
+            setContentError("Please enter some content.");
+            return;
+        }
+
+        if (!/^[A-Z]/.test(content.trim())) {
+            setContentError("Content must start with a capital letter.");
             return;
         }
 
@@ -154,6 +176,8 @@ function BlogView() {
                     setShowCreate(false);
                     setTitle("");
                     setContent("");
+                    setTitleError("");
+                    setContentError("");
                     getPosts();
                 } else {
                     setStatus(response.body?.message || "Failed to create post.");
@@ -256,11 +280,21 @@ function BlogView() {
                             <input
                                 type="text"
                                 value={title}
-                                onChange={(e) => setTitle(e.target.value)}
+                                onChange={(e) => {
+                                    setTitle(e.target.value);
+                                    setTitleError("");
+                                }}
                                 placeholder="Enter post title"
-                                className="input input-bordered w-full"
+                                className={`input input-bordered w-full ${titleError ? "input-error" : ""
+                                    }`}
                                 disabled={isCreating}
                             />
+
+                            {titleError && (
+                                <span className="mt-1 text-xs text-error">
+                                    {titleError}
+                                </span>
+                            )}
                         </div>
 
                         {/* Content */}
@@ -271,11 +305,21 @@ function BlogView() {
 
                             <textarea
                                 value={content}
-                                onChange={(e) => setContent(e.target.value)}
+                                onChange={(e) => {
+                                    setContent(e.target.value);
+                                    setContentError("");
+                                }}
                                 placeholder="Write your post..."
-                                className="textarea textarea-bordered h-40 w-full"
+                                className={`textarea textarea-bordered h-40 w-full ${contentError ? "textarea-error" : ""
+                                    }`}
                                 disabled={isCreating}
                             />
+
+                            {contentError && (
+                                <span className="mt-1 text-xs text-error">
+                                    {contentError}
+                                </span>
+                            )}
                         </div>
 
                         {/* Buttons */}
