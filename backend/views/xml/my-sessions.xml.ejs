@@ -2,11 +2,8 @@
 <!DOCTYPE sessions [
     <!ELEMENT sessions (copyright, session*)>
     <!ATTLIST sessions export-date CDATA #IMPLIED>
-
     <!ELEMENT copyright (#PCDATA)>
-
     <!ELEMENT session (session_id, activity_name, location_name, trainer_name, date, start_time, end_time, capacity)>
-
     <!ELEMENT session_id (#PCDATA)>
     <!ELEMENT activity_name (#PCDATA)>
     <!ELEMENT location_name (#PCDATA)>
@@ -16,10 +13,8 @@
     <!ELEMENT end_time (#PCDATA)>
     <!ELEMENT capacity (#PCDATA)>
 ]>
-
 <sessions export-date="<%= exportDate %>">
     <copyright>© <%= year %> HSG. All rights reserved.</copyright>
-
     <% trainerSessions.forEach((item) => { %>
         <session>
             <session_id><%= item.session.id %></session_id>

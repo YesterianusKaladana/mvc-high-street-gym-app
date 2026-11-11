@@ -2,11 +2,8 @@
 <!DOCTYPE bookings [
     <!ELEMENT bookings (copyright, booking*)>
     <!ATTLIST bookings export-date CDATA #IMPLIED>
-
     <!ELEMENT copyright (#PCDATA)>
-
     <!ELEMENT booking (id, activity, location, date, start_time, end_time, trainer)>
-
     <!ELEMENT id (#PCDATA)>
     <!ELEMENT activity (#PCDATA)>
     <!ELEMENT location (#PCDATA)>
@@ -17,7 +14,6 @@
 ]>
 <bookings export-date="<%= exportDate %>">
     <copyright>© <%= year %> HSG. All rights reserved.</copyright>
-
     <% bookings.forEach((booking) => { %>
         <booking>
             <id><%= booking.id %></id>
