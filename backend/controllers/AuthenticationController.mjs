@@ -319,6 +319,7 @@ export class AuthenticationController {
         return res.status(500).render("status.ejs", {
           status: "Error",
           message: "Logout failed",
+          returnUrl: "/authenticate",
         });
       }
 
@@ -345,6 +346,7 @@ export class AuthenticationController {
         return res.status(401).render("status.ejs", {
           status: "Login Required",
           message: "Please login first",
+          returnUrl: "/authenticate",
         });
       }
 
@@ -352,6 +354,7 @@ export class AuthenticationController {
         return res.status(403).render("status.ejs", {
           status: "Access Denied",
           message: "Invalid user role",
+          returnUrl: "/authenticate",
         });
       }
 
@@ -363,6 +366,7 @@ export class AuthenticationController {
         return res.status(403).render("status.ejs", {
           status: "Access Denied",
           message: "You do not have permission",
+          returnUrl: "/authenticate/dashboard",
         });
       }
 
