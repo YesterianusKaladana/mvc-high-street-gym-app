@@ -163,6 +163,7 @@ export class SessionActivityModel extends DatabaseModel {
     let query = `
       SELECT
         session.id,
+        session.user_id,
         session.activity_id,
         session.location_id,
         session.date,
@@ -204,6 +205,7 @@ export class SessionActivityModel extends DatabaseModel {
 
     return rows.map((row) => ({
       session_id: row.session.id,
+      session_user_id: row.session.user_id,
       activity_id: row.session.activity_id,
       location_id: row.session.location_id,
       activity_name: row.activity.name,

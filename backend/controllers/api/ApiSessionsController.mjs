@@ -2,26 +2,12 @@ import express from "express";
 import { ApiAuthenticationController } from "./ApiAuthenticationController.mjs";
 import { SessionModel } from "../../models/SessionModel.mjs";
 import { SessionActivityModel } from "../../models/SessionActivityModel.mjs";
-import { ActivityModel } from "../../models/ActivityModel.mjs";
-import { LocationModel } from "../../models/LocationModel.mjs";
 
 export class ApiSessionsController {
   static routes = express.Router();
 
   static {
     this.routes.get("/", this.getAllSessions);
-
-    this.routes.get(
-      "/trainer",
-      ApiAuthenticationController.restrict(["trainer"]),
-      this.getAllTrainerSessions,
-    );
-
-    this.routes.post(
-      "/trainer",
-      ApiAuthenticationController.restrict(["trainer"]),
-      this.createTrainerSession,
-    );
 
     this.routes.get(
       "/xml",
@@ -35,16 +21,10 @@ export class ApiSessionsController {
       this.handleDownloadSessionsXML,
     );
 
-    this.routes.put(
-      "/trainer/:id",
-      ApiAuthenticationController.restrict(["trainer"]),
-      this.updateTrainerSessions,
-    );
-
     this.routes.delete(
-      "/trainer/:id",
+      "/:id",
       ApiAuthenticationController.restrict(["trainer"]),
-      this.deleteTrainerSessions,
+      this.cancelSession,
     );
 
     this.routes.get("/:id", this.getAllSessionsById);
@@ -82,11 +62,14 @@ export class ApiSessionsController {
    */
   static async getAllSessions(req, res) {
     try {
+      // Retrieve the optional filter query parameter
       const { filter } = req.query;
       const sessions = await SessionActivityModel.getAllWithDetails(filter);
 
+      // Format the sessions to match the expected response structure
       const formattedSessions = sessions.map((item) => ({
         session_id: item.session_id,
+        session_user_id: item.session_user_id,
         activity_id: item.activity_id,
         location_id: item.location_id,
         activity_name: item.activity_name,
@@ -176,214 +159,6 @@ export class ApiSessionsController {
 
   /**
    * @openapi
-   * /api/session/trainer:
-   *   get:
-   *     summary: Get all trainer sessions
-   *     description: Returns sessions belonging to the authenticated trainer.
-   *     tags:
-   *       - Session
-   *     security:
-   *       - ApiKey: []
-   *     responses:
-   *       '200':
-   *         description: Successfully retrieved trainer sessions
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: array
-   *               items:
-   *                 $ref: "#/components/schemas/Session"
-   *       '400':
-   *         $ref: "#/components/responses/BadRequest"
-   *       '401':
-   *         $ref: "#/components/responses/Unauthorized"
-   *       '403':
-   *         $ref: "#/components/responses/Forbidden"
-   *       '404':
-   *         description: Trainer sessions not found
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 message:
-   *                   type: string
-   *       '500':
-   *         $ref: "#/components/responses/Error"
-   */
-  static async getAllTrainerSessions(req, res) {
-    try {
-      const trainerId = req.authenticatedUser.id;
-      const sessions = await SessionActivityModel.getByUserId(trainerId);
-
-      const formattedSessions = sessions.map((item) => ({
-        session_id: item.session.id,
-        activity_id: item.session.activity_id,
-        location_id: item.session.location_id,
-        activity_name: item.activity.name,
-        location_name: item.location.name,
-        trainer_name: `${item.user.firstName} ${item.user.lastName}`,
-        date: item.session.date,
-        start_time: item.session.start_time?.substring(0, 5),
-        end_time: item.session.end_time?.substring(0, 5),
-        capacity: item.session.capacity,
-      }));
-
-      return res.status(200).json(formattedSessions);
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({
-        message: "Failed to load trainer sessions from database.",
-      });
-    }
-  }
-
-  /**
-   * @openapi
-   * /api/session/trainer:
-   *   post:
-   *     summary: Create a new session
-   *     description: Creates a new gym session for the authenticated trainer.
-   *     tags:
-   *       - Session
-   *     security:
-   *       - ApiKey: []
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required:
-   *               - activity_id
-   *               - location_id
-   *               - date
-   *               - start_time
-   *               - end_time
-   *               - capacity
-   *             properties:
-   *               activity_id:
-   *                 type: integer
-   *                 example: 1
-   *               location_id:
-   *                 type: integer
-   *                 example: 1
-   *               date:
-   *                 type: string
-   *                 format: date
-   *                 example: 2023-10-15
-   *               start_time:
-   *                 type: string
-   *                 example: 09:00
-   *               end_time:
-   *                 type: string
-   *                 example: 10:00
-   *               capacity:
-   *                 type: integer
-   *                 minimum: 1
-   *                 example: 2
-   *     responses:
-   *       '201':
-   *         $ref: "#/components/responses/Created"
-   *       '400':
-   *         $ref: "#/components/responses/BadRequest"
-   *       '401':
-   *         $ref: "#/components/responses/Unauthorized"
-   *       '403':
-   *         $ref: "#/components/responses/Forbidden"
-   *       '500':
-   *         $ref: "#/components/responses/Error"
-   */
-  static async createTrainerSession(req, res) {
-    try {
-      if (!req.authenticatedUser) {
-        return res.status(401).json({
-          message: "Please log in first.",
-        });
-      }
-
-      const { activity_id, location_id, date, start_time, end_time, capacity } =
-        req.body;
-
-      if (
-        !activity_id ||
-        !location_id ||
-        !date ||
-        !start_time ||
-        !end_time ||
-        capacity === undefined ||
-        capacity === ""
-      ) {
-        return res.status(400).json({
-          message: "Please complete all session fields.",
-        });
-      }
-
-      if (
-        !Number.isInteger(Number(activity_id)) ||
-        !Number.isInteger(Number(location_id))
-      ) {
-        return res.status(400).json({
-          message: "Please select a valid activity and location.",
-        });
-      }
-
-      if (!Number.isInteger(Number(capacity)) || Number(capacity) < 1) {
-        return res.status(400).json({
-          message: "Capacity must be a positive whole number.",
-        });
-      }
-
-      if (end_time <= start_time) {
-        return res.status(400).json({
-          message: "End time must be after start time.",
-        });
-      }
-
-      const sessionDateTime = new Date(`${date}T${start_time}`);
-
-      if (
-        Number.isNaN(sessionDateTime.getTime()) ||
-        sessionDateTime <= new Date()
-      ) {
-        return res.status(400).json({
-          message: "The session must start in the future.",
-        });
-      }
-
-      const activity = await ActivityModel.getById(Number(activity_id));
-      const location = await LocationModel.getById(Number(location_id));
-
-      if (!activity || !location) {
-        return res.status(400).json({
-          message: "The selected activity or location does not exist.",
-        });
-      }
-
-      const newSession = await SessionModel.create({
-        user_id: req.authenticatedUser.id,
-        activity_id: Number(activity_id),
-        location_id: Number(location_id),
-        date,
-        start_time,
-        end_time,
-        capacity: Number(capacity),
-      });
-
-      return res.status(201).json({
-        message: "Session created successfully.",
-        session: newSession,
-      });
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({
-        message: "Failed to create session.",
-      });
-    }
-  }
-
-  /**
-   * @openapi
    * /api/session/xml:
    *   get:
    *     summary: Preview trainer sessions as XML 1.0 with DTD
@@ -401,35 +176,35 @@ export class ApiSessionsController {
    *           text/plain:
    *             schema:
    *               type: string
-   *             example: |
-   *               <?xml version="1.0" encoding="UTF-8"?>
-   *               <!DOCTYPE sessions [
-   *                   <!ELEMENT sessions (copyright, session*)>
-   *                   <!ATTLIST sessions export-date CDATA #IMPLIED>
-   *                   <!ELEMENT copyright (#PCDATA)>
-   *                   <!ELEMENT session (session_id, activity_name, location_name, trainer_name, date, start_time, end_time, capacity)>
-   *                   <!ELEMENT session_id (#PCDATA)>
-   *                   <!ELEMENT activity_name (#PCDATA)>
-   *                   <!ELEMENT location_name (#PCDATA)>
-   *                   <!ELEMENT trainer_name (#PCDATA)>
-   *                   <!ELEMENT date (#PCDATA)>
-   *                   <!ELEMENT start_time (#PCDATA)>
-   *                   <!ELEMENT end_time (#PCDATA)>
-   *                   <!ELEMENT capacity (#PCDATA)>
-   *               ]>
-   *               <sessions export-date="2026-11-07">
-   *                   <copyright>© 2026 HSG. All rights reserved.</copyright>
-   *                   <session>
-   *                       <session_id>1</session_id>
-   *                       <activity_name>Yoga</activity_name>
-   *                       <location_name>Studio 1</location_name>
-   *                       <trainer_name>Yesterianus Kaladana</trainer_name>
-   *                       <date>2026-11-10</date>
-   *                       <start_time>09:00</start_time>
-   *                       <end_time>10:00</end_time>
-   *                       <capacity>20</capacity>
-   *                   </session>
-   *               </sessions>
+   *               example: |
+   *                 <?xml version="1.0" encoding="UTF-8"?>
+   *                 <!DOCTYPE sessions [
+   *                     <!ELEMENT sessions (copyright, session*)>
+   *                     <!ATTLIST sessions export-date CDATA #IMPLIED>
+   *                     <!ELEMENT copyright (#PCDATA)>
+   *                     <!ELEMENT session (session_id, activity_name, location_name, trainer_name, date, start_time, end_time, capacity)>
+   *                     <!ELEMENT session_id (#PCDATA)>
+   *                     <!ELEMENT activity_name (#PCDATA)>
+   *                     <!ELEMENT location_name (#PCDATA)>
+   *                     <!ELEMENT trainer_name (#PCDATA)>
+   *                     <!ELEMENT date (#PCDATA)>
+   *                     <!ELEMENT start_time (#PCDATA)>
+   *                     <!ELEMENT end_time (#PCDATA)>
+   *                     <!ELEMENT capacity (#PCDATA)>
+   *                 ]>
+   *                 <sessions export-date="2026-11-07">
+   *                     <copyright>© 2026 HSG. All rights reserved.</copyright>
+   *                     <session>
+   *                         <session_id>1</session_id>
+   *                         <activity_name>Yoga</activity_name>
+   *                         <location_name>Studio 1</location_name>
+   *                         <trainer_name>Yesterianus Kaladana</trainer_name>
+   *                         <date>2026-11-10</date>
+   *                         <start_time>09:00</start_time>
+   *                         <end_time>10:00</end_time>
+   *                         <capacity>20</capacity>
+   *                     </session>
+   *                 </sessions>
    *       '401':
    *         $ref: "#/components/responses/Unauthorized"
    *       '403':
@@ -491,35 +266,35 @@ export class ApiSessionsController {
    *           text/plain:
    *             schema:
    *               type: string
-   *             example: |
-   *               <?xml version="1.0" encoding="UTF-8"?>
-   *               <!DOCTYPE sessions [
-   *                   <!ELEMENT sessions (copyright, session*)>
-   *                   <!ATTLIST sessions export-date CDATA #IMPLIED>
-   *                   <!ELEMENT copyright (#PCDATA)>
-   *                   <!ELEMENT session (session_id, activity_name, location_name, trainer_name, date, start_time, end_time, capacity)>
-   *                   <!ELEMENT session_id (#PCDATA)>
-   *                   <!ELEMENT activity_name (#PCDATA)>
-   *                   <!ELEMENT location_name (#PCDATA)>
-   *                   <!ELEMENT trainer_name (#PCDATA)>
-   *                   <!ELEMENT date (#PCDATA)>
-   *                   <!ELEMENT start_time (#PCDATA)>
-   *                   <!ELEMENT end_time (#PCDATA)>
-   *                   <!ELEMENT capacity (#PCDATA)>
-   *               ]>
-   *               <sessions export-date="2026-11-07">
-   *                   <copyright>© 2026 HSG. All rights reserved.</copyright>
-   *                   <session>
-   *                       <session_id>1</session_id>
-   *                       <activity_name>Yoga</activity_name>
-   *                       <location_name>Studio 1</location_name>
-   *                       <trainer_name>Yesterianus Kaladana</trainer_name>
-   *                       <date>2026-11-10</date>
-   *                       <start_time>09:00</start_time>
-   *                       <end_time>10:00</end_time>
-   *                       <capacity>20</capacity>
-   *                   </session>
-   *               </sessions>
+   *               example: |
+   *                 <?xml version="1.0" encoding="UTF-8"?>
+   *                 <!DOCTYPE sessions [
+   *                     <!ELEMENT sessions (copyright, session*)>
+   *                     <!ATTLIST sessions export-date CDATA #IMPLIED>
+   *                     <!ELEMENT copyright (#PCDATA)>
+   *                     <!ELEMENT session (session_id, activity_name, location_name, trainer_name, date, start_time, end_time, capacity)>
+   *                     <!ELEMENT session_id (#PCDATA)>
+   *                     <!ELEMENT activity_name (#PCDATA)>
+   *                     <!ELEMENT location_name (#PCDATA)>
+   *                     <!ELEMENT trainer_name (#PCDATA)>
+   *                     <!ELEMENT date (#PCDATA)>
+   *                     <!ELEMENT start_time (#PCDATA)>
+   *                     <!ELEMENT end_time (#PCDATA)>
+   *                     <!ELEMENT capacity (#PCDATA)>
+   *                 ]>
+   *                 <sessions export-date="2026-11-07">
+   *                     <copyright>© 2026 HSG. All rights reserved.</copyright>
+   *                     <session>
+   *                         <session_id>1</session_id>
+   *                         <activity_name>Yoga</activity_name>
+   *                         <location_name>Studio 1</location_name>
+   *                         <trainer_name>Yesterianus Kaladana</trainer_name>
+   *                         <date>2026-11-10</date>
+   *                         <start_time>09:00</start_time>
+   *                         <end_time>10:00</end_time>
+   *                         <capacity>20</capacity>
+   *                     </session>
+   *                 </sessions>
    *       '401':
    *         $ref: "#/components/responses/Unauthorized"
    *       '403':
@@ -554,207 +329,10 @@ export class ApiSessionsController {
 
   /**
    * @openapi
-   * /api/session/trainer/{id}:
-   *   put:
-   *     summary: Update a trainer session by ID
-   *     description: Updates a session owned by the authenticated trainer.
-   *     tags:
-   *       - Session
-   *     security:
-   *       - ApiKey: []
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: integer
-   *           minimum: 1
-   *         description: Session ID
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required:
-   *               - activity_id
-   *               - location_id
-   *               - date
-   *               - start_time
-   *               - end_time
-   *               - capacity
-   *             properties:
-   *               activity_id:
-   *                 type: integer
-   *               location_id:
-   *                 type: integer
-   *               date:
-   *                 type: string
-   *                 format: date
-   *               start_time:
-   *                 type: string
-   *               end_time:
-   *                 type: string
-   *               capacity:
-   *                 type: integer
-   *                 minimum: 1
-   *     responses:
-   *       '200':
-   *         description: Session updated successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               required:
-   *                 - message
-   *               properties:
-   *                 message:
-   *                   type: string
-   *                   example: Session updated successfully.
-   *       '400':
-   *         description: Invalid session details
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               required:
-   *                 - message
-   *               properties:
-   *                 message:
-   *                   type: string
-   *       '401':
-   *         $ref: "#/components/responses/Unauthorized"
-   *       '403':
-   *         $ref: "#/components/responses/Forbidden"
-   *       '404':
-   *         $ref: "#/components/responses/NotFound"
-   *       '500':
-   *         description: Failed to update session
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               required:
-   *                 - message
-   *                 - error
-   *               properties:
-   *                 message:
-   *                   type: string
-   *                 error:
-   *                   type: string
-   */
-  static async updateTrainerSessions(req, res) {
-    try {
-      const id = Number(req.params.id);
-
-      if (!Number.isInteger(id) || id < 1) {
-        return res.status(400).json({
-          message: "Invalid session ID.",
-        });
-      }
-
-      const existingSession = await SessionModel.getById(id);
-
-      if (!existingSession) {
-        return res.status(404).json({
-          message: "Session not found.",
-        });
-      }
-
-      if (
-        Number(existingSession.user_id) !== Number(req.authenticatedUser.id)
-      ) {
-        return res.status(403).json({
-          message: "You can only edit your own sessions.",
-        });
-      }
-
-      const { activity_id, location_id, date, start_time, end_time, capacity } =
-        req.body;
-
-      if (
-        !activity_id ||
-        !location_id ||
-        !date ||
-        !start_time ||
-        !end_time ||
-        capacity === undefined ||
-        capacity === ""
-      ) {
-        return res.status(400).json({
-          message: "Please complete all session fields.",
-        });
-      }
-
-      if (
-        !Number.isInteger(Number(activity_id)) ||
-        !Number.isInteger(Number(location_id))
-      ) {
-        return res.status(400).json({
-          message: "Please select a valid activity and location.",
-        });
-      }
-
-      if (!Number.isInteger(Number(capacity)) || Number(capacity) < 1) {
-        return res.status(400).json({
-          message: "Capacity must be a positive whole number.",
-        });
-      }
-
-      if (end_time <= start_time) {
-        return res.status(400).json({
-          message: "End time must be after start time.",
-        });
-      }
-
-      const sessionDateTime = new Date(`${date}T${start_time}`);
-
-      if (
-        Number.isNaN(sessionDateTime.getTime()) ||
-        sessionDateTime <= new Date()
-      ) {
-        return res.status(400).json({
-          message: "The session must start in the future.",
-        });
-      }
-
-      const activity = await ActivityModel.getById(Number(activity_id));
-      const location = await LocationModel.getById(Number(location_id));
-
-      if (!activity || !location) {
-        return res.status(400).json({
-          message: "The selected activity or location does not exist.",
-        });
-      }
-
-      await SessionModel.update({
-        id,
-        user_id: existingSession.user_id,
-        activity_id: Number(activity_id),
-        location_id: Number(location_id),
-        date,
-        start_time,
-        end_time,
-        capacity: Number(capacity),
-      });
-
-      return res.status(200).json({
-        message: "Session updated successfully.",
-      });
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({
-        message: "Failed to update session from database.",
-      });
-    }
-  }
-
-  /**
-   * @openapi
-   * /api/session/trainer/{id}:
+   * /api/session/{id}:
    *   delete:
-   *     summary: Delete a trainer session by ID
-   *     description: Deletes a session owned by the authenticated trainer.
+   *     summary: Cancel a trainer session by ID
+   *     description: Cancels a session owned by the authenticated trainer.
    *     tags:
    *       - Session
    *     security:
@@ -769,7 +347,7 @@ export class ApiSessionsController {
    *         description: Session ID
    *     responses:
    *       '200':
-   *         description: Session deleted successfully
+   *         description: Session cancelled successfully
    *         content:
    *           application/json:
    *             schema:
@@ -779,7 +357,7 @@ export class ApiSessionsController {
    *               properties:
    *                 message:
    *                   type: string
-   *                   example: Session deleted successfully.
+   *                   example: Session cancelled successfully.
    *       '400':
    *         description: Invalid session ID
    *         content:
@@ -798,21 +376,18 @@ export class ApiSessionsController {
    *       '404':
    *         $ref: "#/components/responses/NotFound"
    *       '500':
-   *         description: Failed to delete session
+   *         description: Failed to cancel session
    *         content:
    *           application/json:
    *             schema:
    *               type: object
    *               required:
    *                 - message
-   *                 - error
    *               properties:
    *                 message:
    *                   type: string
-   *                 error:
-   *                   type: string
    */
-  static async deleteTrainerSessions(req, res) {
+  static async cancelSession(req, res) {
     try {
       const id = Number(req.params.id);
 
@@ -832,19 +407,19 @@ export class ApiSessionsController {
 
       if (Number(session.user_id) !== Number(req.authenticatedUser.id)) {
         return res.status(403).json({
-          message: "You can only delete your own sessions.",
+          message: "You can only cancel your own sessions.",
         });
       }
 
       await SessionModel.delete(id);
 
       return res.status(200).json({
-        message: "Session deleted successfully.",
+        message: "Session cancelled successfully.",
       });
     } catch (error) {
       console.error(error);
       return res.status(500).json({
-        message: "Failed to delete session from database.",
+        message: "Failed to cancel session from database.",
       });
     }
   }

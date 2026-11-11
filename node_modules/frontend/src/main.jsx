@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import { AuthenticationProvider } from './authentication/UseAuthenticate';
-import { createBrowserRouter, RouterProvider } from 'react-router';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router';
 import Layout from './common/Layout'
 import LoginView from './authentication/LoginView'
 import Register from './authentication/Register'
@@ -10,7 +10,6 @@ import BookingView from './booking/BookingView';
 import BlogView from './post/BlogView';
 import ProfileView from './profile/ProfileView';
 import TimetableView from './timetable/TimetableView';
-import SessionManagementView from './sessions/SessionManagementView';
 
 const router = createBrowserRouter([
   {
@@ -43,10 +42,6 @@ const router = createBrowserRouter([
       {
         path: "/user/self",
         Component: ProfileView
-      },
-      {
-        path: "/timetable/sessions",
-        Component: SessionManagementView
       },
     ]
   }

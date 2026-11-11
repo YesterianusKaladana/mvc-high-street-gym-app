@@ -19,9 +19,8 @@ function Layout() {
     const isMember = user?.role === "member";
 
     // Check whether the timetable dock item is active
-    const isTimetableActive = isTrainer
-        ? location.pathname === "/timetable/sessions"
-        : location.pathname === "/timetable" ||
+    const isTimetableActive =
+        location.pathname === "/timetable" ||
         location.pathname === "/";
 
     return (
@@ -76,9 +75,7 @@ function Layout() {
             <nav className="dock fixed bottom-0 left-1/2 z-50 w-full max-w-[430px] -translate-x-1/2 gap-2.5">
                 <button
                     type="button"
-                    onClick={() =>
-                        navigate(isTrainer ? "/timetable/sessions" : "/timetable")
-                    }
+                    onClick={() => navigate("/timetable")}
                     className={isTimetableActive ? "dock-active" : ""}
                     aria-current={isTimetableActive ? "page" : undefined}
                 >
