@@ -13,10 +13,10 @@ import { ApiController } from "./controllers/api/ApiController.mjs";
 const app = express();
 const port = 8080;
 
-// Configure CORS to allow requests from the React frontend
+// Configure Cross-Origin Resource Sharing (CORS) to allow requests from the React frontend
 const corsOptions = {
   // Allow requests from the frontend running on localhost:5173
-  origin: "http://localhost:5173",
+  origin: "http://localhost:5173 ",
 
   // Allow the specified HTTP methods
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
