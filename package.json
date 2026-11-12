@@ -1,11 +1,11 @@
 {
-  "name": "minute-coffee-inclass-26",
+  "name": "mvc-high-street-gym-app",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Yesterianus Kaladana(473009920)",
   "license": "ISC",
   "description": "",
   "workspaces": [

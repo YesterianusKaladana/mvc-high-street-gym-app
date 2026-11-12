@@ -8,7 +8,7 @@
     "start": "node server.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Yesterianus Kaladana(473009920)",
   "license": "ISC",
   "description": "",
   "dependencies": {
