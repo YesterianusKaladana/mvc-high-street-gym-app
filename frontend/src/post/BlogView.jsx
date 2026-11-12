@@ -1,10 +1,6 @@
-
 import { useEffect, useState, useCallback } from "react";
-
 import { fetchAPI } from "../api.mjs";
-
 import { FaPlus } from "react-icons/fa";
-
 import { MdDelete } from "react-icons/md";
 
 function BlogView() {
