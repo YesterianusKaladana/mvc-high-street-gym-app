@@ -1,14 +1,12 @@
+
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { fetchAPI } from "../api.mjs";
 import { useAuthenticate } from "../authentication/UseAuthenticate";
 
 function BookingView() {
-  // Navigate is used to redirect the user to another page.
   const navigate = useNavigate();
-
-  // Get the authenticated user and their role.
-  const { user, status } = useAuthenticate(["member"]);
+  useAuthenticate(["member"]);
 
   const [bookings, setBookings] = useState([]);
   const [error, setError] = useState(null);
@@ -27,19 +25,10 @@ function BookingView() {
     setIsLoading(true);
     setError(null);
 
-    console.log("Getting bookings...");
-
     fetchAPI("GET", "/booking", null, authKey)
       .then((response) => {
-        console.log("Booking response:", response);
-
         if (response.status == 200) {
-          if (Array.isArray(response.body)) {
-            setBookings(response.body);
-          } else {
-            setBookings([]);
-            setError("Booking response is not an array.");
-          }
+          setBookings(Array.isArray(response.body) ? response.body : []);
         } else {
           setBookings([]);
           setError(response.body?.message || "Failed to load bookings.");
@@ -48,8 +37,7 @@ function BookingView() {
         setIsLoading(false);
       })
       .catch((err) => {
-        console.error("Booking error:", err);
-        setError(err.message || String(err));
+        setError(err.message);
         setBookings([]);
         setIsLoading(false);
       });
@@ -81,8 +69,7 @@ function BookingView() {
         setCancelling(null);
       })
       .catch((err) => {
-        console.error("Cancel booking error:", err);
-        setError(err.message || String(err));
+        setError(err.message);
         setCancelling(null);
       });
   };
@@ -105,17 +92,13 @@ function BookingView() {
             <li key={booking.id} className="list-row">
               <div>
                 <div className="font-bold">{booking.activity_name}</div>
-
                 <div className="text-sm">{booking.location_name}</div>
-
                 <div className="text-sm opacity-70">
                   {booking.date} ({booking.weekday})
                 </div>
-
                 <div className="text-sm opacity-70">
                   {booking.start_time} - {booking.end_time}
                 </div>
-
                 <div className="text-sm opacity-70">
                   Trainer: {booking.trainer_name}
                 </div>
