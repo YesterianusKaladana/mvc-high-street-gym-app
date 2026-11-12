@@ -24,6 +24,10 @@ const router = createBrowserRouter([
         Component: TimetableView,
       },
       {
+        path: "/timetable/sessions",
+        element: <Navigate to="/timetable" replace />,
+      },
+      {
         path: "/login",
         Component: LoginView
       },
