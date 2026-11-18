@@ -334,7 +334,7 @@ export class ApiUserController {
    * /api/user/self:
    *   patch:
    *     summary: Update personal information
-   *     description: Updates the authenticated user's personal information.
+   *     description: Updates one or more personal information fields of the authenticated user.
    *     tags:
    *       - User
    *     security:
@@ -345,10 +345,7 @@ export class ApiUserController {
    *         application/json:
    *           schema:
    *             type: object
-   *             required:
-   *               - firstName
-   *               - lastName
-   *               - email
+   *             minProperties: 1
    *             properties:
    *               firstName:
    *                 type: string
@@ -374,23 +371,49 @@ export class ApiUserController {
    */
   static async UserPersonalInformation(req, res) {
     try {
-      const user = req.authenticatedUser;
-      const targetUserId = user.id;
-
+      const targetUserId = req.authenticatedUser.id;
       const { firstName, lastName, email } = req.body;
-
-      if (!firstName?.trim() || !lastName?.trim() || !email?.trim()) {
-        return res.status(400).json({
-          message: "First name, last name and email are required",
-        });
-      }
 
       const updateData = {
         id: targetUserId,
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        email: email.trim(),
       };
+
+      // Validate and add first name if provided
+      if (firstName !== undefined) {
+        if (typeof firstName !== "string" || !firstName.trim()) {
+          return res.status(400).json({
+            message: "First name must be a non-empty string",
+          });
+        }
+        updateData.firstName = firstName.trim();
+      }
+
+      // Validate and add last name if provided
+      if (lastName !== undefined) {
+        if (typeof lastName !== "string" || !lastName.trim()) {
+          return res.status(400).json({
+            message: "Last name must be a non-empty string",
+          });
+        }
+        updateData.lastName = lastName.trim();
+      }
+
+      // Validate and add email if provided
+      if (email !== undefined) {
+        if (typeof email !== "string" || !email.trim()) {
+          return res.status(400).json({
+            message: "Email must be a non-empty string",
+          });
+        }
+        updateData.email = email.trim();
+      }
+
+      // Check whether at least one field was provided
+      if (Object.keys(updateData).length === 1) {
+        return res.status(400).json({
+          message: "At least one field is required to update",
+        });
+      }
 
       const result = await UserModel.updatePersonalInformation(updateData);
 

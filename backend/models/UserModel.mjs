@@ -200,22 +200,45 @@ export class UserModel extends DatabaseModel {
   }
 
   /**
-   * Updates a user's personal information (first name, last name, email).
-   * @param {UserModel} user
+   * Updates a user's personal information.
+   * Only the supplied fields will be updated.
+   *
+   * @param {object} user
    * @returns {Promise<any>}
    */
   static async updatePersonalInformation(user) {
+    const fields = [];
+    const values = [];
+
+    if (user.firstName !== undefined) {
+      fields.push("first_name = ?");
+      values.push(user.firstName);
+    }
+
+    if (user.lastName !== undefined) {
+      fields.push("last_name = ?");
+      values.push(user.lastName);
+    }
+
+    if (user.email !== undefined) {
+      fields.push("email = ?");
+      values.push(user.email);
+    }
+
+    if (fields.length === 0) {
+      return null;
+    }
+
+    values.push(user.id);
+
     return this.query(
       `
         UPDATE user
-        SET
-            first_name = ?,
-            last_name = ?,
-            email = ?
+        SET ${fields.join(", ")}
         WHERE id = ?
         AND deleted = 0
-        `,
-      [user.firstName, user.lastName, user.email, user.id],
+      `,
+      values,
     );
   }
 
